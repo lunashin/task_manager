@@ -3,12 +3,9 @@
 //---------------------------------------
 
 
-
-
 //---------------------------------------
 // Event
 //---------------------------------------
-
 // Double Click Event
 document.getElementById("stock_list").addEventListener("dblclick", move_today_item);
 document.getElementById("todays_list").addEventListener("dblclick", done_item);
@@ -42,6 +39,8 @@ document.getElementById("undo").addEventListener("click", undo_item);
 document.getElementById("copy_now_json").addEventListener("click", copy_now_json);
 document.getElementById("download_now_json").addEventListener("click", download_now_json);
 document.getElementById("import_mail_flag").addEventListener("click", read_mail_flag);
+document.getElementById("import_todays_meeting").addEventListener("click", read_todays_meeting);
+document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
 
 // Popup
 document.getElementById("popup_edit_form").addEventListener("submit", submit_edit_popup);
@@ -109,6 +108,89 @@ var timeline = null;
 // 表示する日付範囲
 const past_days = 2;
 const post_days = 14;
+
+// ファイル名
+const g_mail_flag = 'mail_flag.js';
+const g_meeting_script = 'timeline_tasks.js';
+
+
+
+
+//---------------------------------------
+// Key Event
+//---------------------------------------
+
+// All List
+function keyhandler_stock_list(event) {
+  const keyCode = event.keyCode;
+
+  // right key
+  if (keyCode === key_arrow_right) {
+    move_today_item();
+  }
+  // c key
+  if (keyCode === key_c) {
+    copy_selected_item_name('stock_list');
+  }
+  // ctrl + d key
+  if (keyCode === key_d) {
+    event.preventDefault(); // d は既定の動作をキャンセル
+    remove_item();
+  }
+  // Space key
+  if (keyCode === key_space) {
+    if (g_show_popup) {
+      close_edit_popup();
+    } else {
+      show_edit_popup();
+    }
+  }
+}
+
+// Today List
+function keyhandler_todays_list(event) {
+  const keyCode = event.keyCode;
+
+  // right key
+  if (keyCode === key_arrow_right) {
+    done_item();
+  }
+  // left key
+  if (keyCode === key_arrow_left) {
+    remove_today_item();
+  }
+  // f key
+  if (keyCode === key_f) {
+    toggle_todays_first_task();
+  }
+  // c key
+  if (keyCode === key_c) {
+    copy_selected_item_name('todays_list');
+  }
+}
+
+// After List
+function keyhandler_done_list(event) {
+  const keyCode = event.keyCode;
+
+  // right key
+  if (keyCode === key_arrow_right) {
+  } else if (keyCode === key_arrow_left) {
+    return_item();   
+  }
+}
+
+// Edit Popup
+function keyhandler_edit_popup(event) {
+  const keyCode = event.keyCode;
+
+  // Esc key
+  if (keyCode === key_esc) {
+    close_edit_popup();
+  }
+}
+
+
 
 
 
@@ -197,26 +279,122 @@ function convert_internal_data(input) {
  * フラグメール情報を取り込み ('メール'グループへ追加)
  */
 function read_mail_flag() {
-  if (mail_flag === undefined) {
-    return;
-  }
-
-  // 追加先グループ取得
-  let group = getInternalFromName('メール');
-  if (group === null) {
-    return;
-  }
-
-  // タスクを追加
-  let titles = [];
-  for (let i =0; i < mail_flag.length; i++) {
-    titles.push(`(${mail_flag[i].receive_date}) ${mail_flag[i].title}`);
-  }
-  pushHistory();
-  addIntarnalDataEx2(group.id, titles, true);
-
-  update_list();
+  // スクリプト読み込み
+  load_script(
+    g_mail_flag, 
+    function() {
+      if (mail_flag === undefined) {
+        return;
+      }
+    
+      // 追加先グループ取得
+      const group_name = 'メール';
+      let group = getInternalFromName(group_name);
+      if (group === null) {
+        // グループがなければ追加
+        group = makeInternalGroup(group_name, '');
+        g_list_data[group_name] = group;
+      }
+    
+      // タスクを追加
+      let titles = [];
+      for (let i =0; i < mail_flag.length; i++) {
+        titles.push(`(${mail_flag[i].receive_date}) ${mail_flag[i].title}`);
+      }
+      // タスクリストへ追加
+      pushHistory();
+      addIntarnalDataEx2(group.id, titles, true);
+      update_list();
+    
+      // 選択
+      set_select("stock_list", group.id);
+    }
+  );
 }
+
+/**
+ * @summary 今日の会議予定を取り込み
+ */
+function read_todays_meeting() {
+  read_meeting(new Date());
+}
+/**
+ * @summary 明日の会議予定を取り込み
+ */
+function read_tomorrows_meeting() {
+  read_meeting(addDays(new Date(), 1, true));
+}
+
+/**
+ * @summary 指定日の会議予定を取り込み(from timeline_tasks.js)
+ * @param 指定日(Date)
+ */
+function read_meeting(target_d) {
+  // スクリプト読み込み
+  load_script(
+    g_meeting_script, 
+    function() {
+      if (schedules === undefined) {
+        return;
+      }
+      let meeting_list = get_meeting_text(schedules, target_d);
+      if (meeting_list.length <= 0) {
+        return;
+      }
+    
+      // 追加先グループ取得
+      const group_name = '会議';
+      let group = getInternalFromName(group_name);
+      if (group === null) {
+        // グループがなければ追加
+        group = makeInternalGroup(group_name, '');
+        g_list_data[group_name] = group;
+      }
+      // タスクリストへ追加
+      pushHistory();
+      addIntarnalDataEx2(group.id, meeting_list, true);
+      update_list();
+    
+      // 選択
+      set_select("stock_list", group.id);
+
+      // 変数削除 (削除できない)
+      // delete schedules;
+    }
+  );
+}
+
+/**
+ * 指定日の会議予定を抽出
+ * @param スケジュールdict
+ * @param 対象日時(Date)
+ * @returns 指定日の会議予定リスト
+ */
+function get_meeting_text(schedules, target_d)
+{
+  let todays_activity = [];
+  let target_date_str = get_date_str(target_d,true,false,true);
+
+  // 指定日の会議予定を抽出
+  // { title:"会議", isCC:false, start:"2024/03/01 8:00", end:"2024/03/01 12:00" },
+  for (let i = 0; i < schedules.length; i++) {
+    // 指定日だけを抽出
+    if (schedules[i].start.includes(target_date_str)) {
+      let start_time = schedules[i].start.split(" ")[1];
+      let end_time = schedules[i].end.split(" ")[1];
+      let d_s = new Date(schedules[i].start);
+      let d_e = new Date(schedules[i].end);
+      let diff_msec = (d_e - d_s);
+      let diff_hour = diff_msec / 1000 / 60 / 60;
+      todays_activity.push(`${schedules[i].title} (${start_time}〜${end_time} / ${diff_hour}h)`);
+    }
+  }
+  
+  return todays_activity;
+}
+
+
+
 
 
 
@@ -546,6 +724,9 @@ function update_todays_list() {
       if (item.is_first === true) {
         classes.push('first');
       }
+      if (item.is_today >= 2) {
+        classes.push('later');
+      }
       return classes;
     },
     function(item) {
@@ -744,6 +925,10 @@ function move_today_item() {
 
   // idから内部データの配列を取得し、ステータスを変更
   let item = getInternal(id);
+  if (item.is_today >= 1) {
+    // すでに今日のタスクの場合は何もしない
+    return;
+  }
   if (g_lock_todays_task) {
     item.is_today = 2;  // 今日の追加タスク
   } else {
@@ -908,30 +1093,6 @@ function add_items() {
   // 入力値をクリア
   document.getElementById("add_item_text").value = '';
 }
-
-// フラグ付きメール情報を取り込む
-// function import_mail_flag() {
-//   if (mail_flag === undefined) {
-//     // ファイルがない or インポートされていない
-//     return;
-//   }
-
-//   let items = [];
-//   for (let i = 0 ; i < mail_flag.length; i++) {
-//     let name = `${mail_flag[i].receive_date} / ${mail_flag[i].title}`;
-//     items.push(makeInternalItem(name));
-//   }
-
-//   // 内部データへ追加
-//   if (g_list_data['メール'] === undefined) {
-//     g_list_data['メール'] = { period: group_period, sub_tasks: [] };
-//   }
-//   for (i = 0; i < items.length; i++) {
-//     if (!g_list_data['メール'].sub_tasks.includes(items[i])) {
-//       g_list_data['メール'].sub_tasks.push(items[i]);
-//     }
-//   }
-// }
 
 /**
  * @summary 全リストの選択中アイテム削除
@@ -1466,82 +1627,6 @@ function show_timeline(mode, showNested)
 
 
 
-//---------------------------------------
-// Key Event
-//---------------------------------------
-
-// All List
-function keyhandler_stock_list(event) {
-  const keyCode = event.keyCode;
-
-  // right key
-  if (keyCode === key_arrow_right) {
-    move_today_item();
-  }
-  // c key
-  if (keyCode === key_c) {
-    copy_selected_item_name('stock_list');
-  }
-  // ctrl + d key
-  if (keyCode === key_d) {
-    event.preventDefault(); // d は既定の動作をキャンセル
-    remove_item();
-  }
-  // Space key
-  if (keyCode === key_space) {
-    if (g_show_popup) {
-      close_edit_popup();
-    } else {
-      show_edit_popup();
-    }
-  }
-}
-
-// Today List
-function keyhandler_todays_list(event) {
-  const keyCode = event.keyCode;
-
-  // right key
-  if (keyCode === key_arrow_right) {
-    done_item();
-  }
-  // left key
-  if (keyCode === key_arrow_left) {
-    remove_today_item();
-  }
-  // f key
-  if (keyCode === key_f) {
-    toggle_todays_first_task();
-  }
-  // c key
-  if (keyCode === key_c) {
-    copy_selected_item_name('todays_list');
-  }
-}
-
-// After List
-function keyhandler_done_list(event) {
-  const keyCode = event.keyCode;
-
-  // right key
-  if (keyCode === key_arrow_right) {
-  } else if (keyCode === key_arrow_left) {
-    return_item();   
-  }
-}
-
-// Edit Popup
-function keyhandler_edit_popup(event) {
-  const keyCode = event.keyCode;
-
-  // Esc key
-  if (keyCode === key_esc) {
-    close_edit_popup();
-  }
-}
-
-
-
 
 
 
@@ -1651,12 +1736,41 @@ function get_internal_keys(is_no_sort) {
 }
 
 
-// ゼロパディング
+/**
+ * @summary 数値をゼロパディングして文字列化
+ * @param 数値
+ * @param 最大文字列長
+ * @returns ゼロパディングされた文字列
+ */
 function zero_padding(num, len) {
   return ( Array(len).join('0') + num ).slice( -len );
 }
 
-
+/**
+ * スクリプトファイルを読み込む
+ * @param ファイル名
+ * @param コールバック
+ */
+function load_script(filename, fn) {
+  var done = false;
+  var head = document.getElementsByTagName('head')[0];
+  var script = document.createElement('script');
+  script.src = filename;
+  head.appendChild(script);
+  script.onload = script.onreadystatechange = function() {
+    if ( !done && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") ) {
+      done = true;
+      if (fn !== undefined) {
+        fn();
+      }
+      // Handle memory leak in IE
+      script.onload = script.onreadystatechange = null;
+      if ( head && script.parentNode ) {
+        head.removeChild( script );
+      }
+    }
+  };
+}
 
 
 //---------------------------------------
@@ -1664,19 +1778,29 @@ function zero_padding(num, len) {
 //---------------------------------------
 
 /**
- * @summary 今日の日付を返す
+ * @summary 日付文字列を返す
  * @param Dateオブジェクト
- * @param 区切り記号を入れるかどうか(/, :)
- * @param 時刻を含めるかどうか
- * @returns 日付文字列
+ * @param 区切り記号を入れるかどうか(/, :) (true|false)
+ * @param 時刻を含めるかどうか (true|false)
+ * @param ゼロパディングするかどうか (true|false)
+ * @returns 日付文字列 (yyyy/MM/dd or yyyyMMdd)
  */
-function get_date_str(d, is_separate, is_include_time) {
+function get_date_str(d, is_separate, is_include_time, is_zero_padding) {
+
   let year = d.getFullYear();
-  let month = zero_padding(d.getMonth() + 1, 2);
-  let date = zero_padding(d.getDate(), 2);
-  let hour = zero_padding(d.getHours(), 2);
-  let minute = zero_padding(d.getMinutes(), 2);
+  let month = d.getMonth() + 1;
+  let date = d.getDate();
+  let hour = d.getHours();
+  let minute = d.getMinutes();
   // let second = today.getSeconds();
+
+  if (is_zero_padding) {
+    month = zero_padding(month, 2);
+    date = zero_padding(date, 2);
+    hour = zero_padding(hour, 2);
+    minute = zero_padding(minute, 2);
+    // second = zero_padding(second, 2);
+  }
 
   let sep = '';
   let sep2 = '';
@@ -1694,10 +1818,10 @@ function get_date_str(d, is_separate, is_include_time) {
 /**
  * @summary 今日の日付文字列を返す
  * @param 区切り記号を入れるかどうか(/, :)
- * @returns 日付文字列
+ * @returns 日付文字列 (yyyy/MM/dd or yyyyMMdd)
  */
 function get_today_str(is_separate) {
-  return get_date_str(new Date(), is_separate, true);
+  return get_date_str(new Date(), is_separate, true, true);
 }
 
 /**
@@ -1711,10 +1835,6 @@ function is_weekday(date)
   return (day != 0 && day != 6);
 }
 
-// 日付加算 (週末考慮オプション付き)
-// return String
-
-
 /**
  * @summary 日を増減する
  * @param 基準日(Date)
@@ -1725,14 +1845,14 @@ function is_weekday(date)
 function addDays_s(date, days, exclude_weekend)
 {
   let dt = addDays(date, days, exclude_weekend);
-  return get_date_str(dt, true, false);
+  return get_date_str(dt, true, false, true);
 }
 
 /**
  * @summary 日を増減する
- * @param 基準日
+ * @param 基準日(Date)
  * @param 増減する日数
- * @param 週末を除外するかどうか
+ * @param 週末を除外するかどうか(true|false)
  * @returns Date
  */
 function addDays(target_date, days, exclude_weekend)
@@ -1844,6 +1964,7 @@ function get_days_from_today(date_str) {
 // 無効なDate判定
 function isInvalidDate(d) {
   return Number.isNaN(d.getTime());
+  return Number.isNaN(d.getTime());
 }
 
 /**
@@ -1855,10 +1976,10 @@ function date_from_str_ex(date_str) {
   if (date_str.split('/').length === 2) {
     let d = new Date(date_str);
     d.setFullYear(new Date().getFullYear());
-    return get_date_str(d, true, false);
+    return get_date_str(d, true, false, true);
   }
 
-  return get_date_str(new Date(date_str), true, false);
+  return get_date_str(new Date(date_str), true, false, true);
 }
 
 
@@ -1867,16 +1988,5 @@ function date_from_str_ex(date_str) {
 //---------------------------------------
 // Main
 //---------------------------------------
+// 今日の済みタスク表示チェック更新
 update_check_todays_done();
-
-// reflesh(default_start_date, default_data);
-
-
-// let d2 = new Date('2024/11/23');
-// let d1 = new Date('2024/11/29');
-
-// let ret = get_days(d1, d2, true);
-// console.log(ret);
-
-
-

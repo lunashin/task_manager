@@ -141,8 +141,14 @@ function createCalendar(year, month, today_str) {
   let dayCount = 1; // 日にちのカウント
   let calendarHtml = ''; // HTMLを組み立てる変数
 
+  // 年/月のテキスト色を替える
   let h1_class = 'even_month';
-  if (year % 2) {
+  let year_tmp = year;
+  if (month >= 1  && month <= 3) {
+    // 1-3月は前年扱い(年度のため)
+    year_tmp = year - 1;
+  }
+  if (year_tmp % 2) {
     h1_class = 'odd_month';
   }
   calendarHtml += `<h1 class="${h1_class}">${year}/${month}</h1>`;
