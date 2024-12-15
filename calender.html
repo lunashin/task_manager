@@ -1,0 +1,75 @@
+<html>
+<head>
+
+    <script src="calender.js" type="text/javascript" defer ></script>
+
+    <style>
+        #calendar {
+            display: flex;
+            /* flex-wrap: wrap; */
+            flex-wrap: nowrap;
+        }
+
+        section {
+            margin: 10px;
+        }
+
+        h1 {
+            font-size: 18px;
+        }
+
+        h1.even_month {
+            color: blue;
+        }
+        h1.odd_month {
+            color: green;
+        }
+
+        table {
+            border-spacing: 0;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+        }
+
+        td:first-child {
+            color: red;
+        }
+
+        td:last-child {
+            color: royalblue;
+        }
+
+        td.is-disabled {
+            color: #ccc;
+        }
+
+        td.is-today {
+            background-color: rgb(60, 195, 248);
+        }
+
+        td.is-holiday {
+            background-color: pink;
+        }
+
+        .btn_medium {
+            font-size: 20pt;
+        }
+    </style>
+
+</head>
+
+
+
+<body>
+    <!-- カレンダー -->
+    <div id="calendar"></div>
+</body>
+
+
+</html>

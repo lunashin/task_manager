@@ -1,0 +1,18 @@
+/* CSS for Env */
+
+body { 
+    font-size: 50%;
+}
+
+/* Select */
+select {
+    width: 450px;
+    height: 400px;
+}
+
+.group_top { 
+    font-size: 120%; 
+}
+
+
+

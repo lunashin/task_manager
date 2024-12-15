@@ -1,0 +1,238 @@
+<html>
+
+<head>
+    <title>Task Manager(Beta)</title>
+
+    <!-- timeline.js -->
+    <script src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js" type="text/javascript" ></script>
+    <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- task_manager.js -->
+    <script src="mail_flag.js" type="text/javascript" ></script>
+    <script src="task_manager.js" defer></script>
+
+    <style type="text/css">
+        body { font-size: 70%; }
+        /* table { font-size: 100%; } */
+
+        .flex-box {display: flex;}
+
+        /* 文字小さめ */
+        .font_small { font-size: 70%; }
+        
+        /* --------- Task List --------*/
+        select {
+          width: 450px;
+          height: 500px;
+        }
+
+        .stock_list { background-color: white; }
+        .todays_list { background-color: rgb(251, 225, 229); }
+        .done_list { background-color: rgb(214, 230, 235); }
+
+        .done { color: rgb(182, 182, 182); }
+        .today { color: mediumblue; }
+        .first { color: red; font-weight: bold; }
+
+        .group_top { text-indent: 0px; font-size: 120%; font-weight: bold; text-decoration: underline; }
+        .group_level1 { text-indent: 15px; }
+
+        .group_expire_soon { color: red; }
+
+        /* Button */
+        button.button-large { width: 100; height: 50; font-size: 150%; }
+
+        /* Edit */
+        input.short-width { width: 50; }
+
+
+        /* ----------- pupup ---------- */
+        .popup_edit { display: none; background-color: aquamarine; width: 150px; height: 100px; position: absolute; top:100px; left: 40px; }
+
+        
+        /* ---------- timeline --------- */
+        /* timeline軸（見出し行）のテキストの色 */
+        .vis-time-axis .vis-text.vis-minor {color: #000000;}
+        /* timeline軸（見出し行）の背景色 */
+        .vis-time-axis.vis-foreground {background: #d1adfd;}
+        /* timeline軸（見出し行）の週末の文字色*/
+        .vis-text.vis-minor.vis-saturday, .vis-text.vis-minor.vis-sunday {color:red;}
+
+        /* weekend */
+        .vis-grid.vis-saturday, .vis-grid.vis-sunday {background: pink;}
+
+        /* holiday (8/12 - 8/19) */
+        .vis-grid.vis-vertical.vis-minor.vis-day12.vis-august { background: hotpink; }
+        .vis-grid.vis-vertical.vis-minor.vis-day13.vis-august { background: hotpink; }
+        .vis-grid.vis-vertical.vis-minor.vis-day14.vis-august { background: hotpink; }
+        .vis-grid.vis-vertical.vis-minor.vis-day15.vis-august { background: hotpink; }
+        .vis-grid.vis-vertical.vis-minor.vis-day16.vis-august { background: hotpink; }
+        .vis-grid.vis-vertical.vis-minor.vis-day19.vis-august { background: hotpink; }
+
+        /* today */
+        .vis-grid.vis-today {background: rgb(146, 239, 255);}
+
+        /* Calender */
+        .iframe_calender {
+          /* display: none; */
+          /* position: fixed; */
+          /* top : 100px; */
+          /* left: 200px; */
+          width: 100%;
+          height: 400px;
+          /* z-index: 510; */
+          background-color: #fff;
+          overflow: hidden;
+        }
+    </style>
+
+    <!-- 環境ごとのCSS(上のCSSを上書き) -->
+    <link rel="stylesheet" type="text/css" href="task_manager_env.css">
+
+</head>
+
+
+
+
+
+
+
+
+
+<body>
+
+  <!-- Input -->
+  <div class="flex-box">
+    <div>
+      <h2>Input</h2>
+      <textarea id="input_area" cols="50" rows="5" placeholder="[グループ名; 期限]
+ [タスク名]
+ [タスク名] ... "></textarea>
+      <br>
+      <button id="btn_input_reflect">リストへ追加</button>
+    </div>
+    <div>
+      <h2>Input JSON</h2>
+      <textarea id="input_json_area" cols="50" rows="5"></textarea>
+      <br>
+      <button id="btn_input_json">リストへ追加(JSON)</button>
+    </div>
+  </div>
+  <br>
+
+
+  <!-- Timeline -->
+  <div class="">
+    <div id="visualization"></div>
+  </div>
+
+
+  <div class="flex-box">
+    <!-- All List -->
+    <div>
+      <h2>全タスク</h2>
+      <button id="copy_stock_list">リストをコピー</button>
+      <br>
+      <select id="stock_list" class="stock_list" tabindex="1" multiple></select>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+
+    <!-- Todays List -->
+    <div>
+      <h2 id="label_todays_task">今日のタスク</h2>
+      <button id="copy_todays_list">リストをコピー</button>
+      <button id="set_first_task">優先設定</button>
+      <button id="clear_first_task">優先全解除</button>
+      <input type="checkbox" id="toggle_show_done"></button>
+      <label for="toggle_show_done">済み表示切替</label>
+      <input type="checkbox" id="lock_todays_task"></button>
+      <label for="lock_todays_task">🔒ロック</label>
+      <br>
+      <select id="todays_list" class="todays_list" tabindex="10" multiple></select>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+
+    <!-- Done List -->
+    <div>
+      <h2>処理済み</h2>
+      <button id="copy_done_list">リストをコピー</button>
+      <button id="release_todays_done">今日の処理済みを解除</button>
+      <br>
+      <select id="done_list" class="done_list" tabindex="20" multiple></select>
+    </div>
+    <div>
+      <br>
+      <br>
+      <br>
+    </div>
+  </div>
+
+  <br>
+  <br>
+
+  <!-- Edit / Button -->
+  <div>
+    <div>
+      <textarea id="add_item_text" cols="30" rows="3" placeholder="タスク名..."></textarea>
+      <button id="add_item">アイテム追加</button>
+    </div>
+    <br>
+    <br>
+    <span class="flex-box">
+      <button id="remove_item" class="button-large" >💥選択アイテムを削除</button>
+      &nbsp;
+      <button id="undo" class="button-large">↩️戻す</button>
+    </span>
+    <br>
+    <br>
+    <div>
+      <button id="import_mail_flag" class="button-large" >📩フラグメール情報を取り込み</button>
+    </div>
+    <br>
+    <br>
+
+    <span class="flex-box">
+      <button id="save" class="button-large">保存</button>
+      &nbsp;
+      <button id="load" class="button-large">読込み</button>
+      &nbsp;
+      &nbsp;
+      &nbsp;
+      &nbsp;
+      <button id="copy_now_json" class="button-large">JSONをコピー</button>
+      &nbsp;
+      <button id="download_now_json" class="button-large">JSONをダウンロード</button>
+    </span>
+  </div>
+
+  <br>
+  <br>
+  <br>
+  <br>
+
+
+
+  <!-- Calender -->
+  <iframe id="calender_area" class="iframe_calender" src="./calender.html"></iframe>
+
+
+
+  <!-- Popup -->
+  <div id="popup_edit_base" class="popup_edit">
+    <form id="popup_edit_form" onsubmit="return false;" novalidate >
+      <input id="popup_edit_text" type="text" name="name">
+      <input id="popup_edit_id" class="short-width" type="text" name="id">
+      <input type="date" id="popup_edit_date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" />
+      <input type="hidden" id="popup_edit_hidden_id" name="id" />
+      <div>
+        <input type="submit" value="更新" />
+        <input type="button" id="popup_edit_cancel_btn" value="取消">
+      </div>
+    </form>
+  </div>
+
+
+
+</body>
+
+</html>

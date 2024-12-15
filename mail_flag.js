@@ -1,0 +1,6 @@
+const mail_flag = [
+    { title: "aaa", receive_date: "2024/12/1" },
+    { title: "bbb", receive_date: "2024/12/2" },
+    { title: "ccc", receive_date: "2024/12/2" },
+    { title: "ddd", receive_date: "2024/12/4" },
+];
