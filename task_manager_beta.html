@@ -87,6 +87,16 @@
           background-color: #fff;
           overflow: hidden;
         }
+
+        .fukidashi {
+          display: none;
+        }
+
+        .tips_test:hover + .fukidashi {
+          display: block;
+        }
+
+
     </style>
 
     <!-- 環境ごとのCSS(上のCSSを上書き) -->
@@ -205,6 +215,22 @@
       <button id="copy_now_json" class="button-large">JSONをコピー</button>
       &nbsp;
       <button id="download_now_json" class="button-large">JSONをダウンロード</button>
+      &nbsp;
+      &nbsp;
+      <!-- tips -->
+      <button class="tips_test button-large" type="button">ショートカットキー</button>
+      &nbsp;
+      <p class="fukidashi">⚫︎キーボードショートカット<br>
+        → : タスクのステータスを進める<br>
+        ← : タスクのステータスを戻す<br>
+        space : タスク内容編集<br>
+        f : ファーストタスクへ設定
+        d : タスク削除<br>
+        Ctrl+c : タスク内容コピー<br>
+        Shift+c : タスク内容コピー(Outlook検索用クエリ)<br>
+        <br>
+      </p>
+
     </span>
   </div>
 
@@ -212,6 +238,7 @@
   <br>
   <br>
   <br>
+
 
 
 
@@ -224,8 +251,9 @@
   <div id="popup_edit_base" class="popup_edit">
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
       <input id="popup_edit_text" type="text" name="name">
+      <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" />
+      <input id="popup_edit_url" type="text" placeholder="URL" />
       <input id="popup_edit_id" class="short-width" type="text" name="id">
-      <input type="date" id="popup_edit_date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" />
       <input type="hidden" id="popup_edit_hidden_id" name="id" />
       <div>
         <input type="submit" value="更新" />

@@ -112,7 +112,8 @@ const post_days = 14;
 // ファイル名
 const g_mail_flag = 'mail_flag.js';
 const g_meeting_script = 'timeline_tasks.js';
-
+// const g_mail_flag = '../timeline_mail_flag.js.txt';
+// const g_meeting_script = '../timeline_tasks.js';
 
 
 
@@ -129,10 +130,13 @@ function keyhandler_stock_list(event) {
     move_today_item();
   }
   // c key
-  if (keyCode === key_c) {
+  if (event.shiftKey && keyCode === key_c) {
+    copy_selected_item_name_for_mailquery('stock_list');
+  }
+  if (event.ctrlKey && keyCode === key_c) {
     copy_selected_item_name('stock_list');
   }
-  // ctrl + d key
+  // d key
   if (keyCode === key_d) {
     event.preventDefault(); // d は既定の動作をキャンセル
     remove_item();
@@ -164,7 +168,10 @@ function keyhandler_todays_list(event) {
     toggle_todays_first_task();
   }
   // c key
-  if (keyCode === key_c) {
+  if (event.shiftKey && keyCode === key_c) {
+    copy_selected_item_name_for_mailquery('todays_list');
+  }
+  if (event.ctrlKey && keyCode === key_c) {
     copy_selected_item_name('todays_list');
   }
 }
@@ -279,6 +286,9 @@ function convert_internal_data(input) {
  * フラグメール情報を取り込み ('メール'グループへ追加)
  */
 function read_mail_flag() {
+  // ボタン無効化
+  this.disabled = true;
+
   // スクリプト読み込み
   load_script(
     g_mail_flag, 
@@ -317,12 +327,14 @@ function read_mail_flag() {
  */
 function read_todays_meeting() {
   read_meeting(new Date());
+  this.disabled = true;
 }
 /**
  * @summary 明日の会議予定を取り込み
  */
 function read_tomorrows_meeting() {
   read_meeting(addDays(new Date(), 1, true));
+  this.disabled = true;
 }
 
 /**
@@ -627,7 +639,7 @@ function removeIntarnalData(id, is_remove_empty_group) {
  * @param 最終更新日表示判定コールバック
  * @param 空のグループ表示判定コールバック
  */
-function update_list_common(list_data, elem_id, func_show_condition, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
+function update_list_common(list_data, elem_id, func_is_show, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
   let selected_ids = get_select_id_ex(elem_id);
   let select = document.getElementById(elem_id);
   select.innerHTML = '';
@@ -639,7 +651,7 @@ function update_list_common(list_data, elem_id, func_show_condition, func_get_cl
     let items = list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
       let item = items[j];
-      if (func_show_condition(item) === true) {
+      if (func_is_show(item) === true) {
         append_elems.push(make_option(item, func_get_classes(item), false, func_show_lastupdate(item)));
       }
     }
@@ -790,6 +802,7 @@ function update_check_todays_done() {
 function make_option(item, class_list, is_group_top, show_last_update) {
   let option = document.createElement("option");
   option.text = item.name;
+  option.title = item.name;
   if (!is_group_top && show_last_update) {
     option.text += ' (' + get_date_string(item.last_update) + ')';
   }
@@ -1266,9 +1279,23 @@ function copy_selected_item_name(elem_id) {
   let id = get_selected_id(elem_id);
   let item = getInternal(id)
   navigator.clipboard.writeText(item.name);
-
-  // copy_animation(this);
 }
+
+// 選択アイテムをクリップボードにコピー(メール検索クエリ用)
+function copy_selected_item_name_for_mailquery(elem_id) {
+  let id = get_selected_id(elem_id);
+  let item = getInternal(id);
+
+  // ") "をスプリット
+  let text = item.name;
+  let ary = item.name.split(') ');
+  if (ary.length > 1) {
+    text = ary[1];
+  }
+  let copy_text = `subject: "${text}"`;
+  navigator.clipboard.writeText(copy_text);
+}
+
 
 // Allリストをテキストで取得
 function get_all_text() {
@@ -1413,6 +1440,10 @@ function adjust_attr_internal_data() {
       if (item.type === undefined) {
         item.type = "item";
       }
+      // URL
+      if (item.url === undefined) {
+        item.url = "";
+      }
     }
   }
 }
@@ -1427,6 +1458,7 @@ function show_edit_popup() {
 
   let elem = document.getElementById("popup_edit_base");
   let selected_id = get_selected_id("stock_list");
+
   let item = getInternal(selected_id);
   if (item.type === "group") {
     // タスク名
@@ -1443,6 +1475,8 @@ function show_edit_popup() {
   if (item.type === "item") {
     // タスク名
     document.getElementById("popup_edit_text").value = item.name;
+    // URL
+    document.getElementById("popup_edit_url").value = item.url;
     // 期限(非表示)
     document.getElementById("popup_edit_date").style.display = "none";
     // ID 
@@ -1472,6 +1506,7 @@ function show_edit_popup() {
 function submit_edit_popup() {
   let new_name = document.getElementById("popup_edit_text").value;
   let new_period = document.getElementById("popup_edit_date").value;
+  let new_url = document.getElementById("popup_edit_url").value;
   let id_hidden_str = document.getElementById("popup_edit_hidden_id").value;
   let id_edit_str = document.getElementById("popup_edit_id").value;
   let id_hidden = parseInt(id_hidden_str);
@@ -1488,6 +1523,7 @@ function submit_edit_popup() {
   if (item.type === 'item') {
     // 入力値を適用
     item.name = new_name;
+    item.url = new_url;
   }
 
   // ID更新
