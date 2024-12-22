@@ -291,7 +291,7 @@ function read_mail_flag() {
 
   // スクリプト読み込み
   load_script(
-    g_mail_flag, 
+    g_mail_flag,   // 読み取りファイル
     function() {
       if (mail_flag === undefined) {
         return;
@@ -344,7 +344,7 @@ function read_tomorrows_meeting() {
 function read_meeting(target_d) {
   // スクリプト読み込み
   load_script(
-    g_meeting_script, 
+    g_meeting_script,   // 読み取りファイル 
     function() {
       if (schedules === undefined) {
         return;
@@ -384,7 +384,35 @@ function read_meeting(target_d) {
  */
 function get_meeting_text(schedules, target_d)
 {
-  let todays_activity = [];
+  let meetings = get_meeting_list(schedules, target_d);
+  if (meetings.length <= 0) {
+    return null;
+  }
+
+  let ret = [];
+  for (let i = 0; i < meetings.length; i++) {
+    let title = meetings[i].title;
+    let start_time = meetings[i].start.split(" ")[1];
+    let end_time = meetings[i].end.split(" ")[1];
+    let d_s = new Date(meetings[i].start);
+    let d_e = new Date(meetings[i].end);
+    let diff_msec = (d_e - d_s);
+    let diff_hour = floorEx(diff_msec / 1000 / 60 / 60, 10);
+    ret.push(`${title} (${start_time}〜${end_time} / ${diff_hour}h)`);
+  }
+
+  return ret;
+}
+
+/**
+ * 指定日の会議予定を抽出
+ * @param スケジュールdict
+ * @param 対象日時(Date)
+ * @returns 指定日の会議予定リスト (list)
+ */
+function get_meeting_list(schedules, target_d)
+{
+  let meetings = [];
   let target_date_str = get_date_str(target_d,true,false,true);
 
   // 指定日の会議予定を抽出
@@ -392,17 +420,49 @@ function get_meeting_text(schedules, target_d)
   for (let i = 0; i < schedules.length; i++) {
     // 指定日だけを抽出
     if (schedules[i].start.includes(target_date_str)) {
-      let start_time = schedules[i].start.split(" ")[1];
-      let end_time = schedules[i].end.split(" ")[1];
-      let d_s = new Date(schedules[i].start);
-      let d_e = new Date(schedules[i].end);
-      let diff_msec = (d_e - d_s);
-      let diff_hour = diff_msec / 1000 / 60 / 60;
-      todays_activity.push(`${schedules[i].title} (${start_time}〜${end_time} / ${diff_hour}h)`);
+      meetings.push(schedules[i]);
     }
   }
+  // ソート(日時が早い順)
+  if (meetings.length > 0) {
+    meetings.sort(compare_schedule_fn);
+  }
   
-  return todays_activity;
+  return meetings;
+}
+
+/**
+ * @summary スケジュールソート 比較関数
+ * @param 比較対象データ1 (dict)
+ * @param 比較対象データ2 (dict)
+ * @returns 結果(0:変更なし / <0:aをbの前に並べる / >0:aをbの後に並べる )
+ */
+function compare_schedule_fn(data1, data2) {
+  const d1 = new Date(data1.start);
+  const d2 = new Date(data2.start);
+
+  let is_invalid1 = isInvalidDate(d1);
+  let is_invalid2 = isInvalidDate(d2);
+
+  // どちらかが無効な日付
+  if (is_invalid1 || is_invalid2) {
+    if (is_invalid1 && !is_invalid2) {
+      return 1;
+    }
+    if (!is_invalid1 && is_invalid2) {
+      return -1;
+    }
+    // 変動なし
+    return 0;
+  }
+
+  // 日付比較
+  if (d1 < d2) {
+   return -1;
+  } else if (d1 > d2) {
+    return 1;
+  }
+  return 0;
 }
 
 
@@ -1556,7 +1616,7 @@ function close_edit_popup() {
 /**
  * タイムライン: グループデータ作成
  */
-function make_groups() {
+function make_timeline_groups() {
   let groups = [];
   groups.push( {id: 'task', content: 'タスク', title: 'タスク' } );
   return groups;
@@ -1565,14 +1625,14 @@ function make_groups() {
 /**
  * タイムライン: アイテムデータ作成
  */
-function make_items()
+function make_timeline_items()
 {
   let items = [];
 
   let keys = Object.keys(g_list_data);
   for (let i = 0 ; i < keys.length; i++) {
     let group = g_list_data[keys[i]];
-    if (group.period === undefined) {
+    if (group.period === undefined || group.period === '') {
       continue;
     }
 
@@ -1583,14 +1643,6 @@ function make_items()
     let period = group.period + ' 12:00';
     items.push( { group: 'task', id: group.id, content: name, title: name, start: period, type: 'point' } );
   }
-
-  // { title:"あああああ", comment:"コメント", date:"2024/03/01 8:00" },
-  // ↓
-  // {id: 0, group: 'AutomateでSharePoint通知', content: 'xxxxxxx', start: '2024/02/29 18:00', type: 'point'},
-  // for (let i = 0; i < tasks.length; i++) {
-  //   items.push( { group: group_id, id: i, content: tasks[i].name, title: tasks[i].name, start: tasks[i].period + ' 12:00', type: 'point' } );
-  // }
-
   return items;
 }
 
@@ -1606,8 +1658,8 @@ function show_timeline(mode, showNested)
   const container = document.getElementById('visualization');
 
   // make group/item
-  groups = groups.concat(make_groups());
-  items = items.concat(make_items());
+  groups = groups.concat(make_timeline_groups());
+  items = items.concat(make_timeline_items());
 
   let today = new Date(Date.now()); // 今日
   let today_str= today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate();
@@ -1649,13 +1701,9 @@ function show_timeline(mode, showNested)
   else {
     timeline = new vis.Timeline(container, items, groups, options);
     timeline.on('select', function (properties) {
-      // alert('selected items: ' + properties.items);
       set_select('stock_list', properties.items);
     });
   }
-
-  // 指定した日付の位置に垂直の線を引く
-  // timeline.addCustomTime('2014-03-02', 'v-bar');
 }
 
 
@@ -1720,7 +1768,12 @@ function copy_animation(elem) {
   }, 500);
 }
 
-// 内部データソート 比較関数
+/**
+ * @summary 内部データソート 比較関数
+ * @param 比較対象データ1
+ * @param 比較対象データ2
+ * @returns 結果(0:変更なし / <0:aをbの前に並べる / >0:aをbの後に並べる )
+ */
 function compareFn(data1, data2) {
   const period1 = new Date(data1.period);
   const period2 = new Date(data2.period);
@@ -1807,6 +1860,20 @@ function load_script(filename, fn) {
     }
   };
 }
+
+/**
+ * @summary 小数点以下切り捨て
+ * @param {*} value 値
+ * @param {*} base 切り捨て基準位置(10: 小数点第1位, 100:小数点第2位)
+ * @return 処理済みの値
+ */
+function floorEx(value, base) {
+  return Math.floor(value * base) / base;
+}
+
+
+
+
 
 
 //---------------------------------------
