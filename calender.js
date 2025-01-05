@@ -239,8 +239,13 @@ function get_day_status(week, year, month, day, weekDay, startWeekDay, endDay, t
 
 const date = new Date()
 const today_str = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
-const year = date.getFullYear()
-const month = date.getMonth() + 1 - config.prev;
+let year = date.getFullYear()
+let month = date.getMonth() + 1 - config.prev;
+// 年跨ぎ対策
+if (month < 0) {
+  year--;
+  month += 12;
+}
 
 // カレンダー表示
 showCalendar(year, month, config.show, today_str);

@@ -44,6 +44,9 @@
 
         /* Button */
         button.button-large { width: 100; height: 50; font-size: 150%; }
+        button:hover {
+          background-color: gainsboro;
+        }
 
         /* Edit */
         input.short-width { width: 50; }
@@ -96,6 +99,19 @@
           display: block;
         }
 
+        /* Border */
+        .border {
+          padding: 5px;
+          border-style: solid;
+          border-color: red;
+          border-radius: 10px;
+        }
+        .border2 {
+          padding: 5px;
+          border-style: solid;
+          border-color: blue;
+          border-radius: 10px;
+        }
 
     </style>
 
@@ -114,32 +130,13 @@
 
 <body>
 
-  <!-- Input -->
-  <div class="flex-box">
-    <div>
-      <h2>Input</h2>
-      <textarea id="input_area" cols="50" rows="5" placeholder="[グループ名; 期限]
- [タスク名]
- [タスク名] ... "></textarea>
-      <br>
-      <button id="btn_input_reflect">リストへ追加</button>
-    </div>
-    <div>
-      <h2>Input JSON</h2>
-      <textarea id="input_json_area" cols="50" rows="5"></textarea>
-      <br>
-      <button id="btn_input_json">リストへ追加(JSON)</button>
-    </div>
-  </div>
-  <br>
-
-
   <!-- Timeline -->
   <div class="">
     <div id="visualization"></div>
   </div>
 
 
+  <!-- List -->
   <div class="flex-box">
     <!-- All List -->
     <div>
@@ -180,43 +177,71 @@
     </div>
   </div>
 
-  <br>
+  <!-- Input -->
+  <div class="flex-box">
+    <div>
+      <h2>グループ追加</h2>
+      <textarea id="input_area" cols="30" rows="3" placeholder="[グループ名; 期限]
+ [タスク名]
+ [タスク名] ... "></textarea>
+      <br>
+      <button id="btn_input_reflect">リストへ追加</button>
+    </div>
+
+    &nbsp;
+    <div>
+      <h2>アイテム追加</h2>
+      <textarea id="add_item_text" cols="30" rows="3" placeholder="タスク名(改行で複数登録)"></textarea>
+      <br>
+      <button id="add_item">アイテム追加</button>
+    </div>
+
+    &nbsp;
+    <div>
+      <h2>JSON</h2>
+      <textarea id="input_json_area" cols="30" rows="3"></textarea>
+      <br>
+      <button id="btn_input_json">リストを上書き</button>
+    </div>
+  </div>
   <br>
 
   <!-- Edit / Button -->
   <div>
-    <div class="flex-box">
-      <textarea id="add_item_text" cols="30" rows="3" placeholder="タスク名(改行で複数登録)"></textarea>
-      <button id="add_item" class="button-large">アイテム追加</button>
-      &nbsp;&nbsp;&nbsp;
-      <button id="remove_item" class="button-large" >💥選択アイテムを削除</button>
-      &nbsp;&nbsp;&nbsp;
-      <button id="undo" class="button-large">↩️戻す</button>
-    </div>
+    <span class="flex-box">
+      <div class="border">
+        <button id="remove_item" class="button-large" >💥選択アイテムを削除</button>
+        <button id="undo" class="button-large">↩️1つ戻す</button>
+      </div>
+    </span>
+
     <br>
-    <br>
-    <br>
-    <div>
-      <button id="import_mail_flag" class="button-large" >📩フラグメール情報を取り込み</button>
-      <button id="import_todays_meeting" class="button-large" >💺今日の会議を取り込み</button>
-      <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取り込み</button>
-    </div>
+
+    <span class="flex-box">
+      <div class="border">
+        <button id="import_mail_flag" class="button-large" >📩フラグメール情報を取り込み</button>
+        <button id="import_todays_meeting" class="button-large" >💺今日の会議を取り込み</button>
+        <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取り込み</button>
+      </div>
+    </span>
+
     <br>
     <br>
 
     <span class="flex-box">
-      <button id="save" class="button-large">保存</button>
-      &nbsp;
-      <button id="load" class="button-large">読込み</button>
-      &nbsp;
-      &nbsp;
-      &nbsp;
-      &nbsp;
-      <button id="copy_now_json" class="button-large">JSONをコピー</button>
-      &nbsp;
-      <button id="download_now_json" class="button-large">JSONをダウンロード</button>
+      <div class="border2">
+        <button id="save" class="button-large">保存</button>
+        <button id="load" class="button-large">読込み</button>
+      </div>
       &nbsp;
       &nbsp;
+      <div class="border">
+        <button id="copy_now_json" class="button-large">JSONをコピー</button>
+        <button id="download_now_json" class="button-large">JSONをダウンロード</button>
+      </div>
+      &nbsp;
+      &nbsp;
+
       <!-- tips -->
       <button class="tips_test button-large" type="button">ショートカットキー</button>
       &nbsp;
