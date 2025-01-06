@@ -74,6 +74,7 @@ const key_a = 65;
 const key_c = 67;
 const key_d = 68;
 const key_f = 70;
+const key_s = 83;
 const key_arrow_left = 37;
 const key_arrow_right = 39;
 const key_space = 32;
@@ -165,14 +166,25 @@ function keyhandler_todays_list(event) {
   }
   // f key
   if (keyCode === key_f) {
+    event.preventDefault(); // 既定の動作をキャンセル
     toggle_todays_first_task();
   }
   // c key
   if (event.shiftKey && keyCode === key_c) {
+    event.preventDefault(); // 既定の動作をキャンセル
     copy_selected_item_name_for_mailquery('todays_list');
   }
   if (event.ctrlKey && keyCode === key_c) {
+    event.preventDefault(); // 既定の動作をキャンセル
     copy_selected_item_name('todays_list');
+  }
+  // s key
+  if (event.shiftKey && keyCode === key_s) {
+    event.preventDefault(); // 既定の動作をキャンセル
+    let id = get_select_id("todays_list");
+    if (id !== null) {
+      set_select("stock_list", id);
+    }
   }
 }
 
@@ -892,9 +904,9 @@ function get_select_id(elem_id) {
   let options = document.getElementById(elem_id).options;
   for (let i = 0; i < options.length; i++) {
     if(options[i].selected) {
-      if (options[i].classList.contains('group_top')) {
-        return null;
-      }
+      // if (options[i].classList.contains('group_top')) {
+      //   return null;
+      // }
       return options[i].dataset.id
     }
   }

@@ -43,7 +43,7 @@
         .group_expire_soon { color: red; }
 
         /* Button */
-        button.button-large { width: 100; height: 50; font-size: 150%; }
+        button.button-large { width: 120; height: 50; font-size: 150%; }
         button:hover {
           background-color: gainsboro;
         }
@@ -210,7 +210,7 @@
   <div>
     <span class="flex-box">
       <div class="border">
-        <button id="remove_item" class="button-large" >💥選択アイテムを削除</button>
+        <button id="remove_item" class="button-large" >💥削除</button>
         <button id="undo" class="button-large">↩️1つ戻す</button>
       </div>
     </span>
@@ -237,7 +237,7 @@
       &nbsp;
       <div class="border">
         <button id="copy_now_json" class="button-large">JSONをコピー</button>
-        <button id="download_now_json" class="button-large">JSONをダウンロード</button>
+        <button id="download_now_json" class="button-large">JSONダウンロード</button>
       </div>
       &nbsp;
       &nbsp;
@@ -251,8 +251,9 @@
         space : タスク内容編集<br>
         f : ファーストタスクへ設定
         d : タスク削除<br>
-        Ctrl+c : タスク内容コピー<br>
-        Shift+c : タスク内容コピー(Outlook検索用クエリ)<br>
+        Ctrl + c : タスク内容コピー<br>
+        Shift + c : タスク内容コピー(Outlook検索用クエリ)<br>
+        Shift + s : リスト選択状態の同期(今日のリストのみ)<br>
         <br>
       </p>
 
@@ -261,9 +262,6 @@
 
   <br>
   <br>
-  <br>
-  <br>
-
 
 
 
