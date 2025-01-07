@@ -75,6 +75,7 @@ const key_c = 67;
 const key_d = 68;
 const key_f = 70;
 const key_s = 83;
+const key_z = 90;
 const key_arrow_left = 37;
 const key_arrow_right = 39;
 const key_space = 32;
@@ -132,9 +133,11 @@ function keyhandler_stock_list(event) {
   }
   // c key
   if (event.shiftKey && keyCode === key_c) {
+    event.preventDefault(); // 既定の動作をキャンセル
     copy_selected_item_name_for_mailquery('stock_list');
   }
   if (event.ctrlKey && keyCode === key_c) {
+    event.preventDefault(); // 既定の動作をキャンセル
     copy_selected_item_name('stock_list');
   }
   // d key
@@ -185,6 +188,11 @@ function keyhandler_todays_list(event) {
     if (id !== null) {
       set_select("stock_list", id);
     }
+  }
+  // z key
+  if (keyCode === key_z) {
+    event.preventDefault(); // 既定の動作をキャンセル
+    toggle_todays_wait();
   }
 }
 
@@ -762,14 +770,19 @@ function update_stock_list() {
   update_list_common(
     g_list_data, "stock_list", 
     function(item) {
+      // 表示条件
       return true;
     },
     function(item) {
+      // クラスリスト
       let classes = ["group_level1"];
       if (item.status === 'done') {
         classes.push('done');
       } else if (item.is_today > 0) {
         classes.push('today');
+      }
+      if (item.is_wait === true) {
+        classes.push('wait');
       }
       return classes;
     },
@@ -810,6 +823,9 @@ function update_todays_list() {
       }
       if (item.is_today >= 2) {
         classes.push('later');
+      }
+      if (item.is_wait === true) {
+        classes.push('wait');
       }
       return classes;
     },
@@ -1083,6 +1099,28 @@ function clear_first_task() {
   // リスト更新
   update_list();
 }
+
+/**
+ * 待ち状態を設定
+ */
+function toggle_todays_wait() {
+  pushHistory();
+
+  let id = get_selected_id("todays_list");
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+  
+  item.is_wait = !item.is_wait;
+  update_list();
+}
+
+
 
 /**
  * 今日のリストの済みアイテム表示/非表示を切り替え
@@ -1515,6 +1553,10 @@ function adjust_attr_internal_data() {
       // URL
       if (item.url === undefined) {
         item.url = "";
+      }
+      // is_wait
+      if (item.is_wait === undefined) {
+        item.is_wait = false;
       }
     }
   }
