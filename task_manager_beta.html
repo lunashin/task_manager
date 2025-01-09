@@ -37,6 +37,7 @@
         .first { color: red; font-weight: bold; }
         .later { color: green; }
         .wait::after { content: ' \01f4a4'; }
+        .has_url::after { content: ' \01f4ce'; }
 
         .group_top { text-indent: 0px; font-size: 120%; font-weight: bold; text-decoration: underline; }
         .group_level1 { text-indent: 15px; }
@@ -45,9 +46,8 @@
 
         /* Button */
         button.button-large { width: 120; height: 50; font-size: 150%; }
-        button:hover {
-          background-color: gainsboro;
-        }
+        button.button-mid { width: 100; height: 50; font-size: 150%; }
+        button:hover { background-color: rgb(168, 168, 168); }
 
         /* Edit */
         input.short-width { width: 50; }
@@ -142,7 +142,7 @@
     <!-- All List -->
     <div>
       <h2>全タスク</h2>
-      <button id="copy_stock_list">リストをコピー</button>
+      <button id="copy_stock_list" class="button-mid">リストをコピー</button>
       <br>
       <select id="stock_list" class="stock_list" tabindex="1" multiple></select>
     </div>
@@ -151,9 +151,9 @@
     <!-- Todays List -->
     <div>
       <h2 id="label_todays_task">今日のタスク</h2>
-      <button id="copy_todays_list">リストをコピー</button>
-      <button id="set_first_task">優先設定</button>
-      <button id="clear_first_task">優先全解除</button>
+      <button id="copy_todays_list" class="button-mid">リストをコピー</button>
+      <button id="set_first_task" class="button-mid">優先設定</button>
+      <button id="clear_first_task" class="button-mid">優先全解除</button>
       <input type="checkbox" id="toggle_show_done"></button>
       <label for="toggle_show_done">済み表示切替</label>
       <input type="checkbox" id="lock_todays_task"></button>
@@ -166,8 +166,8 @@
     <!-- Done List -->
     <div>
       <h2>処理済み</h2>
-      <button id="copy_done_list">リストをコピー</button>
-      <button id="release_todays_done">今日の処理済みを解除</button>
+      <button id="copy_done_list" class="button-mid">リストをコピー</button>
+      <button id="release_todays_done" class="button-mid">処理済み解除</button>
       <br>
       <select id="done_list" class="done_list" tabindex="20" multiple></select>
     </div>
@@ -255,6 +255,7 @@
         Ctrl + c : タスク内容コピー<br>
         Shift + c : タスク内容コピー(Outlook検索用クエリ)<br>
         Shift + s : リスト選択状態の同期(今日のリストのみ)<br>
+        Shift + space : URLを開く<br>
         z : 回答待ち状態(今日のリストのみ)<br>
         <br>
       </p>
@@ -275,9 +276,9 @@
   <!-- Popup -->
   <div id="popup_edit_base" class="popup_edit">
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
-      <input id="popup_edit_text" type="text" name="name">
+      <input id="popup_edit_text" type="text" autocomplete="off" name="name">
       <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" />
-      <input id="popup_edit_url" type="text" placeholder="URL" />
+      <input id="popup_edit_url" type="url" autocomplete="off" placeholder="URL" />
       <input id="popup_edit_id" class="short-width" type="text" name="id">
       <input type="hidden" id="popup_edit_hidden_id" name="id" />
       <div>

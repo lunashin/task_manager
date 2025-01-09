@@ -146,7 +146,10 @@ function keyhandler_stock_list(event) {
     remove_item();
   }
   // Space key
-  if (keyCode === key_space) {
+  if (event.shiftKey && keyCode === key_space) {
+    // 設定されたURLを開く
+    open_select_items_url("stock_list");
+  } else if (keyCode === key_space) {
     if (g_show_popup) {
       close_edit_popup();
     } else {
@@ -187,12 +190,18 @@ function keyhandler_todays_list(event) {
     let id = get_select_id("todays_list");
     if (id !== null) {
       set_select("stock_list", id);
+      document.getElementById("stock_list").focus();  // フォーカス移動
     }
   }
   // z key
   if (keyCode === key_z) {
     event.preventDefault(); // 既定の動作をキャンセル
     toggle_todays_wait();
+  }
+  // spece key
+  if (event.shiftKey && keyCode === key_space) {
+    // 設定されたURLを開く
+    open_select_items_url("stock_list");
   }
 }
 
@@ -784,6 +793,9 @@ function update_stock_list() {
       if (item.is_wait === true) {
         classes.push('wait');
       }
+      if (item.url !== '') {
+        classes.push('has_url');
+      }
       return classes;
     },
     function(item) {
@@ -826,6 +838,9 @@ function update_todays_list() {
       }
       if (item.is_wait === true) {
         classes.push('wait');
+      }
+      if (item.url !== '') {
+        classes.push('has_url');
       }
       return classes;
     },
@@ -1228,6 +1243,23 @@ function remove_item() {
 
   // リストを更新
   update_list();
+}
+
+/**
+ * 選択アイテムのURLを開く
+ */
+function open_select_items_url(elem_id) {
+  let id = get_select_id(elem_id);
+  if (id === null) {
+    return;
+  }
+  let item = getInternal(id);
+  if (item === null) {
+    return;
+  }
+  if (item.url !== '' ) {
+    window.open(item.url, '_blank');
+  }
 }
 
 // 戻す
