@@ -37,7 +37,7 @@
         .first { color: red; font-weight: bold; }
         .later { color: green; }
         .wait::after { content: ' \01f4a4'; }
-        .has_url::after { content: ' \01f4ce'; }
+        .has_url::before { content: ' \01f30f'; }
 
         .group_top { text-indent: 0px; font-size: 120%; font-weight: bold; text-decoration: underline; }
         .group_level1 { text-indent: 15px; }
@@ -250,8 +250,11 @@
         → : タスクのステータスを進める<br>
         ← : タスクのステータスを戻す<br>
         space : タスク内容編集<br>
-        f : ファーストタスクへ設定
+        f : ファーストタスクへ設定<br>
         d : タスク削除<br>
+        Shift + a : タスク追加<br>
+        Alt + ↑ : タスクを前へ<br>
+        Alt + ↓ : タスクを後ろへ<br>
         Ctrl + c : タスク内容コピー<br>
         Shift + c : タスク内容コピー(Outlook検索用クエリ)<br>
         Shift + s : リスト選択状態の同期(今日のリストのみ)<br>

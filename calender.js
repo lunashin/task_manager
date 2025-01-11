@@ -45,6 +45,16 @@ function registerEvent() {
       copy_animation(e.target);
       copyToClipboard(date_str);
     }
+  });
+
+  // モード切り替え ボタンクリック
+  document.getElementById("switch_mode").addEventListener("click", function(){
+    let elem = document.getElementById("calendar");
+    if (elem.style.flexWrap === 'wrap') {
+      elem.style.flexWrap = 'nowrap';
+    } else {
+      elem.style.flexWrap = 'wrap';
+    }
   })
 }
 

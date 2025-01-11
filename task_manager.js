@@ -3,70 +3,16 @@
 //---------------------------------------
 
 
-//---------------------------------------
-// Event
-//---------------------------------------
-// Double Click Event
-document.getElementById("stock_list").addEventListener("dblclick", move_today_item);
-document.getElementById("todays_list").addEventListener("dblclick", done_item);
-document.getElementById("done_list").addEventListener("dblclick", return_item);
-
-// Click Event
-// regist
-document.getElementById("btn_input_reflect").addEventListener("click", regist_from_textarea);
-document.getElementById("btn_input_json").addEventListener("click", regist_from_json);
-
-// stock list
-document.getElementById("copy_stock_list").addEventListener("click", copy_stock_list);
-
-// todays list
-document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
-document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
-document.getElementById("clear_first_task").addEventListener("click", clear_first_task);
-document.getElementById("toggle_show_done").addEventListener("click", toggle_show_todays_done);
-document.getElementById("lock_todays_task").addEventListener("click", toggle_lock_todays_task);
-
-// done list
-document.getElementById("copy_done_list").addEventListener("click", copy_todays_done_list);
-document.getElementById("release_todays_done").addEventListener("click", release_todays_done);
-
-// other
-document.getElementById("save").addEventListener("click", save_data);
-document.getElementById("load").addEventListener("click", load_data);
-document.getElementById("add_item").addEventListener("click", add_items);
-document.getElementById("remove_item").addEventListener("click", remove_item);
-document.getElementById("undo").addEventListener("click", undo_item);
-document.getElementById("copy_now_json").addEventListener("click", copy_now_json);
-document.getElementById("download_now_json").addEventListener("click", download_now_json);
-document.getElementById("import_mail_flag").addEventListener("click", read_mail_flag);
-document.getElementById("import_todays_meeting").addEventListener("click", read_todays_meeting);
-document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
-
-// Popup
-document.getElementById("popup_edit_form").addEventListener("submit", submit_edit_popup);
-// document.getElementById("popup_edit_update_btn").addEventListener("click", submit_edit_popup);
-document.getElementById("popup_edit_cancel_btn").addEventListener("click", close_edit_popup);
-
-
-// document.querySelectorAll(".td_edit").forEach(function(elem) { elem.addEventListener('click', click_stock_list_item); });
-
-// Key event
-document.getElementById("stock_list").addEventListener("keydown", keyhandler_stock_list);
-document.getElementById("todays_list").addEventListener("keydown", keyhandler_todays_list);
-document.getElementById("done_list").addEventListener("keydown", keyhandler_done_list);
-document.getElementById("popup_edit_base").addEventListener("keydown", keyhandler_edit_popup);
-
-// Show message Before Close Browwer
-window.onbeforeunload = function(e) {
-  return "";
-}
-
-
-
 
 //---------------------------------------
 // Data
 //---------------------------------------
+
+// Element ID
+const elem_id_list_stock = 'stock_list';
+const elem_id_list_today = 'todays_list';
+const elem_id_list_done = 'done_list';
+
 
 // key code
 // https://developer.mozilla.org/ja/docs/Web/API/KeyboardEvent/keyCode
@@ -77,7 +23,9 @@ const key_f = 70;
 const key_s = 83;
 const key_z = 90;
 const key_arrow_left = 37;
+const key_arrow_up = 38;
 const key_arrow_right = 39;
+const key_arrow_down = 40;
 const key_space = 32;
 const key_esc = 27;
 
@@ -104,6 +52,7 @@ var g_lock_todays_task = false;
 
 // 編集ポップアップ表示状態
 var g_show_popup = false;
+var g_show_popup_list = '';
 
 // timeline Object
 var timeline = null;
@@ -119,110 +68,256 @@ const g_meeting_script = 'timeline_tasks.js';
 
 
 
+
+//---------------------------------------
+// Event
+//---------------------------------------
+// Double Click Event
+document.getElementById(elem_id_list_stock).addEventListener("dblclick", move_today_item);
+document.getElementById(elem_id_list_today).addEventListener("dblclick", done_item);
+document.getElementById(elem_id_list_done).addEventListener("dblclick", return_item);
+
+// Click Event
+// regist
+document.getElementById("btn_input_reflect").addEventListener("click", regist_from_textarea);
+document.getElementById("btn_input_json").addEventListener("click", regist_from_json);
+
+// stock list
+document.getElementById("copy_stock_list").addEventListener("click", copy_stock_list);
+
+// todays list
+document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
+document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
+document.getElementById("clear_first_task").addEventListener("click", clear_first_task);
+document.getElementById("toggle_show_done").addEventListener("click", toggle_show_todays_done);
+document.getElementById("lock_todays_task").addEventListener("click", toggle_lock_todays_task);
+
+// done list
+document.getElementById("copy_done_list").addEventListener("click", copy_todays_done_list);
+document.getElementById("release_todays_done").addEventListener("click", release_todays_done);
+
+// other
+document.getElementById("save").addEventListener("click", save_data);
+document.getElementById("load").addEventListener("click", load_data);
+document.getElementById("add_item").addEventListener("click", add_items);
+document.getElementById("remove_item").addEventListener("click", remove_selected_item_stock_list);
+document.getElementById("undo").addEventListener("click", undo_item);
+document.getElementById("copy_now_json").addEventListener("click", copy_now_json);
+document.getElementById("download_now_json").addEventListener("click", download_now_json);
+document.getElementById("import_mail_flag").addEventListener("click", read_mail_flag);
+document.getElementById("import_todays_meeting").addEventListener("click", read_todays_meeting);
+document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
+
+// Popup
+document.getElementById("popup_edit_form").addEventListener("submit", submit_edit_popup);
+// document.getElementById("popup_edit_update_btn").addEventListener("click", submit_edit_popup);
+document.getElementById("popup_edit_cancel_btn").addEventListener("click", close_edit_popup);
+
+
+// document.querySelectorAll(".td_edit").forEach(function(elem) { elem.addEventListener('click', click_stock_list_item); });
+
+// Key event
+document.getElementById(elem_id_list_stock).addEventListener("keydown", keyhandler_stock_list);
+document.getElementById(elem_id_list_today).addEventListener("keydown", keyhandler_todays_list);
+document.getElementById(elem_id_list_done).addEventListener("keydown", keyhandler_done_list);
+document.getElementById("popup_edit_base").addEventListener("keydown", keyhandler_edit_popup);
+
+// Show message Before Close Browwer
+window.onbeforeunload = function(e) {
+  return "";
+}
+
+
+
+
+
+
+
 //---------------------------------------
 // Key Event
 //---------------------------------------
 
-// All List
+/**
+ * @summary ALLリスト キーイベント処理
+ * @param イベント情報
+ */
 function keyhandler_stock_list(event) {
-  const keyCode = event.keyCode;
+  const elem_id = elem_id_list_stock;
 
-  // right key
-  if (keyCode === key_arrow_right) {
-    move_today_item();
-  }
-  // c key
-  if (event.shiftKey && keyCode === key_c) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    copy_selected_item_name_for_mailquery('stock_list');
-  }
-  if (event.ctrlKey && keyCode === key_c) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    copy_selected_item_name('stock_list');
-  }
-  // d key
-  if (keyCode === key_d) {
-    event.preventDefault(); // d は既定の動作をキャンセル
-    remove_item();
-  }
-  // Space key
-  if (event.shiftKey && keyCode === key_space) {
-    // 設定されたURLを開く
-    open_select_items_url("stock_list");
-  } else if (keyCode === key_space) {
-    if (g_show_popup) {
-      close_edit_popup();
-    } else {
-      show_edit_popup();
-    }
+  switch (event.keyCode){
+    case key_arrow_up:    // ↑
+      if (event.altKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        swap_selected_item(elem_id, true);
+        break;
+      }
+      break;
+    case key_arrow_down:  // ↓
+      if (event.altKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        swap_selected_item(elem_id, false);
+        break;
+      }
+      break;
+    case key_arrow_right: // →
+      move_today_item();
+      break;
+    case key_a:           // a
+      // if (event.shiftKey) {
+        // 空白タスクを選択行の下へ追加
+        event.preventDefault(); // 既定の動作をキャンセル
+        let sel_id = get_select_id(elem_id);
+        if (sel_id !== null) {
+          addIntarnalData(sel_id, '');
+          update_stock_list();
+        }
+        break;
+      // }
+      break;
+    case key_c:           // c
+      if (event.shiftKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name_for_mailquery(elem_id);
+        break;
+      }
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name(elem_id);
+        break;
+      }
+      break;
+    case key_d:           // d
+      event.preventDefault(); // 既定の動作をキャンセル
+      remove_selected_item(elem_id);
+      break;
+    case key_space:       // space
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        break;
+      }
+
+      // 編集ポップアップ
+      if (g_show_popup) {
+        close_edit_popup();
+      } else {
+        show_edit_popup(elem_id);
+      }
+      break;
   }
 }
 
-// Today List
+/**
+ * @summary 今日のリスト キーイベント処理
+ * @param イベント情報
+ */
 function keyhandler_todays_list(event) {
-  const keyCode = event.keyCode;
+  const elem_id = elem_id_list_today;
 
-  // right key
-  if (keyCode === key_arrow_right) {
-    done_item();
-  }
-  // left key
-  if (keyCode === key_arrow_left) {
-    remove_today_item();
-  }
-  // f key
-  if (keyCode === key_f) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    toggle_todays_first_task();
-  }
-  // c key
-  if (event.shiftKey && keyCode === key_c) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    copy_selected_item_name_for_mailquery('todays_list');
-  }
-  if (event.ctrlKey && keyCode === key_c) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    copy_selected_item_name('todays_list');
-  }
-  // s key
-  if (event.shiftKey && keyCode === key_s) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    let id = get_select_id("todays_list");
-    if (id !== null) {
-      set_select("stock_list", id);
-      document.getElementById("stock_list").focus();  // フォーカス移動
-    }
-  }
-  // z key
-  if (keyCode === key_z) {
-    event.preventDefault(); // 既定の動作をキャンセル
-    toggle_todays_wait();
-  }
-  // spece key
-  if (event.shiftKey && keyCode === key_space) {
-    // 設定されたURLを開く
-    open_select_items_url("stock_list");
+  switch (event.keyCode){
+    case key_arrow_up:    // ↑
+      if (event.altKey) {
+        break;
+      }
+      break;
+    case key_arrow_down:  // ↓
+      if (event.altKey) {
+        break;
+      }
+      break;
+    case key_arrow_left: // ←
+      remove_today_item();
+      break;
+    case key_arrow_right: // →
+      done_item();
+      break;
+    case key_a:           // a
+      // if (event.shiftKey) {
+        // 空白タスクを選択行の下へ追加
+        event.preventDefault(); // 既定の動作をキャンセル
+        let sel_id = get_select_id(elem_id);
+        if (sel_id !== null) {
+          let id = addIntarnalData(sel_id, '');
+          getInternal(id).is_today = true;
+          update_list();
+        }
+        break;
+      // }
+      break;
+    case key_f:           // f
+      event.preventDefault(); // 既定の動作をキャンセル
+      toggle_todays_first_task();
+      break;
+    case key_c:           // c
+      if (event.shiftKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name_for_mailquery(elem_id);
+        break;
+      }
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name(elem_id);
+        break;
+      }
+      break;
+    case key_d:           // d
+      event.preventDefault(); // 既定の動作をキャンセル
+      remove_selected_item(elem_id);
+      break;
+    case key_s:           // s
+      if (event.shiftKey) {
+        // ALLリストの選択アイテムを、今日のリストと同期
+        event.preventDefault(); // 既定の動作をキャンセル
+        let id = get_select_id(elem_id);
+        if (id !== null) {
+          set_select(elem_id_list_stock, id);
+          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+        }
+        break;
+      }
+      break;
+    case key_z:           // z
+      event.preventDefault(); // 既定の動作をキャンセル
+      toggle_todays_wait();
+      break;
+    case key_space:       // space
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        break;
+      }
+
+      // 編集ポップアップ
+      if (g_show_popup) {
+        close_edit_popup();
+      } else {
+        show_edit_popup(elem_id);
+      }
+      break;
   }
 }
 
-// After List
+/**
+ * @summary 済みリスト キーイベント処理
+ * @param イベント情報
+ */
 function keyhandler_done_list(event) {
-  const keyCode = event.keyCode;
-
-  // right key
-  if (keyCode === key_arrow_right) {
-  } else if (keyCode === key_arrow_left) {
-    return_item();   
+  switch (event.keyCode){
+    case key_arrow_left:       // ←
+      return_item();   
+      break;
   }
 }
 
-// Edit Popup
+/**
+ * @summary 編集ポップアップ キーイベント処理
+ * @param イベント情報
+ */
 function keyhandler_edit_popup(event) {
-  const keyCode = event.keyCode;
-
-  // Esc key
-  if (keyCode === key_esc) {
-    close_edit_popup();
+  switch (event.keyCode){
+    case key_esc:       // ESC
+      close_edit_popup();
+      break;
   }
 }
 
@@ -252,7 +347,7 @@ function regist_from_textarea() {
 
   // 選択
   // if (group_id !== null) {
-  //   set_select("stock_list", group_id);
+  //   set_select(elem_id_list_stock, group_id);
   // }
 }
 
@@ -346,7 +441,7 @@ function read_mail_flag() {
       update_list();
     
       // 選択
-      set_select("stock_list", group.id);
+      set_select(elem_id_list_stock, group.id);
     }
   );
 }
@@ -397,7 +492,7 @@ function read_meeting(target_d) {
       update_list();
     
       // 選択
-      set_select("stock_list", group.id);
+      set_select(elem_id_list_stock, group.id);
 
       // 変数削除 (削除できない)
       // delete schedules;
@@ -511,7 +606,7 @@ function getInternal(id) {
   for (let i = 0 ; i < keys.length; i++) {
     let items = g_list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
-      if (items[j].id == id) {
+      if (items[j].id === id) {
         return items[j];
       }
     }
@@ -520,7 +615,7 @@ function getInternal(id) {
   // グループを検索
   for (let i = 0 ; i < keys.length; i++) {
     let group = g_list_data[keys[i]];
-    if (group.id == id) {
+    if (group.id === id) {
       return group;
     }
   }
@@ -558,23 +653,49 @@ function getInternalFromName(name) {
 }
 
 /**
+ * @summary 内部データの所属グループを取得 (id指定)
+ * @param アイテムID
+ * @returns アイテムデータ or null
+ */
+function getInternalGroupFromItemID(id) {
+  let keys = Object.keys(g_list_data);
+
+  //　アイテムデータを検索
+  for (let i = 0 ; i < keys.length; i++) {
+    let items = g_list_data[keys[i]].sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      if (items[j].id == id) {
+        // グループを返す
+        return g_list_data[keys[i]];
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * @summary 内部データアイテムを指定idの後ろへ追加
  * @param id
  * @param タスク名
  */
 function addIntarnalData(id, name) {
-  let keys = Object.keys(g_list_data);
-  for (let i = 0 ; i < keys.length; i++) {
-    let items = g_list_data[keys[i]].sub_tasks;
-    for (let j = 0 ; j < items.length; j++) {
-      if (items[j].id == id) {
-        // アイテム追加
-        let item = makeInternalItem(name);
-        items.splice(j+1, 0, item);
-        return item.id;
-      }
+  let group = getInternalGroupFromItemID(id);
+  if (group === null) {
+    return;
+  }
+
+  let items = group.sub_tasks;
+  for (let j = 0 ; j < items.length; j++) {
+    if (items[j].id === id) {
+      // アイテム追加
+      let item = makeInternalItem(name);
+      items.splice(j+1, 0, item);
+      return item.id;
     }
   }
+
+  return null;
 }
 
 /**
@@ -677,6 +798,7 @@ function makeInternalItem(name) {
     id: g_last_id, 
     type: 'item', 
     name: name, 
+    url: '',
     status: 'yet', 
     is_today: 0,  // 0:明日以降 / 1:今日 / 2:今日の追加分 
     is_first: false, 
@@ -697,12 +819,12 @@ function removeIntarnalData(id, is_remove_empty_group) {
     let group = g_list_data[keys[i]]
 
     // group削除
-    if (group.id == id) {
+    if (group.id === id) {
       delete g_list_data[keys[i]];
     } else {
       let items = group.sub_tasks;
       for (let j = 0 ; j < items.length; j++) {
-        if (items[j].id == id) {
+        if (items[j].id === id) {
           // アイテム削除
           items.splice(j,1);
           if (is_remove_empty_group) {
@@ -777,7 +899,7 @@ function update_list_common(list_data, elem_id, func_is_show, func_get_classes, 
  */
 function update_stock_list() {
   update_list_common(
-    g_list_data, "stock_list", 
+    g_list_data, elem_id_list_stock, 
     function(item) {
       // 表示条件
       return true;
@@ -816,7 +938,7 @@ function update_stock_list() {
  */
 function update_todays_list() {
   update_list_common(
-    g_list_data, "todays_list", 
+    g_list_data, elem_id_list_today, 
     function(item) {
       // 表示条件
       if (!g_is_show_todays_done) {
@@ -866,7 +988,7 @@ function update_todays_list() {
  */
 function update_done_list() {
   update_list_common(
-    g_list_data, "done_list", 
+    g_list_data, elem_id_list_done, 
     function(item) {
       // 表示条件
       return (item.is_today > 0 && item.status === 'done');
@@ -938,7 +1060,7 @@ function get_select_id(elem_id) {
       // if (options[i].classList.contains('group_top')) {
       //   return null;
       // }
-      return options[i].dataset.id
+      return parseInt(options[i].dataset.id);
     }
   }
   return null;
@@ -1015,29 +1137,14 @@ function set_select_ex(elem_id, ids) {
   }
 }
 
-
-// stock_listをクリック
-/*
-function click_stock_list_item(e) {
-  console.log(this.value);
-
-  let text = this.value;
-  this.innerHTML = '<input type="text" placeholder=\"タスク名\" value="' + text + '" />';
-  // this.outerHTML = '<input type="text" value="aaaaaaaaaaa">';
-}
-*/
-
-
 // 選択アイテムを今日のタスクへ移動
 function move_today_item() {
   // リストから選択アイテムを取得
-  let id = get_select_id("stock_list");
+  let id = get_select_id(elem_id_list_stock);
   if (id === null) {
     // グループを選択している
     return;
   }
-
-  pushHistory();
 
   // idから内部データの配列を取得し、ステータスを変更
   let item = getInternal(id);
@@ -1045,6 +1152,8 @@ function move_today_item() {
     // すでに今日のタスクの場合は何もしない
     return;
   }
+
+  pushHistory();
   if (g_lock_todays_task) {
     item.is_today = 2;  // 今日の追加タスク
   } else {
@@ -1058,20 +1167,21 @@ function move_today_item() {
 
 // 選択アイテムを今日のタスクから削除
 function remove_today_item() {
-  pushHistory();
-
-  // 全リストから選択アイテムを選択、選択アイテムを削除
-  left_items = document.getElementById("todays_list").options;
-  for (let i = 0; i < left_items.length; i++) {
-    if(left_items[i].selected) {
-      // is_today を false へ更新
-      let id = left_items[i].dataset.id
-      item = getInternal(id)
-      item.is_today = 0;
-      item.is_first = false;  // 優先タスクフラグ解除
-      item.last_update = get_today_str(true);
-    }
+  let id = get_select_id(elem_id_list_today);
+  if (id === null) {
+    return;
   }
+  
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+
+  pushHistory();
+  item.is_today = 0;
+  item.is_first = false;  // 優先タスクフラグ解除
+  item.last_update = get_today_str(true);
+
   // リストへ反映
   update_list();
 }
@@ -1080,7 +1190,7 @@ function remove_today_item() {
 function toggle_todays_first_task() {
   pushHistory();
 
-  let id = get_selected_id("todays_list");
+  let id = get_selected_id(elem_id_list_today);
   if (id === null) {
     return;
   }
@@ -1121,7 +1231,7 @@ function clear_first_task() {
 function toggle_todays_wait() {
   pushHistory();
 
-  let id = get_selected_id("todays_list");
+  let id = get_selected_id(elem_id_list_today);
   if (id === null) {
     return;
   }
@@ -1154,26 +1264,23 @@ function toggle_lock_todays_task() {
   g_lock_todays_task= !g_lock_todays_task;
 }
 
-
 // 選択アイテムを処理済みへ
 function done_item() {
-  pushHistory();
-
-  // 左リストから選択アイテムを選択、選択アイテムを削除
-  left_items = document.getElementById("todays_list").options;
-  for (let i = 0; i < left_items.length; i++) {
-    if(left_items[i].selected) {
-      // status を done へ更新
-      let id = left_items[i].dataset.id
-      item = getInternal(id)
-      if (item.status !== 'done') {
-        item.status = 'done';
-        item.is_first = false;  // 優先タスクフラグ解除
-        item.last_update = get_today_str(true);
-        break;
-      }
-    }
+  let id = get_select_id(elem_id_list_today);
+  if (id === null) {
+    return;
   }
+  
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+
+  pushHistory();
+  item.status = 'done';
+  item.is_first = false;  // 優先タスクフラグ解除
+  item.last_update = get_today_str(true);
+
   // リストへ反映
   update_list();
 }
@@ -1183,18 +1290,17 @@ function return_item() {
   // 履歴保存
   pushHistory();
 
-  // 左リストから選択アイテムを選択、選択アイテムを削除
-  left_items = document.getElementById("done_list").options;
-  for (let i = 0; i < left_items.length; i++) {
-    if(left_items[i].selected) {
-      // status を yet へ更新
-      let id = left_items[i].dataset.id
-      getInternal(id).status = 'yet';
-      break;
-    }
+  let id = get_selected_id(elem_id_list_done);
+  if (id === null) {
+    return;
   }
-  // リストへ反映
-  update_list();
+
+  // status を yet へ更新
+  let item = getInternal(id);
+  if (item !== null) {
+    item.status = 'yet';
+    update_list();
+  }
 }
 
 // 今日の処理済みを今日から外す
@@ -1222,7 +1328,7 @@ function add_items() {
   let task_names = document.getElementById("add_item_text").value;
   let lines = task_names.split('\n');
  
-  let selected_id = get_selected_id("stock_list");
+  let selected_id = get_selected_id(elem_id_list_stock);
   addIntarnalDataEx(selected_id, lines);
  
   // リストを更新
@@ -1233,16 +1339,80 @@ function add_items() {
 }
 
 /**
- * @summary 全リストの選択中アイテム削除
+ * @summary 選択中アイテム削除
+ * @param リストID
  */
-function remove_item() {
+function remove_selected_item(elem_id) {
   pushHistory();
 
-  let selected_id = get_selected_id("stock_list");
+  let selected_id = get_selected_id(elem_id);
   removeIntarnalData(selected_id, false);
 
   // リストを更新
   update_list();
+}
+
+/**
+ * @summary 全リストの選択中アイテム削除
+ */
+function remove_selected_item_stock_list() {
+  remove_selected_item(elem_id_list_stock);
+}
+
+/**
+ * 選択されているアイテムを移動
+ */
+function swap_selected_item(elem_id, is_up) {
+  let sel_id = get_selected_id(elem_id);
+  if (sel_id === null) {
+    return;
+  }
+
+  // アイテム入れ替え
+  pushHistory();
+  swap_item(sel_id, is_up);
+
+  // リストを更新
+  update_list();
+}
+
+/**
+ * @summary 同一グループ内でアイテムの順番を入れ替え
+ * @param ID
+ * @param true:前へ移動 / false:後ろへ移動
+ * 
+ */
+function swap_item(id, is_up) {
+  let group = getInternalGroupFromItemID(id);
+  if (group === null) {
+    return;
+  }
+
+  for (let i = 0; i < group.sub_tasks.length; i++) {
+    if (group.sub_tasks[i].id === id) {
+      // 前へ
+      if (is_up === true) {
+        if (i === 0) {
+          // 先頭要素なので何もしない
+          break;
+        }
+        // swap
+        [group.sub_tasks[i], group.sub_tasks[i-1]] = [group.sub_tasks[i-1], group.sub_tasks[i]]
+        break;
+      }
+
+      // 後ろへ
+      if (is_up === false) {
+        if (i === group.sub_tasks.length-1) {
+          // 最終要素なので何もしない
+          break;
+        }
+        // swap
+        [group.sub_tasks[i], group.sub_tasks[i+1]] = [group.sub_tasks[i+1], group.sub_tasks[i]]
+        break;
+      }
+    }
+  }
 }
 
 /**
@@ -1281,7 +1451,7 @@ function undo_item() {
 function get_selected_id(elem_id) {
   let elem = get_selected_option(elem_id);
   if (elem !== null) {
-    return elem.dataset.id;
+    return parseInt(elem.dataset.id);
   }
   return null;
 }
@@ -1480,10 +1650,10 @@ function get_todays_list_text(only_done) {
 
     // テキストを整形
     if (ary.length > 0) {
-      copy_text += "⚫︎" + keys[i];
+      copy_text += "●" + keys[i];
       copy_text += '\n';
       for (let j = 0 ; j < ary.length; j++) {
-        copy_text += " " + ary[j];
+        copy_text += ary[j];
         copy_text += '\n';
       }
       // copy_text += '\n';
@@ -1507,10 +1677,10 @@ function get_done_list_text() {
       }
     }
     if (ary.length > 0) {
-      copy_text += "⚫︎" + keys[i];
+      copy_text += "●" + keys[i];
       copy_text += '\n';
       for (let j = 0 ; j < ary.length; j++) {
-        copy_text += " " + ary[j];
+        copy_text += ary[j];
         copy_text += '\n';
       }
       copy_text += '\n';
@@ -1597,13 +1767,13 @@ function adjust_attr_internal_data() {
 /**
  * 編集ポップアップ表示
  */
-function show_edit_popup() {
+function show_edit_popup(elem_id) {
   if (g_show_popup) {
     return;
   }
 
   let elem = document.getElementById("popup_edit_base");
-  let selected_id = get_selected_id("stock_list");
+  let selected_id = get_selected_id(elem_id);
 
   let item = getInternal(selected_id);
   if (item.type === "group") {
@@ -1631,7 +1801,7 @@ function show_edit_popup() {
   }
 
   // ポップアップをリストの選択位置へ移動
-  let selected_elem = get_selected_option("stock_list");
+  let selected_elem = get_selected_option(elem_id);
   if (selected_elem !== null) {
     let rect = selected_elem.getBoundingClientRect();
     elem.style.top = rect.top;
@@ -1644,6 +1814,7 @@ function show_edit_popup() {
   document.getElementById("popup_edit_text").focus();
 
   g_show_popup = true;
+  g_show_popup_list = elem_id;
 }
 
 /**
@@ -1681,8 +1852,9 @@ function submit_edit_popup() {
   close_edit_popup();
   // リスト更新
   update_list();
+
   // リストへフォーカス移動
-  document.getElementById("stock_list").focus();
+  // document.getElementById(elem_id_list_stock).focus();
 }
 
 /**
@@ -1691,10 +1863,12 @@ function submit_edit_popup() {
 function close_edit_popup() {
   let elem = document.getElementById("popup_edit_base");
   elem.style.display = "none";
-  g_show_popup = false;
 
   // フォーカスをリストへ移動
-  document.getElementById("stock_list").focus();
+  document.getElementById(g_show_popup_list).focus();
+
+  g_show_popup = false;
+  g_show_popup_list = '';
 }
 
 
@@ -1787,7 +1961,7 @@ function show_timeline(mode, showNested)
   else {
     timeline = new vis.Timeline(container, items, groups, options);
     timeline.on('select', function (properties) {
-      set_select('stock_list', properties.items);
+      set_select(elem_id_list_stock, properties.items);
     });
   }
 }
