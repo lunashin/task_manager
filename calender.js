@@ -26,7 +26,13 @@ const holidays = [
   '2025/1/3',
   '2025/1/4',
   '2025/1/5',
-]
+];
+
+// 有給取得奨励日(24年度)
+const holidays_recommend = [
+  '2025/1/6',
+  '2025/1/13',
+];
 
 
 
@@ -235,6 +241,10 @@ function get_day_status(week, year, month, day, weekDay, startWeekDay, endDay, t
     if (holidays.includes(`${year}/${month}/${day}`)){
       // 休日
       class_name += ' is-holiday';
+    }
+    if (holidays_recommend.includes(`${year}/${month}/${day}`)){
+      // 休日
+      class_name += ' is-holiday-reco';
     }
   }
   return { classes: class_name, is_prev_month: is_prev_month, is_next_month: is_next_month };
