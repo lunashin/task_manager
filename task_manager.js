@@ -87,8 +87,9 @@ document.getElementById("copy_stock_list").addEventListener("click", copy_stock_
 
 // todays list
 document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
-document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
-document.getElementById("clear_first_task").addEventListener("click", clear_first_task);
+document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
+// document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
+// document.getElementById("clear_first_task").addEventListener("click", clear_first_task);
 document.getElementById("toggle_show_done").addEventListener("click", toggle_show_todays_done);
 document.getElementById("lock_todays_task").addEventListener("click", toggle_lock_todays_task);
 
@@ -163,16 +164,13 @@ function keyhandler_stock_list(event) {
       move_today_item();
       break;
     case key_a:           // a
-      // if (event.shiftKey) {
-        // 空白タスクを選択行の下へ追加
-        event.preventDefault(); // 既定の動作をキャンセル
-        let sel_id = get_select_id(elem_id);
-        if (sel_id !== null) {
-          addIntarnalData(sel_id, '');
-          update_stock_list();
-        }
-        break;
-      // }
+      // 空白タスクを選択行の下へ追加
+      event.preventDefault(); // 既定の動作をキャンセル
+      let sel_id = get_select_id(elem_id);
+      if (sel_id !== null) {
+        addIntarnalBlankData(sel_id);
+        update_list();
+      }
       break;
     case key_c:           // c
       if (event.shiftKey) {
@@ -237,8 +235,8 @@ function keyhandler_todays_list(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         let sel_id = get_select_id(elem_id);
         if (sel_id !== null) {
-          let id = addIntarnalData(sel_id, '');
-          getInternal(id).is_today = true;
+          let id = addIntarnalBlankData(sel_id);
+          getInternal(id).is_today = 1;
           update_list();
         }
         break;
@@ -678,6 +676,7 @@ function getInternalGroupFromItemID(id) {
  * @summary 内部データアイテムを指定idの後ろへ追加
  * @param id
  * @param タスク名
+ * @returns 追加アイテムのID
  */
 function addIntarnalData(id, name) {
   let group = getInternalGroupFromItemID(id);
@@ -713,7 +712,7 @@ function addIntarnalDataEx(id, names) {
 }
 
 /**
- * @summary 内部データアイテムを指定グループIDへ追加(複数アイテム)
+ * @summary 内部データアイテムを指定グループへ追加(複数アイテム)
  * @param グループID
  * @param タスク名リスト 
  * @param 最後に追加したアイテムのID
@@ -741,6 +740,15 @@ function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
     }
   }
   return last_id;
+}
+
+/**
+ * @summary 空タスクを指定idの後ろへ追加
+ * @param id
+ * @returns 登録アイテムのID
+ */
+function addIntarnalBlankData(id) {
+  return addIntarnalData(id, '-');
 }
 
 
@@ -867,16 +875,19 @@ function update_list_common(list_data, elem_id, func_is_show, func_get_classes, 
       }
     }
     if (func_is_show_empty_group() || append_elems.length > 0) {
-      // params
+      // params (group)
       let group_top = {}
       group_top.name = `${list_data[keys[i]].name} ( ${get_date_string(list_data[keys[i]].period)} ) (〜 ${list_data[keys[i]].period} )`;
       group_top.id = list_data[keys[i]].id;
-      // class
+      // class (group)
       let classes = ["group_top"];
       if (list_data[keys[i]].period !== '') {
         let days_from_today = get_days_from_today(list_data[keys[i]].period);
         if (days_from_today >= -3) {
           classes.push("group_expire_soon");
+        }
+        if (days_from_today >= 0) {
+          classes.push("period_today");
         }
       }
       // グループ用エレメント追加
@@ -1159,7 +1170,7 @@ function move_today_item() {
   } else {
     item.is_today = 1;
   }
-  item.last_update = get_today_str(true);
+  item.last_update = get_today_str(true, true);
 
   // リストへ反映
   update_list();
@@ -1180,7 +1191,7 @@ function remove_today_item() {
   pushHistory();
   item.is_today = 0;
   item.is_first = false;  // 優先タスクフラグ解除
-  item.last_update = get_today_str(true);
+  item.last_update = get_today_str(true, true);
 
   // リストへ反映
   update_list();
@@ -1245,6 +1256,22 @@ function toggle_todays_wait() {
   update_list();
 }
 
+// 全ての追加タスクを解除
+function release_todays_add_task() {
+  pushHistory();
+
+  let keys = Object.keys(g_list_data);
+  for (let i = 0 ; i < keys.length; i++) {
+    let items = g_list_data[keys[i]].sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      if (items[j].is_today >= 2)
+      items[j].is_today = 1;
+    }
+  }
+  // リスト更新
+  update_list();
+}
+
 
 
 /**
@@ -1279,7 +1306,7 @@ function done_item() {
   pushHistory();
   item.status = 'done';
   item.is_first = false;  // 優先タスクフラグ解除
-  item.last_update = get_today_str(true);
+  item.last_update = get_today_str(true, true);
 
   // リストへ反映
   update_list();
@@ -1572,7 +1599,11 @@ function copy_stock_list() {
 
 // 今日のタスクリストをクリップボードにコピー
 function copy_todays_list() {
-  let copy_text = get_todays_list_text(false);
+  let mode = 2;
+  if (g_is_show_todays_done) {
+    mode = 0;
+  }
+  let copy_text = get_todays_list_text(mode);
   navigator.clipboard.writeText(copy_text);
 
   copy_animation(this);
@@ -1580,7 +1611,7 @@ function copy_todays_list() {
 
 // 済みリストをクリップボードにコピー
 function copy_todays_done_list() {
-  let copy_text = get_todays_list_text(true);
+  let copy_text = get_todays_list_text(1);
   navigator.clipboard.writeText(copy_text);
 
   copy_animation(this);
@@ -1627,8 +1658,13 @@ function get_all_text() {
   return copy_text;
 }
 
-// 済みリストをテキストで取得
-function get_todays_list_text(only_done) {
+/**
+ * @summary 今日のタスクをテキストで取得
+ * @param true:処理済みのみ / false:未処理も含める
+ * @param モード(0:全て / 1:処理済みのみ / 2:処理済みを除く)
+ * @returns テキスト
+ */
+function get_todays_list_text(mode) {
   let copy_text = '';
 
   // 対象となるタスクリストを作成
@@ -1638,8 +1674,12 @@ function get_todays_list_text(only_done) {
     let items = g_list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
       if (items[j].is_today > 0) {
-        if (only_done) {
+        if (mode === 1) {
           if (items[j].status === 'done') {
+            ary.push(items[j].name);
+          }
+        } else if (mode === 2) {
+          if (items[j].status !== 'done') {
             ary.push(items[j].name);
           }
         } else {
@@ -1705,7 +1745,7 @@ function download_now_json() {
   const url = (window.URL || window.webkitURL).createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  let date_str = get_today_str(false);
+  let date_str = get_today_str(false, true);
   a.download = `task_manager_status_${date_str}.json`;
   a.click();
   a.remove();
@@ -1778,11 +1818,16 @@ function show_edit_popup(elem_id) {
   let item = getInternal(selected_id);
   if (item.type === "group") {
     // タスク名
-    document.getElementById("popup_edit_text").value = item.name;
+    document.getElementById("popup_edit_text").value = item.name.trim();
     // 期限
     let elem_date = document.getElementById("popup_edit_date");
     elem_date.value = item.period.replaceAll('/','-');
     elem_date.style.display = "block";
+    // 期限（今日にセットするボタン）
+    document.getElementById("popup_button_set_today").addEventListener("click", function(){
+      elem_date.value = get_today_str(true, false).replaceAll('/','-');
+    });
+    document.getElementById("popup_button_set_today").style.display = "block";
     // ID 
     document.getElementById("popup_edit_id").value = selected_id;
     document.getElementById("popup_edit_hidden_id").value = selected_id;
@@ -1790,11 +1835,12 @@ function show_edit_popup(elem_id) {
 
   if (item.type === "item") {
     // タスク名
-    document.getElementById("popup_edit_text").value = item.name;
+    document.getElementById("popup_edit_text").value = item.name.trim();
     // URL
     document.getElementById("popup_edit_url").value = item.url;
     // 期限(非表示)
     document.getElementById("popup_edit_date").style.display = "none";
+    document.getElementById("popup_button_set_today").style.display = "none";
     // ID 
     document.getElementById("popup_edit_id").value = selected_id;
     document.getElementById("popup_edit_hidden_id").value = selected_id;
@@ -1834,12 +1880,12 @@ function submit_edit_popup() {
 
   if (item.type === 'group') {
     // 入力値を適用
-    item.name = new_name;
+    item.name = new_name.trim();
     item.period = new_period.replaceAll('-', '/');
   }
   if (item.type === 'item') {
     // 入力値を適用
-    item.name = new_name;
+    item.name = new_name.trim();
     item.url = new_url;
   }
 
@@ -2181,10 +2227,11 @@ function get_date_str(d, is_separate, is_include_time, is_zero_padding) {
 /**
  * @summary 今日の日付文字列を返す
  * @param 区切り記号を入れるかどうか(/, :)
+ * @param 時刻を含めるかどうか (true|false)
  * @returns 日付文字列 (yyyy/MM/dd or yyyyMMdd)
  */
-function get_today_str(is_separate) {
-  return get_date_str(new Date(), is_separate, true, true);
+function get_today_str(is_separate, is_include_time) {
+  return get_date_str(new Date(), is_separate, is_include_time, true);
 }
 
 /**
