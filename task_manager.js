@@ -61,10 +61,10 @@ const past_days = 2;
 const post_days = 14;
 
 // ファイル名
-const g_mail_flag = 'mail_flag.js';
-const g_meeting_script = 'timeline_tasks.js';
-// const g_mail_flag = '../timeline_mail_flag.js.txt';
-// const g_meeting_script = '../timeline_tasks.js';
+// const g_mail_flag = 'mail_flag.js';
+// const g_meeting_script = 'timeline_tasks.js';
+const g_mail_flag = '../timeline_mail_flag.js.txt';
+const g_meeting_script = '../timeline_tasks.js';
 
 
 
@@ -87,6 +87,11 @@ document.getElementById("copy_stock_list").addEventListener("click", copy_stock_
 
 // todays list
 document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
+let c = document.querySelectorAll(".set_filter_condition");
+c.forEach(function(target) {
+  target.addEventListener("click", set_filter_condition);
+});
+
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
 // document.getElementById("clear_first_task").addEventListener("click", clear_first_task);
@@ -300,9 +305,18 @@ function keyhandler_todays_list(event) {
  * @param イベント情報
  */
 function keyhandler_done_list(event) {
+  const elem_id = elem_id_list_done;
+
   switch (event.keyCode){
     case key_arrow_left:       // ←
       return_item();   
+      break;
+    case key_space:       // space
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        break;
+      }
       break;
   }
 }
@@ -367,10 +381,17 @@ function regist_from_json() {
 
 // 内部データをリストへ反映
 function update_list() {
-  update_stock_list(g_list_data);
-  update_todays_list(g_list_data);
-  update_done_list(g_list_data);
+  update_stock_list();
+  update_todays_list();
+  update_done_list();
   show_timeline();
+}
+
+/**
+ * フィルタ実行
+ */
+function set_filter_condition() {
+  update_stock_list(this.value);
 }
 
 /**
@@ -853,17 +874,18 @@ function removeIntarnalData(id, is_remove_empty_group) {
  * @summary リスト表示更新
  * @param リストデータ
  * @param 更新対象リストのエレメントID
+ * @param グループフィルタ文字列
  * @param 表示判定コールバック
  * @param クラスリスト取得コールバック
  * @param 最終更新日表示判定コールバック
  * @param 空のグループ表示判定コールバック
  */
-function update_list_common(list_data, elem_id, func_is_show, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
+function update_list_common(list_data, elem_id, filter, func_is_show, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
   let selected_ids = get_select_id_ex(elem_id);
   let select = document.getElementById(elem_id);
   select.innerHTML = '';
 
-  let keys = get_internal_keys();
+  let keys = get_internal_keys(filter, false);
   for (let i = 0 ; i < keys.length; i++) {
     // サブタスクのエレメント一覧を作成
     let append_elems = [];
@@ -908,9 +930,9 @@ function update_list_common(list_data, elem_id, func_is_show, func_get_classes, 
 /**
  * ALLタスクリスト更新
  */
-function update_stock_list() {
+function update_stock_list(filter) {
   update_list_common(
-    g_list_data, elem_id_list_stock, 
+    g_list_data, elem_id_list_stock, filter,
     function(item) {
       // 表示条件
       return true;
@@ -949,7 +971,7 @@ function update_stock_list() {
  */
 function update_todays_list() {
   update_list_common(
-    g_list_data, elem_id_list_today, 
+    g_list_data, elem_id_list_today, '', 
     function(item) {
       // 表示条件
       if (!g_is_show_todays_done) {
@@ -999,14 +1021,18 @@ function update_todays_list() {
  */
 function update_done_list() {
   update_list_common(
-    g_list_data, elem_id_list_done, 
+    g_list_data, elem_id_list_done, '', 
     function(item) {
       // 表示条件
       return (item.is_today > 0 && item.status === 'done');
     },
     function(item) {
       // クラスリスト
-      return ["group_level1"];
+      let classes = ["group_level1"];
+      if (item.url !== '') {
+        classes.push('has_url');
+      }
+      return classes;
     },
     function(item) {
       // 更新日表示判定
@@ -2108,15 +2134,21 @@ function compareFn(data1, data2) {
 }
 
 /**
- * @summary 内部データのキーリストをソートして返す
- * @param ソート無しとするかどうか
+ * @summary 内部データのキーリストを条件に沿って返す
+ * @param ソート指定 false:ソートしない / true:期限の早い順にソートする
  * @return キー一覧
  */
-function get_internal_keys(is_no_sort) {
+function get_internal_keys(filter, is_no_sort) {
   let keys = Object.keys(g_list_data);
   let ary = [];
   for (let i = 0 ; i < keys.length; i++) {
-    ary.push({ name: keys[i], period: g_list_data[keys[i]].period })
+    if (filter !== '' && filter !== undefined) {
+      if (keys[i].indexOf(filter) >= 0) {
+        ary.push({ name: keys[i], period: g_list_data[keys[i]].period });
+      }
+    } else {
+      ary.push({ name: keys[i], period: g_list_data[keys[i]].period });
+    }
   }
 
   if (!is_no_sort) {
