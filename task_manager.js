@@ -169,13 +169,19 @@ function keyhandler_stock_list(event) {
       move_today_item();
       break;
     case key_a:           // a
+      if (event.shiftKey) {
+        // 選択行の下へ選択タスクを複製
+        event.preventDefault(); // 既定の動作をキャンセル
+        const add_id = addItemBehindSelectedItem(elem_id, true, false);
+        update_list();
+        set_select(elem_id, add_id);
+        break;
+      }
       // 空白タスクを選択行の下へ追加
       event.preventDefault(); // 既定の動作をキャンセル
-      let sel_id = get_select_id(elem_id);
-      if (sel_id !== null) {
-        addIntarnalBlankData(sel_id);
-        update_list();
-      }
+      const add_id = addItemBehindSelectedItem(elem_id, false, false);
+      update_list();
+      set_select(elem_id, add_id);
       break;
     case key_c:           // c
       if (event.shiftKey) {
@@ -235,17 +241,19 @@ function keyhandler_todays_list(event) {
       done_item();
       break;
     case key_a:           // a
-      // if (event.shiftKey) {
-        // 空白タスクを選択行の下へ追加
+      if (event.shiftKey) {
+        // 選択行の下へ選択タスクを複製
         event.preventDefault(); // 既定の動作をキャンセル
-        let sel_id = get_select_id(elem_id);
-        if (sel_id !== null) {
-          let id = addIntarnalBlankData(sel_id);
-          getInternal(id).is_today = 1;
-          update_list();
-        }
+        const add_id = addItemBehindSelectedItem(elem_id, true, true);
+        update_list();
+        set_select(elem_id, add_id);
         break;
-      // }
+      }
+      // 空白タスクを選択行の下へ追加
+      event.preventDefault(); // 既定の動作をキャンセル
+      const add_id = addItemBehindSelectedItem(elem_id, false, true);
+      update_list();
+      set_select(elem_id, add_id);
       break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
@@ -694,28 +702,58 @@ function getInternalGroupFromItemID(id) {
 }
 
 /**
+ * @summary 指定IDの後ろへアイテムを追加
+ * @param ID
+ * @param アイテム
+ * @returns アイテムID or null
+ */
+function addItemBehind(id, item) {
+  // 所属グループのデータ取得
+  let group = getInternalGroupFromItemID(id);
+  if (group === null) {
+    return;
+  }
+  // 指定位置へアイテム挿入
+  pushHistory();
+  let items = group.sub_tasks;
+  for (let j = 0 ; j < items.length; j++) {
+    if (items[j].id === id) {
+      // アイテム追加
+      items.splice(j+1, 0, item);
+      return item.id;
+    }
+  }
+  return null;
+}
+
+/**
  * @summary 内部データアイテムを指定idの後ろへ追加
  * @param id
  * @param タスク名
  * @returns 追加アイテムのID
  */
 function addIntarnalData(id, name) {
-  let group = getInternalGroupFromItemID(id);
-  if (group === null) {
-    return;
+  let item = makeInternalItem(name);
+  if (addItemBehind(id, item)) {
+    return item.id;
   }
-
-  let items = group.sub_tasks;
-  for (let j = 0 ; j < items.length; j++) {
-    if (items[j].id === id) {
-      // アイテム追加
-      let item = makeInternalItem(name);
-      items.splice(j+1, 0, item);
-      return item.id;
-    }
-  }
-
   return null;
+
+  // let group = getInternalGroupFromItemID(id);
+  // if (group === null) {
+  //   return;
+  // }
+
+  // let items = group.sub_tasks;
+  // for (let j = 0 ; j < items.length; j++) {
+  //   if (items[j].id === id) {
+  //     // アイテム追加
+  //     let item = makeInternalItem(name);
+  //     items.splice(j+1, 0, item);
+  //     return item.id;
+  //   }
+  // }
+  // return null;
 }
 
 /**
@@ -733,7 +771,7 @@ function addIntarnalDataEx(id, names) {
 }
 
 /**
- * @summary 内部データアイテムを指定グループへ追加(複数アイテム)
+ * @summary アイテムを指定グループへ追加(複数アイテム)
  * @param グループID
  * @param タスク名リスト 
  * @param 最後に追加したアイテムのID
@@ -768,10 +806,45 @@ function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
  * @param id
  * @returns 登録アイテムのID
  */
-function addIntarnalBlankData(id) {
-  return addIntarnalData(id, '-');
+function addIntarnalBlankData(id, set_today) {
+  const taskname = '-';
+  if (set_today) {
+    let item = makeInternalItem(taskname);
+    item.is_today = 1;
+    if (addItemBehind(id, item)) {
+      return item.id;
+    }
+  }
+  return addIntarnalData(id, taskname);
 }
 
+/**
+ * タスクを選択行の下へ追加
+ * @param 要素ID
+ * @param true:選択アイテムを複製 / false:空タスクを追加
+ * @param true:今日のタスクへ設定(複製指定の場合、無効) / false:指定なし
+ * @returns アイテムID
+ */
+function addItemBehindSelectedItem(elem_id, is_duplicate, set_today) {
+  let sel_id = get_select_id(elem_id);
+  if (sel_id !== null) {
+    if (is_duplicate) {
+      let item = getInternal(sel_id);
+      if (item === null) {
+        return;
+      }
+
+      // item複製、ID付け替え
+      let item_d = structuredClone(item);
+      item_d.id = genItemID();
+
+      // 追加
+      return addItemBehind(sel_id, item_d);
+    } else {
+      return addIntarnalBlankData(sel_id, set_today);
+    }
+  }
+}
 
 /**
  * @summary 指定IDがグループかどうか
@@ -807,13 +880,12 @@ function is_item(id) {
  */
 function makeInternalGroup(name, period) {
   let ret = { 
-    id: g_last_group_id, 
+    id: genGroupID(), 
     type: 'group', 
     name: name, 
     period: period, 
     sub_tasks: []
   };
-  g_last_group_id++;
   return ret;
 }
 
@@ -824,7 +896,7 @@ function makeInternalGroup(name, period) {
  */
 function makeInternalItem(name) {
   let ret = {
-    id: g_last_id, 
+    id: genItemID(), 
     type: 'item', 
     name: name, 
     url: '',
@@ -833,8 +905,25 @@ function makeInternalItem(name) {
     is_first: false, 
     last_update: ''
   };
-  g_last_id++;
   return ret;
+}
+
+/**
+ * 新しいアイテムIDを発行する
+ */
+function genItemID() {
+  let new_id = g_last_id;
+  g_last_id++;
+  return new_id;
+}
+
+/**
+ * 新しいグループIDを発行する
+ */
+function genGroupID() {
+  let new_id = g_last_group_id;
+  g_last_group_id++;
+  return new_id;
 }
 
 /**
@@ -887,7 +976,7 @@ function update_list_common(list_data, elem_id, filter, func_is_show, func_get_c
 
   let keys = get_internal_keys(filter, false);
   for (let i = 0 ; i < keys.length; i++) {
-    // サブタスクのエレメント一覧を作成
+    // アイテムの要素一覧を作成
     let append_elems = [];
     let items = list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
@@ -896,10 +985,11 @@ function update_list_common(list_data, elem_id, filter, func_is_show, func_get_c
         append_elems.push(make_option(item, func_get_classes(item), false, func_show_lastupdate(item)));
       }
     }
+
     if (func_is_show_empty_group() || append_elems.length > 0) {
       // params (group)
       let group_top = {}
-      group_top.name = `${list_data[keys[i]].name} ( ${get_date_string(list_data[keys[i]].period)} ) (〜 ${list_data[keys[i]].period} )`;
+      group_top.name = `${list_data[keys[i]].name} ( ${get_display_date_str(list_data[keys[i]].period)} ) (〜 ${list_data[keys[i]].period} )`;
       group_top.id = list_data[keys[i]].id;
       // class (group)
       let classes = ["group_top"];
@@ -954,7 +1044,11 @@ function update_stock_list(filter) {
       return classes;
     },
     function(item) {
+      // 最終更新日表示判定
       if (item.status === 'done') {
+        return true;
+      }
+      if (item.is_wait === true) {
         return true;
       }
       return false;
@@ -1001,6 +1095,9 @@ function update_todays_list() {
     },
     function(item) {
       // 更新日表示判定
+      if (item.is_wait === true) {
+        return true;
+      }
       return false;
     },
     function() {
@@ -1066,7 +1163,7 @@ function make_option(item, class_list, is_group_top, show_last_update) {
   option.text = item.name;
   option.title = item.name;
   if (!is_group_top && show_last_update) {
-    option.text += ' (' + get_date_string(item.last_update) + ')';
+    option.text += ' (' + get_display_date_str(item.last_update) + ')';
   }
   option.value = option.text;
   option.dataset.id = item.id;
@@ -1279,6 +1376,8 @@ function toggle_todays_wait() {
   }
   
   item.is_wait = !item.is_wait;
+  item.last_update = get_today_str(true, true);
+
   update_list();
 }
 
@@ -2032,6 +2131,8 @@ function show_timeline(mode, showNested)
   }
   else {
     timeline = new vis.Timeline(container, items, groups, options);
+
+    // クリックイベント登録
     timeline.on('select', function (properties) {
       set_select(elem_id_list_stock, properties.items);
     });
@@ -2370,8 +2471,12 @@ function get_days(target1, target2, exclude_weekend) {
   return null;
 }
 
-// 表示日付文字列取得 (「1日前」とかの表示)
-function get_date_string(date_str) {
+/**
+ * 表示用日付文字列取得 (「1日前」とかの表示)
+ * @param 日付文字列(yyyy/mm/dd xx:xx)
+ * @returns 表示用表示日付文字列
+ */
+function get_display_date_str(date_str) {
   let diff_days = get_days_from_today(date_str);
 
   // xx日以内なら、「xx日前」と返す

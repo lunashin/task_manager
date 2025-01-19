@@ -48,6 +48,7 @@
         /* Button */
         button.button-large { width: 120; height: 50; font-size: 150%; }
         button.button-mid { width: 100; height: 50; font-size: 150%; }
+        button.set_filter_condition { height: 50; }
         button:hover { background-color: rgb(168, 168, 168); }
 
         /* Edit */
@@ -143,7 +144,7 @@
     <!-- All List -->
     <div>
       <h2>全タスク</h2>
-      <button id="copy_stock_list" class="button-mid">リストをコピー</button>
+      <button id="copy_stock_list" class="button-mid">コピー</button>
       <button class="set_filter_condition" value="" >全て</button>
       <button class="set_filter_condition" value="認証部">認証部</button>
       <button class="set_filter_condition" value="法規">法規</button>
@@ -157,7 +158,7 @@
     <!-- Todays List -->
     <div>
       <h2 id="label_todays_task">今日のタスク</h2>
-      <button id="copy_todays_list" class="button-mid">リストをコピー</button>
+      <button id="copy_todays_list" class="button-mid">コピー</button>
       <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
       <input type="checkbox" id="toggle_show_done"></button>
       <label for="toggle_show_done">済み表示切替</label>
@@ -171,7 +172,7 @@
     <!-- Done List -->
     <div>
       <h2>処理済み</h2>
-      <button id="copy_done_list" class="button-mid">リストをコピー</button>
+      <button id="copy_done_list" class="button-mid">コピー</button>
       <button id="release_todays_done" class="button-mid">処理済み解除</button>
       <br>
       <select id="done_list" class="done_list" tabindex="20" multiple></select>
