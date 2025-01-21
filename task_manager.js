@@ -38,8 +38,12 @@ const key_esc = 27;
  */
 var g_list_data = {};
 // 内部リスト 次回追加時のID
-var g_last_group_id = 1000;
+const g_initial_group_id = 10000;
+var g_last_group_id = g_initial_group_id;
 var g_last_id = 0;
+
+// 全リストフィルタ
+var g_stock_filter = '';
 
 // 編集履歴
 var g_list_history = [];
@@ -389,7 +393,7 @@ function regist_from_json() {
 
 // 内部データをリストへ反映
 function update_list() {
-  update_stock_list();
+  update_stock_list(g_stock_filter);
   update_todays_list();
   update_done_list();
   show_timeline();
@@ -399,6 +403,15 @@ function update_list() {
  * フィルタ実行
  */
 function set_filter_condition() {
+  let c = document.querySelectorAll(".set_filter_condition");
+  c.forEach(function(target) {
+    if (target.classList.contains('set_filter_condition_on')) {
+      target.classList.remove('set_filter_condition_on');
+    }
+  });
+
+  g_stock_filter = this.value;
+  this.classList.add('set_filter_condition_on');
   update_stock_list(this.value);
 }
 
@@ -1625,7 +1638,7 @@ function get_selected_option(elem_id) {
 
 // g_last_group_id / g_last_id を更新
 function update_last_id() {
-  let last_group_id = 1000;
+  let last_group_id = g_initial_group_id;
   let last_id = 0;
 
   let keys = Object.keys(g_list_data);
@@ -1927,6 +1940,24 @@ function adjust_attr_internal_data() {
       }
     }
   }
+
+  // グループIDを再付番
+  // renumbering_groupid();
+}
+
+/**
+* @summary グループIDを再付番
+*/
+function renumbering_groupid() {
+  let keys = Object.keys(g_list_data);
+  let groupid = g_initial_group_id;
+ 
+  for (let i = 0 ; i < keys.length; i++) {
+    let group = g_list_data[keys[i]];
+    group.id = groupid;
+    groupid++;
+  }
+  g_last_group_id = groupid;
 }
 
 /**
@@ -2118,8 +2149,8 @@ function show_timeline(mode, showNested)
     zoomKey: 'shiftKey',    // zoom key
     zoomMin: 4000000,      // 約1時間
     zoomMax: 50000000000, // 約1年
-    height: "100px",     // 縦幅 (minHeightと合わせて指定すると日付軸が固定になる)
-    minHeight: "150px",  // 最大縦幅
+    height: timelineHeight,     // 縦幅 (minHeightと合わせて指定すると日付軸が固定になる)
+    minHeight: timelineHeight,  // 最大縦幅
     // onInitialDrawComplete: onTimelineShowComplete,
   };
 
