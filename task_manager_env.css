@@ -6,8 +6,12 @@ body {
 
 /* Select */
 select {
-    width: 450px;
-    height: 400px;
+    width: 37vw;
+    height: 700px;
+}
+select.h-half {
+    width: 20vw;
+    height: 300px;
 }
 
 .group_top { 

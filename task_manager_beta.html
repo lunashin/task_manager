@@ -22,9 +22,14 @@
         
         /* --------- Task List --------*/
         select {
-          width: 450px;
-          height: 500px;
+          width: 37vw;
+          height: 700px;
         }
+        select.h-half {
+          width: 20vw;
+          height: 300px;
+        }
+        .list-title { font-size: 140%; font-weight: bold; }
 
         .stock_list { background-color: white; }
         .todays_list { background-color: rgb(251, 225, 229); }
@@ -136,13 +141,14 @@
   <div class="">
     <div id="visualization"></div>
   </div>
+  <br>
 
 
   <!-- List -->
   <div class="flex-box">
     <!-- All List -->
     <div>
-      <h2>全タスク</h2>
+      <div class="list-title">全タスク</div>
       <button id="copy_stock_list" class="button-mid">コピー</button>
       <button class="set_filter_condition set_filter_condition_on" value="">全て</button>
       <button class="set_filter_condition" value="認証部">認証部</button>
@@ -156,7 +162,7 @@
 
     <!-- Todays List -->
     <div>
-      <h2 id="label_todays_task">今日のタスク</h2>
+      <div id="label_todays_task" class="list-title">今日のタスク</div>
       <button id="copy_todays_list" class="button-mid">コピー</button>
       <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
       <input type="checkbox" id="toggle_show_done"></button>
@@ -170,18 +176,26 @@
 
     <!-- Done List -->
     <div>
-      <h2>処理済み</h2>
-      <button id="copy_done_list" class="button-mid">コピー</button>
-      <button id="release_todays_done" class="button-mid">処理済み解除</button>
-      <br>
-      <select id="done_list" class="done_list" tabindex="20" multiple></select>
-    </div>
-    <div>
-      <br>
-      <br>
-      <br>
+      <div>
+        <div class="list-title">処理済み</div>
+        <button id="copy_done_list" class="button-mid">コピー</button>
+        <button id="release_todays_done" class="button-mid">処理済み解除</button>
+        <br>
+        <select id="done_list" class="done_list h-half" tabindex="20" multiple></select>
+      </div>
+
+      <div>
+        <div class="list-title">明日のタスク</div>
+        <button id="release_tomorrow" class="button-mid">全て今日へ移動</button>
+        <br>
+        <select id="tomorrow_list" class="tomorrow_list h-half" tabindex="20" multiple></select>
+      </div>
     </div>
   </div>
+
+  <br>
+
+
 
   <!-- Input -->
   <div class="flex-box">

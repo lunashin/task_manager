@@ -12,6 +12,7 @@
 const elem_id_list_stock = 'stock_list';
 const elem_id_list_today = 'todays_list';
 const elem_id_list_done = 'done_list';
+const elem_id_list_tomorrow = 'tomorrow_list';
 
 
 // key code
@@ -62,7 +63,7 @@ var g_show_popup_list = '';
 var timeline = null;
 // 表示する日付範囲
 const past_days = 2;
-const post_days = 14;
+const post_days = 8;
 
 // ファイル名
 // const g_mail_flag = 'mail_flag.js';
@@ -106,6 +107,10 @@ document.getElementById("lock_todays_task").addEventListener("click", toggle_loc
 document.getElementById("copy_done_list").addEventListener("click", copy_todays_done_list);
 document.getElementById("release_todays_done").addEventListener("click", release_todays_done);
 
+// tomorrow list
+document.getElementById("release_tomorrow").addEventListener("click", release_tomorrow_item);
+
+
 // other
 document.getElementById("save").addEventListener("click", save_data);
 document.getElementById("load").addEventListener("click", load_data);
@@ -130,6 +135,7 @@ document.getElementById("popup_edit_cancel_btn").addEventListener("click", close
 document.getElementById(elem_id_list_stock).addEventListener("keydown", keyhandler_stock_list);
 document.getElementById(elem_id_list_today).addEventListener("keydown", keyhandler_todays_list);
 document.getElementById(elem_id_list_done).addEventListener("keydown", keyhandler_done_list);
+document.getElementById(elem_id_list_tomorrow).addEventListener("keydown", keyhandler_tomorroy_list);
 document.getElementById("popup_edit_base").addEventListener("keydown", keyhandler_edit_popup);
 
 // Show message Before Close Browwer
@@ -203,6 +209,14 @@ function keyhandler_stock_list(event) {
       event.preventDefault(); // 既定の動作をキャンセル
       remove_selected_item(elem_id);
       break;
+    case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        break;
+      }
+      break;
     case key_space:       // space
       if (event.shiftKey) {
         // 設定されたURLを開く
@@ -242,6 +256,11 @@ function keyhandler_todays_list(event) {
       remove_today_item();
       break;
     case key_arrow_right: // →
+      if (event.ctrlKey) {
+        // 明日のタスクへ設定
+        set_tomorrow_item(elem_id , true);
+        break;
+      }
       done_item();
       break;
     case key_a:           // a
@@ -292,6 +311,12 @@ function keyhandler_todays_list(event) {
       }
       break;
     case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        break;
+      }
       event.preventDefault(); // 既定の動作をキャンセル
       toggle_todays_wait();
       break;
@@ -322,6 +347,43 @@ function keyhandler_done_list(event) {
   switch (event.keyCode){
     case key_arrow_left:       // ←
       return_item();   
+      break;
+    case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        break;
+      }
+      break;
+    case key_space:       // space
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        break;
+      }
+      break;
+  }
+}
+
+/**
+* @summary 明日のリスト キーイベント処理
+* @param イベント情報
+*/
+function keyhandler_tomorroy_list(event) {
+  const elem_id = elem_id_list_tomorrow;
+ 
+  switch (event.keyCode){
+    case key_arrow_left:  // ←
+      set_tomorrow_item(elem_id , false);
+      break;
+    case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        break;
+      }
       break;
     case key_space:       // space
       if (event.shiftKey) {
@@ -1486,6 +1548,49 @@ function release_todays_done() {
   update_list();
 }
 
+/**
+ * @summary 明日のタスクへ追加
+ * @param 要素ID
+ * @param true:明日のタスクON / false:明日のタスクOFF
+ */
+function set_tomorrow_item(elem_id, is_tomorrow) {
+  // 履歴保存
+  pushHistory();
+ 
+  let id = get_selected_id(elem_id);
+  if (id === null) {
+    return;
+  }
+ 
+  // status を更新
+  let item = getInternal(id);
+  if (item !== null) {
+    item.is_tomorrow = is_tomorrow;
+    update_list();
+  }
+}
+
+/**
+ * @summary 明日のタスク解除
+ * @param 要素ID
+ */
+function release_tomorrow_item() {
+  // 履歴保存
+  pushHistory();
+
+  let keys = Object.keys(g_list_data);
+  for (let i = 0 ; i < keys.length; i++) {
+    items = g_list_data[keys[i]].sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      if (items[j].is_tomorrow) {
+        items[j].is_tomorrow = false;
+      }
+    }
+  }
+  // リストへ反映
+  update_list();
+}
+
 // アイテム追加
 function add_items() {
   pushHistory();
@@ -1937,6 +2042,10 @@ function adjust_attr_internal_data() {
       // is_wait
       if (item.is_wait === undefined) {
         item.is_wait = false;
+      }
+      // is_tomorrow
+      if (item.is_tomorrow === undefined) {
+        item.is_tomorrow = false;
       }
     }
   }
