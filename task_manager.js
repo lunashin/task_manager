@@ -66,7 +66,7 @@ const past_days = 2;
 const post_days = 8;
 
 // ファイル名
-// const g_mail_flag = 'mail_flag.js';
+// const g_mail_flag = 'timeline_mail_flag.js.txt';
 // const g_meeting_script = 'timeline_tasks.js';
 const g_mail_flag = '../timeline_mail_flag.js.txt';
 const g_meeting_script = '../timeline_tasks.js';
@@ -92,10 +92,6 @@ document.getElementById("copy_stock_list").addEventListener("click", copy_stock_
 
 // todays list
 document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
-let c = document.querySelectorAll(".set_filter_condition");
-c.forEach(function(target) {
-  target.addEventListener("click", set_filter_condition);
-});
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
@@ -458,13 +454,14 @@ function update_list() {
   update_stock_list(g_stock_filter);
   update_todays_list();
   update_done_list();
+  update_tomorrow_list();
   show_timeline();
 }
 
 /**
  * フィルタ実行
  */
-function set_filter_condition() {
+function set_list_filter() {
   let c = document.querySelectorAll(".set_filter_condition");
   c.forEach(function(target) {
     if (target.classList.contains('set_filter_condition_on')) {
@@ -531,15 +528,21 @@ function read_mail_flag() {
         group = makeInternalGroup(group_name, '');
         g_list_data[group_name] = group;
       }
-    
-      // タスクを追加
-      let titles = [];
-      for (let i =0; i < mail_flag.length; i++) {
-        titles.push(`(${mail_flag[i].receive_date}) ${mail_flag[i].title}`);
-      }
-      // タスクリストへ追加
+
       pushHistory();
-      addIntarnalDataEx2(group.id, titles, true);
+      
+      // タスクを追加
+      let items = [];
+      for (let i =0; i < mail_flag.length; i++) {
+        let name = `(${mail_flag[i].receive_date}) ${mail_flag[i].title}`;
+        if (getInternalFromName(name) === null) {
+          let item = makeInternalItem(name);
+          item.mail = mail_flag[i].title;
+          group.sub_tasks.push(item);
+        }
+      }
+
+      // addIntarnalDataEx2(group.id, titles, true);
       update_list();
     
       // 選択
@@ -813,22 +816,6 @@ function addIntarnalData(id, name) {
     return item.id;
   }
   return null;
-
-  // let group = getInternalGroupFromItemID(id);
-  // if (group === null) {
-  //   return;
-  // }
-
-  // let items = group.sub_tasks;
-  // for (let j = 0 ; j < items.length; j++) {
-  //   if (items[j].id === id) {
-  //     // アイテム追加
-  //     let item = makeInternalItem(name);
-  //     items.splice(j+1, 0, item);
-  //     return item.id;
-  //   }
-  // }
-  // return null;
 }
 
 /**
@@ -976,9 +963,14 @@ function makeInternalItem(name) {
     name: name, 
     url: '',
     status: 'yet', 
+    mail: '',
+    note: '',
     is_today: 0,  // 0:明日以降 / 1:今日 / 2:今日の追加分 
     is_first: false, 
-    last_update: ''
+    is_wait: false,
+    is_tomorrow: false,
+    last_update: '',
+
   };
   return ret;
 }
@@ -1093,7 +1085,8 @@ function update_list_common(list_data, elem_id, filter, func_is_show, func_get_c
 
 
 /**
- * ALLタスクリスト更新
+ * @summary ALLタスクリスト更新
+ * @param フィルタ文字列
  */
 function update_stock_list(filter) {
   update_list_common(
@@ -1218,10 +1211,65 @@ function update_done_list() {
 }
 
 /**
+* 明日のみリストを更新
+*/
+function update_tomorrow_list() {
+  update_list_common(
+    g_list_data, elem_id_list_tomorrow, '',
+    function(item) {
+      // 表示条件
+      return (item.is_tomorrow);
+    },
+    function(item) {
+      // クラスリスト
+      let classes = ["group_level1"];
+      if (item.is_wait === true) {
+        classes.push('wait');
+      }
+      if (item.url !== '') {
+        classes.push('has_url');
+      }
+      return classes;
+    },
+    function(item) {
+      // 更新日表示判定
+      return false;
+    },
+    function() {
+      // アイテムが無いグループを表示するかどうか
+      return false;
+    }
+  );
+}
+
+/**
  * 今日の済みタスク表示チェックを更新
  */
 function update_check_todays_done() {
   document.getElementById("toggle_show_done").checked = !g_is_show_todays_done;
+}
+
+/**
+ * フィルターボタン生成
+ */
+function make_filter_buttons() {
+  let elem_div = document.getElementById('set_filter_condition_div');
+  
+  // ボタン生成
+  // <button class="set_filter_condition set_filter_condition_on" value="">全て</button>
+  for (let i = 0; i < filters.length; i++) {
+    let elem_button = document.createElement("button");
+    elem_button.classList.add('set_filter_condition');
+    elem_button.value = filters[i];
+    if (filters[i] === '') {
+      elem_button.textContent = '全て';
+      elem_button.classList.add('set_filter_condition_on');
+    } else {
+      elem_button.textContent = filters[i];
+    }
+    elem_button.addEventListener("click", set_list_filter);
+    elem_div.appendChild(elem_button);
+  }
 }
 
 
@@ -1234,26 +1282,88 @@ function update_check_todays_done() {
   @return    Element
  */
 function make_option(item, class_list, is_group_top, show_last_update) {
-  let option = document.createElement("option");
-  option.text = item.name;
-  option.title = item.name;
+  let elem = document.createElement("option");
+
+  // text
+  elem.text = get_before_icons(item) + item.name + get_after_icons(item);
   if (!is_group_top && show_last_update) {
-    option.text += ' (' + get_display_date_str(item.last_update) + ')';
+    // 最終更新日時
+    elem.text += ' (' + get_display_date_str(item.last_update) + ')';
   }
-  option.value = option.text;
-  option.dataset.id = item.id;
+  // title
+  elem.title = item.name;
+  if (item.note !== '') {
+    elem.title += '\n--------------\n' + item.note;
+  }
+  // value
+  elem.value = elem.text;
+  // data-id
+  elem.dataset.id = item.id;
+  // data-status
   if (!is_group_top) {
-    option.dataset.status = item.status;
+    elem.dataset.status = item.status;
   }
 
   // クラス追加
   if (class_list.length !== 0) {
     for (i=0; i < class_list.length; i++) {
-      option.classList.add(class_list[i]);
+      elem.classList.add(class_list[i]);
     }
   }
 
-  return option;
+  return elem;
+}
+
+/**
+ * @summary アイテムの前に表示するアイコン取得
+ * @param アイテム
+ * @returns アイコン
+ */
+function get_before_icons(item) {
+  // アイテム以外なら空
+  if (item.type !== 'item') {
+    return '';
+  }
+
+  let ret = '';
+  if(item.url !== '') {
+    ret += '🌏';
+  }
+  if(item.mail !== '') {
+    // ret += '📩';
+    ret += '📥';
+  }
+  if(item.note !== '') {
+    // ret += '🔖';
+    ret += '📓';
+  }
+
+  if(ret !== '') {
+    ret += ' ';
+  }
+  return ret;
+}
+
+/**
+ * @summary アイテムの前に表示するアイコン取得
+ * @param アイテム
+ * @returns アイコン
+ */
+function get_after_icons(item) {
+  // アイテム以外なら空
+  if (item.type !== 'item') {
+    return '';
+  }
+
+  let ret = '';
+  if(item.is_wait) {
+    ret = '💤';
+  }
+
+  if(ret !== '') {
+    ret += ' ';
+  }
+  return ret;
 }
 
 /**
@@ -1867,17 +1977,25 @@ function copy_selected_item_name(elem_id) {
   navigator.clipboard.writeText(item.name);
 }
 
-// 選択アイテムをクリップボードにコピー(メール検索クエリ用)
+/**
+ * @summary 選択アイテムのmail属性(空ならタスク名)をクリップボードにコピー(メール検索クエリ用)
+ * @param 要素ID
+ */
 function copy_selected_item_name_for_mailquery(elem_id) {
   let id = get_selected_id(elem_id);
   let item = getInternal(id);
 
-  // ") "をスプリット
   let text = item.name;
-  let ary = item.name.split(') ');
-  if (ary.length > 1) {
-    text = ary[1];
+  if (item.mail !== '') {
+    text = item.mail;
   }
+
+  // ") "をスプリット
+  // let text = item.name;
+  // let ary = item.name.split(') ');
+  // if (ary.length > 1) {
+  //   text = ary[1];
+  // }
   let copy_text = `subject: "${text}"`;
   navigator.clipboard.writeText(copy_text);
 }
@@ -2047,6 +2165,14 @@ function adjust_attr_internal_data() {
       if (item.is_tomorrow === undefined) {
         item.is_tomorrow = false;
       }
+      // mail
+      if (item.mail === undefined) {
+        item.mail = '';
+      }
+      // note
+      if (item.note === undefined) {
+        item.note = '';
+      }
     }
   }
 
@@ -2085,17 +2211,21 @@ function show_edit_popup(elem_id) {
     // タスク名
     document.getElementById("popup_edit_text").value = item.name.trim();
     // 期限
-    let elem_date = document.getElementById("popup_edit_date");
-    elem_date.value = item.period.replaceAll('/','-');
-    elem_date.style.display = "block";
+    document.getElementById("popup_edit_date").value = item.period.replaceAll('/','-');
+    document.getElementById("popup_edit_date").style.display = "block";
     // 期限（今日にセットするボタン）
     document.getElementById("popup_button_set_today").addEventListener("click", function(){
       elem_date.value = get_today_str(true, false).replaceAll('/','-');
     });
     document.getElementById("popup_button_set_today").style.display = "block";
-    // ID 
-    document.getElementById("popup_edit_id").value = selected_id;
-    document.getElementById("popup_edit_hidden_id").value = selected_id;
+
+    // 非表示
+    // URL
+    document.getElementById("popup_edit_url").style.display = "none";
+    // メール
+    document.getElementById("popup_edit_mail").style.display = "none";
+    // メモ
+    document.getElementById("popup_edit_note").style.display = "none";
   }
 
   if (item.type === "item") {
@@ -2103,13 +2233,23 @@ function show_edit_popup(elem_id) {
     document.getElementById("popup_edit_text").value = item.name.trim();
     // URL
     document.getElementById("popup_edit_url").value = item.url;
-    // 期限(非表示)
+    document.getElementById("popup_edit_url").style.display = "block";
+    // メール
+    document.getElementById("popup_edit_mail").value = item.mail;
+    document.getElementById("popup_edit_mail").style.display = "block";
+    // メモ
+    document.getElementById("popup_edit_note").value = item.note;
+    document.getElementById("popup_edit_note").style.display = "block";
+
+    // 非表示
+    // 期限
     document.getElementById("popup_edit_date").style.display = "none";
     document.getElementById("popup_button_set_today").style.display = "none";
-    // ID 
-    document.getElementById("popup_edit_id").value = selected_id;
-    document.getElementById("popup_edit_hidden_id").value = selected_id;
   }
+
+  // ID 
+  document.getElementById("popup_edit_id").value = selected_id;
+  document.getElementById("popup_edit_hidden_id").value = selected_id;
 
   // ポップアップをリストの選択位置へ移動
   let selected_elem = get_selected_option(elem_id);
@@ -2135,6 +2275,8 @@ function submit_edit_popup() {
   let new_name = document.getElementById("popup_edit_text").value;
   let new_period = document.getElementById("popup_edit_date").value;
   let new_url = document.getElementById("popup_edit_url").value;
+  let new_mail = document.getElementById("popup_edit_mail").value;
+  let new_note = document.getElementById("popup_edit_note").value;
   let id_hidden_str = document.getElementById("popup_edit_hidden_id").value;
   let id_edit_str = document.getElementById("popup_edit_id").value;
   let id_hidden = parseInt(id_hidden_str);
@@ -2152,6 +2294,8 @@ function submit_edit_popup() {
     // 入力値を適用
     item.name = new_name.trim();
     item.url = new_url;
+    item.mail = new_mail;
+    item.note = new_note;
   }
 
   // ID更新
@@ -2677,3 +2821,6 @@ function date_from_str_ex(date_str) {
 //---------------------------------------
 // 今日の済みタスク表示チェック更新
 update_check_todays_done();
+
+// フィルターボタン生成
+make_filter_buttons();
