@@ -37,7 +37,8 @@
 
         .done { color: rgb(182, 182, 182); }
         .today { color: mediumblue; }
-        .first { color: red; font-weight: bold; }
+        /* .first { color: red; font-weight: bold; } */
+        .first { background-color: #FFFF55; font-weight: bold; }
         .later { color: green; }
         /* .wait::after { content: ' \01f4a4'; } */
         /* .has_url::before { content: ' \01f30f'; } */
@@ -61,6 +62,7 @@
 
         /* ----------- pupup ---------- */
         .popup_edit { display: none; background-color: aquamarine; width: 160px; height: 140px; position: absolute; top:100px; left: 40px; }
+        .popup_copy { display: none; position: absolute; color: green; font-size: 150%; font-weight: bold; }
 
         
         /* ---------- timeline --------- */
@@ -266,12 +268,17 @@
       <p class="fukidashi"><共通><br>
         → : タスクのステータスを進める<br>
         ← : タスクのステータスを戻す<br>
-        space : タスク内容編集<br>
+        Enter or Space : タスク内容編集<br>
         a : タスク追加<br>
+        Shift + a : タスク複製<br>
         d : タスク削除<br>
-        Ctrl + c : タスク内容コピー<br>
-        Shift + c : タスク内容コピー(Outlook検索用クエリ)<br>
+        Shift + s : リスト選択状態の同期<br>
+        Ctrl + c : コピー<br>
+        Shift + c : コピー(Outlook検索用クエリ)<br>
         Shift + space : 登録URLを開く<br>
+        Ctrl + z: 戻す<br>
+        右クリック: コピー<br>
+        Shift + 右クリック: コピー(Outlook検索用クエリ)<br>
         <br>
         <全リストのみ><br>
         Alt + ↑ : タスクを前へ(全リストのみ)<br>
@@ -280,7 +287,6 @@
         <今日のリストのみ><br>
         f : ファーストタスクへ設定<br>
         z : 回答待ち状態<br>
-        Shift + s : リスト選択状態の同期<br>
         <br>
       </p>
 
@@ -317,6 +323,12 @@
     </form>
   </div>
 
+
+  
+  <!-- Copy Notifycation -->
+  <div id="popup_copy_base" class="popup_copy">
+    <span id="popup_copy_text">Copy!</span>
+  </div>
 
 
 </body>
