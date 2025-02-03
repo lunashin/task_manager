@@ -329,6 +329,12 @@ function keyhandler_todays_list(event) {
       break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
+      if (event.shiftKey) {
+        // 作業中タスク
+        toggle_todays_doing_task();
+        break;
+      }
+      // ファーストタスク
       toggle_todays_first_task();
       break;
     case key_c:           // c
@@ -492,11 +498,11 @@ function contextmenu_handler_list(event) {
   set_select(elem_id, parseInt(event.target.dataset.id));
 
   if (event.shiftKey) {
-    // テキストをコピー(Outlook用クエリ)
-    copy_selected_item_name_for_mailquery(elem_id, event);
-  } else {
     // テキストをコピー
     copy_selected_item_name(elem_id, event);
+  } else {
+    // テキストをコピー(Outlook用クエリ)
+    copy_selected_item_name_for_mailquery(elem_id, event);
   }
 }
 
@@ -1121,6 +1127,7 @@ function makeInternalItem(name) {
     is_today: 0,  // 0:明日以降 / 1:今日 / 2:今日の追加分 
     is_first: false, 
     is_wait: false,
+    is_doing: false,
     is_tomorrow: false,
     last_update: '',
 
@@ -1302,7 +1309,12 @@ function update_todays_list() {
     g_list_data, elem_id_list_today, '', 
     function(item) {
       // 表示条件
+      if (item.is_tomorrow) {
+        // 明日のタスク
+        return false;
+      }
       if (!g_is_show_todays_done) {
+        // 今日の済みタスク表示OFF
         return (item.is_today > 0 && item.status == 'yet');
       }
       return (item.is_today > 0);
@@ -1321,6 +1333,9 @@ function update_todays_list() {
       }
       if (item.is_wait === true) {
         classes.push('wait');
+      }
+      if (item.is_doing === true) {
+        classes.push('now');
       }
       if (item.url !== '') {
         classes.push('has_url');
@@ -1728,6 +1743,30 @@ function toggle_todays_first_task() {
   } else if (item.is_today > 0 && item.status !== 'done') {
     // 非ファーストタスクで、今日 かつ 処理済みでないデータならファーストへ
     item.is_first = true;
+  }
+  update_list();
+}
+
+// 選択アイテムを作業中タスクへ設定
+function toggle_todays_doing_task() {
+  pushHistory();
+
+  let id = get_selected_id(elem_id_list_today);
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+
+  if (item.is_doing) {
+    // 作業中タスクの場合はOFF
+    item.is_doing = false;
+  } else if (item.is_today > 0 && item.status !== 'done') {
+    // 非作業中タスクで、今日 かつ 処理済みでないデータなら作業中へ
+    item.is_doing = true;
   }
   update_list();
 }
@@ -2393,6 +2432,10 @@ function adjust_attr_internal_data() {
       // is_tomorrow
       if (item.is_tomorrow === undefined) {
         item.is_tomorrow = false;
+      }
+      // is_doing
+      if (item.is_doing === undefined) {
+        item.is_doing = false;
       }
       // mail
       if (item.mail === undefined) {
