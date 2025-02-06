@@ -35,12 +35,13 @@
         .todays_list { background-color: rgb(251, 225, 229); }
         .done_list { background-color: rgb(214, 230, 235); }
 
-        .done { color: rgb(182, 182, 182); }
+        .done { color: rgb(182, 182, 182); font-size: 80%; }
         .today { color: mediumblue; }
         /* .first { color: red; font-weight: bold; } */
         .first { background-color: #FFFF55; font-weight: bold; }
         .later { color: green; }
         .now { background-color: #2fff28; font-weight: bold; }
+        .non_task { color: #555555; }
         /* .wait::after { content: ' \01f4a4'; } */
         /* .has_url::before { content: ' \01f30f'; } */
         /* .period_today::before { content: ' \026a0'; } */
@@ -67,6 +68,8 @@
 
         
         /* ---------- timeline --------- */
+        .timeline_area{ font-size: 70%; }
+
         /* timeline軸（見出し行）のテキストの色 */
         .vis-time-axis .vis-text.vis-minor {color: #000000;}
         /* timeline軸（見出し行）の背景色 */
@@ -141,7 +144,7 @@
 <body>
 
   <!-- Timeline -->
-  <div class="">
+  <div class="timeline_area">
     <div id="visualization"></div>
   </div>
   <br>

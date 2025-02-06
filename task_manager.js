@@ -22,6 +22,7 @@ const key_a = 65;
 const key_c = 67;
 const key_d = 68;
 const key_f = 70;
+const key_n = 78;
 const key_s = 83;
 const key_z = 90;
 const key_arrow_left = 37;
@@ -237,6 +238,10 @@ function keyhandler_stock_list(event) {
       event.preventDefault(); // 既定の動作をキャンセル
       remove_selected_item(elem_id);
       break;
+    case key_n:           //n
+      // 非タスク化
+      toggle_non_task(elem_id);
+      break
     case key_s:           // s
       if (event.shiftKey) {
         // ALLリストの選択アイテムを、今日のリストへ同期
@@ -337,6 +342,10 @@ function keyhandler_todays_list(event) {
       // ファーストタスク
       toggle_todays_first_task();
       break;
+    case key_n:           //n
+      // 非タスク化
+      toggle_non_task(elem_id);
+      break
     case key_c:           // c
       if (event.shiftKey) {
         event.preventDefault(); // 既定の動作をキャンセル
@@ -1275,6 +1284,9 @@ function update_stock_list(filter) {
       if (item.is_wait === true) {
         classes.push('wait');
       }
+      if (item.is_non_task === true) {
+        classes.push('non_task');
+      }
       if (item.url !== '') {
         classes.push('has_url');
       }
@@ -1333,6 +1345,9 @@ function update_todays_list() {
       }
       if (item.is_wait === true) {
         classes.push('wait');
+      }
+      if (item.is_non_task === true) {
+        classes.push('non_task');
       }
       if (item.is_doing === true) {
         classes.push('now');
@@ -1824,6 +1839,27 @@ function release_todays_add_task() {
   update_list();
 }
 
+/**
+ * 非タスク切り替え
+ */
+function toggle_non_task(elem_id) {
+  pushHistory();
+
+  let id = get_selected_id(elem_id);
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+  
+  item.is_non_task = !item.is_non_task;
+  // item.last_update = get_today_str(true, true);
+
+  update_list();
+}
 
 
 /**
@@ -2133,7 +2169,7 @@ function get_todays_task_number() {
   for (let i = 0 ; i < keys.length; i++) {
     let items = g_list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
-      if (items[j].is_today > 0) {
+      if (items[j].is_today > 0 && !items[j].is_non_task) {
         task_number++;
         if (items[j].status === 'done') {
           task_number_done++;
@@ -2436,6 +2472,10 @@ function adjust_attr_internal_data() {
       // is_doing
       if (item.is_doing === undefined) {
         item.is_doing = false;
+      }
+      // non_task
+      if (item.is_non_task === undefined) {
+        item.is_non_task = false;
       }
       // mail
       if (item.mail === undefined) {
