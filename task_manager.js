@@ -600,7 +600,7 @@ function set_list_filter(elem_id, filter_id) {
   // リスト更新
   g_stock_filter_id = filter_id;
   filter = g_filtersEx[filter_id];
-  g_stock_filter = {name: filter.word, has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note };
+  g_stock_filter = {name: filter.word, has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait };
   update_stock_list(g_stock_filter);
 
   // ボタン選択状態変更
@@ -1129,6 +1129,7 @@ function makeInternalItem(name) {
     id: genItemID(), 
     type: 'item', 
     name: name, 
+    period: '',
     url: '',
     status: 'yet', 
     mail: '',
@@ -1271,6 +1272,9 @@ function update_stock_list(filter) {
       if (filter.has_note && item.note === '') {
         return false;
       }
+      if (filter.is_wait && item.is_wait !== true) {
+        return false;
+      }
       return true;
     },
     function(item) {
@@ -1304,7 +1308,7 @@ function update_stock_list(filter) {
     },
     function() {
       // アイテムが無いグループを表示するかどうか
-      if (filter.has_url || filter.has_mail || filter.has_note) {
+      if (filter.has_url || filter.has_mail || filter.has_note || filter.is_wait) {
         // 特殊条件の場合は非表示
         return false;
       }
@@ -1519,9 +1523,13 @@ function make_option(item, class_list, is_group_top, show_last_update) {
 
   // text
   elem.text = get_before_icons(item) + item.name + get_after_icons(item);
+  if (!is_group_top && item.period !== '') {
+    // 期限
+    elem.text += ' (⌛' + get_display_date_str(item.period) + ')';
+  }
   if (!is_group_top && show_last_update) {
     // 最終更新日時
-    elem.text += ' (' + get_display_date_str(item.last_update) + ')';
+    elem.text += ' (🕘' + get_display_date_str(item.last_update) + ')';
   }
   // title
   elem.title = item.name;
@@ -2455,11 +2463,15 @@ function adjust_attr_internal_data() {
       }
       // type
       if (item.type === undefined) {
-        item.type = "item";
+        item.type = 'item';
+      }
+      // period
+      if (item.period === undefined) {
+        item.period = '';
       }
       // URL
       if (item.url === undefined) {
-        item.url = "";
+        item.url = '';
       }
       // is_wait
       if (item.is_wait === undefined) {
@@ -2554,10 +2566,19 @@ function show_edit_popup(elem_id) {
     document.getElementById("popup_edit_note").value = item.note;
     document.getElementById("popup_edit_note").style.display = "block";
 
+    // 期限
+    document.getElementById("popup_edit_date").value = item.period.replaceAll('/','-');
+    document.getElementById("popup_edit_date").style.display = "block";
+    // 期限（今日にセットするボタン）
+    document.getElementById("popup_button_set_today").addEventListener("click", function(){
+      document.getElementById("popup_edit_date").value = get_today_str(true, false).replaceAll('/','-');
+    });
+    document.getElementById("popup_button_set_today").style.display = "block";
+
     // 非表示
     // 期限
-    document.getElementById("popup_edit_date").style.display = "none";
-    document.getElementById("popup_button_set_today").style.display = "none";
+    // document.getElementById("popup_edit_date").style.display = "none";
+    // document.getElementById("popup_button_set_today").style.display = "none";
   }
 
   // ID 
@@ -2598,11 +2619,12 @@ function submit_edit_popup() {
   // 内部データ取得
   let item = getInternal(id_hidden);
 
-  if (item.type === 'group') {
+  // if (item.type === 'group') {
     // 入力値を適用
     item.name = new_name.trim();
     item.period = new_period.replaceAll('-', '/');
-  }
+  // }
+
   if (item.type === 'item') {
     // 入力値を適用
     item.name = new_name.trim();
@@ -2657,19 +2679,30 @@ function make_timeline_items()
 {
   let items = [];
 
-  let keys = Object.keys(g_list_data);
+  let keys = get_internal_keys('', true);
   for (let i = 0 ; i < keys.length; i++) {
     let group = g_list_data[keys[i]];
     if (group.period === undefined || group.period === '') {
       continue;
     }
 
+    // グループデータを追加
     let name = keys[i];
     if (group.name !== undefined) {
       name = group.name;
     }
     let period = group.period + ' 12:00';
-    items.push( { group: 'task', id: group.id, content: name, title: name, start: period, type: 'point' } );
+    items.push( { group: 'task', id: group.id, content: name, title: name, start: period, type: 'point', className: 'timeline_item_group' } );
+
+    // アイテムデータを追加
+    for (let j = 0; j < group.sub_tasks.length; j++) {
+      let item = group.sub_tasks[j];
+      if (item.period === undefined || item.period === '') {
+        continue;
+      }
+      let period = item.period + ' 12:00';
+      items.push( { group: 'task', id: item.id, content: item.name, title: item.name, start: period, type: 'point', className: 'timeline_item_item' } );
+    }
   }
   return items;
 }
@@ -3111,10 +3144,10 @@ function get_display_date_str(date_str) {
     // 未来
     return Math.floor(-diff_days)+ "日後";
   } else if (diff_days > 0) {
-    if (diff_days <= 15) {
+    // if (diff_days <= 15) {
       // 過去 (規定日数まで日数を表示)
       return Math.floor(diff_days) + "日前";
-    }
+    // }
   }
   return date_str;
 }

@@ -7,7 +7,7 @@
 //---------------------------------------
 // Data
 //---------------------------------------
-const timelineHeight = '200px';
+const timelineHeight = '250px';
 
 const g_filters = [
   '',
@@ -29,7 +29,8 @@ const g_filtersEx = [
   { name: '休み', word: '休み' },
   { name: 'テスト', word: 'テスト' },
   { name: 'ほげ', word: 'ほげ' },
-  { name: '🌏URL', word: '', has_url: true },
+  { name: '🌏URL', word: 'URL', has_url: true },
   { name: '📥Mail', word: '', has_mail: true },
   { name: '📓Note', word: '', has_note: true },
+  { name: '💤待ち', word: '', is_wait: true },
 ];

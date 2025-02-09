@@ -61,11 +61,10 @@
         /* Edit */
         input.short-width { width: 50; }
 
-
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 160px; height: 140px; position: absolute; top:100px; left: 40px; }
-        .popup_copy { display: none; position: absolute; color: green; font-size: 150%; font-weight: bold; }
-
+        .popup_edit { display: none; background-color: aquamarine; width: 160px; height: 160px; position: absolute; top:100px; left: 40px; }
+        .popup_copy { display: none; position: absolute; }
+        .popup_copy_text { color: green; font-size: 150%; font-weight: bold; text-shadow: 2px 2px 0px #FFFFFF; }
         
         /* ---------- timeline --------- */
         .timeline_area{ font-size: 70%; }
@@ -91,7 +90,12 @@
         /* today */
         .vis-grid.vis-today {background: rgb(146, 239, 255);}
 
-        /* Calender */
+        /* timeline item style */
+        .timeline_item_group { font-size: 110%; font-weight: bold; }
+        .timeline_item_item { font-size: 80%; color:blue }
+
+
+        /* --------------- Calender ---------------- */
         .iframe_calender {
           /* display: none; */
           /* position: fixed; */
@@ -201,100 +205,112 @@
 
 
 
-  <!-- Input -->
   <div class="flex-box">
-    <div>
-      <h2>グループ追加</h2>
-      <textarea id="input_area" cols="30" rows="3" placeholder="[グループ名; 期限]
- [タスク名]
- [タスク名] ... "></textarea>
-      <br>
-      <button id="btn_input_reflect">リストへ追加</button>
-    </div>
-
-    &nbsp;
-    <div>
-      <h2>アイテム追加</h2>
-      <textarea id="add_item_text" cols="30" rows="3" placeholder="タスク名(改行で複数登録)"></textarea>
-      <br>
-      <button id="add_item">アイテム追加</button>
-    </div>
-
-    &nbsp;
-    <div>
-      <h2>JSON</h2>
-      <textarea id="input_json_area" cols="30" rows="3"></textarea>
-      <br>
-      <button id="btn_input_json">リストを上書き</button>
-    </div>
-  </div>
-  <br>
-
-  <!-- Edit / Button -->
-  <div>
-    <span class="flex-box">
-      <div class="border">
-        <button id="remove_item" class="button-large" >💥削除</button>
-        <button id="undo" class="button-large">↩️1つ戻す</button>
+    <!-- Input -->
+    <div class="flex-box">
+      <div>
+        <h2>グループ追加</h2>
+        <textarea id="input_area" cols="30" rows="3" placeholder="[グループ名; 期限]
+  [タスク名]
+  [タスク名] ... "></textarea>
+        <br>
+        <button id="btn_input_reflect">リストへ追加</button>
       </div>
-    </span>
 
+      &nbsp;
+      <div>
+        <h2>アイテム追加</h2>
+        <textarea id="add_item_text" cols="30" rows="3" placeholder="タスク名(改行で複数登録)"></textarea>
+        <br>
+        <button id="add_item">アイテム追加</button>
+      </div>
+
+      &nbsp;
+      <div>
+        <h2>JSON</h2>
+        <textarea id="input_json_area" cols="30" rows="3"></textarea>
+        <br>
+        <button id="btn_input_json">リストを上書き</button>
+      </div>
+    </div>
     <br>
 
-    <span class="flex-box">
-      <div class="border">
-        <button id="import_mail_flag" class="button-large" >📩フラグメール取込み</button>
-        <button id="import_todays_meeting" class="button-large" >💺今日の会議を取込み</button>
-        <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取込み</button>
-      </div>
-    </span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-    <br>
-    <br>
+    <!-- Edit / Button -->
+    <div>
+      <span class="flex-box">
+        <div class="border">
+          <button id="remove_item" class="button-large" >💥削除</button>
+          <button id="undo" class="button-large">↩️1つ戻す</button>
+        </div>
+      </span>
 
-    <span class="flex-box">
-      <div class="border2">
-        <button id="save" class="button-large">保存</button>
-        <button id="load" class="button-large">読込み</button>
-      </div>
-      &nbsp;
-      &nbsp;
-      <div class="border">
-        <button id="copy_now_json" class="button-large">JSONをコピー</button>
-        <button id="download_now_json" class="button-large">JSONダウンロード</button>
-      </div>
-      &nbsp;
-      &nbsp;
+      <br>
 
-      <!-- tips -->
-      <button class="tips_test button-large" type="button">ショートカットキー</button>
-      &nbsp;
-      <p class="fukidashi"><共通><br>
-        → : タスクのステータスを進める<br>
-        ← : タスクのステータスを戻す<br>
-        Enter or Space : タスク内容編集<br>
-        a : タスク追加<br>
-        Shift + a : タスク複製<br>
-        d : タスク削除<br>
-        Shift + s : リスト選択状態の同期<br>
-        Ctrl + c : コピー<br>
-        Shift + c : コピー(Outlook検索用クエリ)<br>
-        Shift + space : 登録URLを開く<br>
-        Ctrl + z: 戻す<br>
-        右クリック: コピー<br>
-        Shift + 右クリック: コピー(Outlook検索用クエリ)<br>
-        <br>
-        <全リストのみ><br>
-        Alt + ↑ : タスクを前へ(全リストのみ)<br>
-        Alt + ↓ : タスクを後ろへ(全リストのみ)<br>
-        <br>
-        <今日のリストのみ><br>
-        f : ファーストタスクへ設定<br>
-        z : 回答待ち状態<br>
-        <br>
-      </p>
+      <span class="flex-box">
+        <div class="border">
+          <button id="import_mail_flag" class="button-large" >📩フラグメール取込み</button>
+          <button id="import_todays_meeting" class="button-large" >💺今日の会議を取込み</button>
+          <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取込み</button>
+        </div>
+      </span>
 
-    </span>
+      <br>
+      <br>
+
+      <span class="flex-box">
+        <div class="border2">
+          <button id="save" class="button-large">保存</button>
+          <button id="load" class="button-large">読込み</button>
+        </div>
+        &nbsp;
+        &nbsp;
+        <div class="border">
+          <button id="copy_now_json" class="button-large">JSONをコピー</button>
+          <button id="download_now_json" class="button-large">JSONダウンロード</button>
+        </div>
+        &nbsp;
+        &nbsp;
+
+        <!-- tips -->
+        <button class="tips_test button-large" type="button">ショートカットキー</button>
+        &nbsp;
+        <p class="fukidashi"><共通><br>
+          → : タスクのステータスを進める<br>
+          ← : タスクのステータスを戻す<br>
+          Enter or Space : タスク内容編集<br>
+          a : タスク追加<br>
+          Shift + a : タスク複製<br>
+          d : タスク削除<br>
+          Shift + s : リスト選択状態の同期<br>
+          Ctrl + c : コピー<br>
+          Shift + c : コピー(Outlook検索用クエリ)<br>
+          Shift + space : 登録URLを開く<br>
+          Ctrl + z: 戻す<br>
+          右クリック: コピー<br>
+          Shift + 右クリック: コピー(Outlook検索用クエリ)<br>
+          <br>
+          <全リストのみ><br>
+          Alt + ↑ : タスクを前へ(全リストのみ)<br>
+          Alt + ↓ : タスクを後ろへ(全リストのみ)<br>
+          <br>
+          <今日のリストのみ><br>
+          f : ファーストタスクへ設定<br>
+          z : 回答待ち状態<br>
+          <br>
+        </p>
+
+      </span>
+    </div>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+    <div>
+      <!-- Address List -->
+      <iframe id="address_list_area" class="iframe_address_list" src="./addressLlist.html"></iframe>
+    </div>
+
   </div>
 
   <br>
@@ -331,7 +347,7 @@
   
   <!-- Copy Notifycation -->
   <div id="popup_copy_base" class="popup_copy">
-    <span id="popup_copy_text">Copy!</span>
+    <span id="popup_copy_text" class="popup_copy_text">Copy!</span>
   </div>
 
 
