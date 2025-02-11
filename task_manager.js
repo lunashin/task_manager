@@ -1522,7 +1522,13 @@ function make_option(item, class_list, is_group_top, show_last_update) {
   let elem = document.createElement("option");
 
   // text
-  elem.text = get_before_icons(item) + item.name + get_after_icons(item);
+  let before_icon = get_before_icons(item);
+  if (before_icon !== '') {
+    elem.text = before_icon + ' ' + item.name + get_after_icons(item);
+  } else {
+    elem.text = item.name + get_after_icons(item);
+  }
+
   if (!is_group_top && item.period !== '') {
     // 期限
     elem.text += ' (⌛' + get_display_date_str(item.period) + ')';
@@ -1552,6 +1558,12 @@ function make_option(item, class_list, is_group_top, show_last_update) {
     }
   }
 
+  // インデント
+  if (item.type === 'item') {
+    let indent_count = 3 - [...before_icon].length;    // max 3 indent
+    elem.style.textIndent = indent_count + 'rem';
+  }
+
   return elem;
 }
 
@@ -1579,9 +1591,9 @@ function get_before_icons(item) {
     ret += '📓';
   }
 
-  if(ret !== '') {
-    ret += ' ';
-  }
+  // if(ret !== '') {
+  //   ret += ' ';
+  // }
   return ret;
 }
 
