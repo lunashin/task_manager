@@ -2689,7 +2689,7 @@ function make_timeline_groups() {
  */
 function make_timeline_items()
 {
-  let items = [];
+  let ret = [];
 
   let keys = get_internal_keys('', true);
   for (let i = 0 ; i < keys.length; i++) {
@@ -2704,7 +2704,7 @@ function make_timeline_items()
       name = group.name;
     }
     let period = group.period + ' 12:00';
-    items.push( { group: 'task', id: group.id, content: name, title: name, start: period, type: 'point', className: 'timeline_item_group' } );
+    ret.push( { group: 'task', id: group.id, content: name, title: name, start: period, type: 'point', className: 'timeline_item_group' } );
 
     // アイテムデータを追加
     for (let j = 0; j < group.sub_tasks.length; j++) {
@@ -2713,10 +2713,14 @@ function make_timeline_items()
         continue;
       }
       let period = item.period + ' 12:00';
-      items.push( { group: 'task', id: item.id, content: item.name, title: item.name, start: period, type: 'point', className: 'timeline_item_item' } );
+      let className = 'timeline_item_item';
+      if (item.status === 'done') {
+        className = 'timeline_item_item_done';
+      }
+      ret.push( { group: 'task', id: item.id, content: item.name, title: item.name, start: period, type: 'point', className: className } );
     }
   }
-  return items;
+  return ret;
 }
 
 
@@ -2776,6 +2780,9 @@ function show_timeline(mode, showNested)
 
     // クリックイベント登録
     timeline.on('select', function (properties) {
+      // フィルタ解除
+      set_list_filter(elem_id_list_stock, 0);
+      // クリックしたアイテムをリスト中で選択
       set_select(elem_id_list_stock, properties.items);
     });
   }

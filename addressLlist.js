@@ -60,8 +60,14 @@ function createButton() {
     let item = g_address_list[i];
     let btn = document.createElement('button');
     btn.textContent = item.name;
-    btn.value = item.address.join('; ');
-    btn.dataset.names = item.names.join(' ');
+    let keys = Object.keys(item.address);
+    btn.value = keys.join('; ');
+    let names = [];
+    for (let k = 0; k < keys.length; k++) {
+      names.push(item.address[keys[k]]);
+    }
+    btn.dataset.names = names.join(' ');
+    btn.title = names.join(' ');
     btn.classList.add('btn_medium');
     btn.addEventListener('click', copyAddress);
     elem_parent.appendChild(btn);

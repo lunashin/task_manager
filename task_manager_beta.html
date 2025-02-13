@@ -93,6 +93,7 @@
         /* timeline item style */
         .timeline_item_group { font-size: 110%; font-weight: bold; }
         .timeline_item_item { font-size: 80%; color:blue }
+        .timeline_item_item_done { font-size: 60%; color:rgb(182, 182, 182); }
 
 
         /* --------------- Address ---------------- */
@@ -215,7 +216,7 @@
     <!-- Input -->
     <div class="flex-box">
       <div>
-        <h2>グループ追加</h2>
+        <div class="list-title">グループ追加</div>
         <textarea id="input_area" cols="30" rows="3" placeholder="[グループ名; 期限]
   [タスク名]
   [タスク名] ... "></textarea>
@@ -225,7 +226,7 @@
 
       &nbsp;
       <div>
-        <h2>アイテム追加</h2>
+        <div class="list-title">アイテム追加</div>
         <textarea id="add_item_text" cols="30" rows="3" placeholder="タスク名(改行で複数登録)"></textarea>
         <br>
         <button id="add_item">アイテム追加</button>
@@ -233,7 +234,7 @@
 
       &nbsp;
       <div>
-        <h2>JSON</h2>
+        <div class="list-title">JSON</div>
         <textarea id="input_json_area" cols="30" rows="3"></textarea>
         <br>
         <button id="btn_input_json">リストを上書き</button>
