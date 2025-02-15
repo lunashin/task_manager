@@ -282,17 +282,22 @@ function get_day_status(week, year, month, day, weekDay, startWeekDay, endDay, t
   } else {
     // 月内の日
     class_name = "calendar_td";
-    if (today_str === `${year}/${month}/${day}`){
-      // 本日
-      class_name += ' is-today';
-    }
     if (holidays.includes(`${year}/${month}/${day}`)){
       // 休日
       class_name += ' is-holiday';
     }
     if (holidays_recommend.includes(`${year}/${month}/${day}`)){
-      // 休日
+      // 有給奨励日
       class_name += ' is-holiday-reco';
+    }
+    // 本日
+    if (today_str === `${year}/${month}/${day}`){
+      if (class_name.indexOf('is-holiday-reco') > 0) {
+        // 本日かつ有給奨励日
+        class_name += ' is-holicay-reco-today';
+      } else {
+        class_name += ' is-today';
+      }
     }
   }
   return { classes: class_name, is_prev_month: is_prev_month, is_next_month: is_next_month };
