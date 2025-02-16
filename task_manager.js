@@ -147,6 +147,32 @@ document.getElementById(elem_id_list_stock).addEventListener("contextmenu", cont
 document.getElementById(elem_id_list_today).addEventListener("contextmenu", contextmenu_handler_list);
 
 
+// Popup
+// 期限（今日にセットするボタン）
+document.getElementById("popup_button_set_today").addEventListener("click", function(){
+  document.getElementById("popup_edit_date").value = get_today_str(true, false).replaceAll('/','-');
+});
+// 期限（+1日するボタン）
+document.getElementById("popup_button_date_inc").addEventListener("click", function(){
+  let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false).replaceAll('/','-');
+  }
+  let ret = addDays_s(new Date(date_str), 1, false);
+  document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
+});
+// 期限（+1Wするボタン）
+document.getElementById("popup_button_date_inc1w").addEventListener("click", function(){
+  let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false).replaceAll('/','-');
+  }
+  let ret = addDays_s(new Date(date_str), 7, false);
+  document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
+});
+
+
+
 // Show message Before Close Browwer
 window.onbeforeunload = function(e) {
   return "";
@@ -1558,6 +1584,7 @@ function make_option(item, class_list, is_group_top, show_last_update) {
     }
   }
 
+
   // インデント
   if (item.type === 'item') {
     let indent_count = 3 - [...before_icon].length;    // max 3 indent
@@ -2547,14 +2574,6 @@ function show_edit_popup(elem_id) {
   if (item.type === "group") {
     // タスク名
     document.getElementById("popup_edit_text").value = item.name.trim();
-    // 期限
-    document.getElementById("popup_edit_date").value = item.period.replaceAll('/','-');
-    document.getElementById("popup_edit_date").style.display = "block";
-    // 期限（今日にセットするボタン）
-    document.getElementById("popup_button_set_today").addEventListener("click", function(){
-      document.getElementById("popup_edit_date").value = get_today_str(true, false).replaceAll('/','-');
-    });
-    document.getElementById("popup_button_set_today").style.display = "block";
 
     // 非表示
     // URL
@@ -2577,21 +2596,10 @@ function show_edit_popup(elem_id) {
     // メモ
     document.getElementById("popup_edit_note").value = item.note;
     document.getElementById("popup_edit_note").style.display = "block";
-
-    // 期限
-    document.getElementById("popup_edit_date").value = item.period.replaceAll('/','-');
-    document.getElementById("popup_edit_date").style.display = "block";
-    // 期限（今日にセットするボタン）
-    document.getElementById("popup_button_set_today").addEventListener("click", function(){
-      document.getElementById("popup_edit_date").value = get_today_str(true, false).replaceAll('/','-');
-    });
-    document.getElementById("popup_button_set_today").style.display = "block";
-
-    // 非表示
-    // 期限
-    // document.getElementById("popup_edit_date").style.display = "none";
-    // document.getElementById("popup_button_set_today").style.display = "none";
   }
+
+  // 期限
+  document.getElementById("popup_edit_date").value = item.period.replaceAll('/','-');
 
   // ID 
   document.getElementById("popup_edit_id").value = selected_id;

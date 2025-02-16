@@ -62,7 +62,11 @@
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 160px; height: 160px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { display: none; background-color: aquamarine; width: 220px; height: 170px; position: absolute; top:100px; left: 40px; }
+        .popup_size_fit { width: 220px; }
+        .button-small { width: 80; height: 30; font-size: 130%; }
+
+        /* ----------- Copy pupup ---------- */
         .popup_copy { display: none; position: absolute; }
         .popup_copy_text { color: green; font-size: 150%; font-weight: bold; text-shadow: 2px 2px 0px #FFFFFF; }
         
@@ -201,7 +205,7 @@
 
       <div>
         <div class="list-title">明日のタスク</div>
-        <button id="release_tomorrow" class="button-mid">全て今日へ移動</button>
+        <button id="release_tomorrow" class="button-mid">今日へ移動</button>
         <br>
         <select id="tomorrow_list" class="tomorrow_list h-half" tabindex="20" multiple></select>
       </div>
@@ -251,32 +255,6 @@
           <button id="remove_item" class="button-large" >💥削除</button>
           <button id="undo" class="button-large">↩️1つ戻す</button>
         </div>
-      </span>
-
-      <br>
-
-      <span class="flex-box">
-        <div class="border">
-          <button id="import_mail_flag" class="button-large" >📩フラグメール取込み</button>
-          <button id="import_todays_meeting" class="button-large" >💺今日の会議を取込み</button>
-          <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取込み</button>
-        </div>
-      </span>
-
-      <br>
-      <br>
-
-      <span class="flex-box">
-        <div class="border2">
-          <button id="save" class="button-large">保存</button>
-          <button id="load" class="button-large">読込み</button>
-        </div>
-        &nbsp;
-        &nbsp;
-        <div class="border">
-          <button id="copy_now_json" class="button-large">JSONをコピー</button>
-          <button id="download_now_json" class="button-large">JSONダウンロード</button>
-        </div>
         &nbsp;
         &nbsp;
 
@@ -307,6 +285,34 @@
           z : 回答待ち状態<br>
           <br>
         </p>
+      </span>
+
+      <br>
+
+      <span class="flex-box">
+        <div class="border">
+          <button id="import_mail_flag" class="button-large" >📩フラグメール取込み</button>
+          <button id="import_todays_meeting" class="button-large" >💺今日の会議を取込み</button>
+          <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取込み</button>
+        </div>
+      </span>
+
+      <br>
+      <br>
+
+      <span class="flex-box">
+        <div class="border2">
+          <button id="save" class="button-large">保存</button>
+          <button id="load" class="button-large">読込み</button>
+        </div>
+        &nbsp;
+        &nbsp;
+        <div class="border">
+          <button id="copy_now_json" class="button-large">JSONをコピー</button>
+          <button id="download_now_json" class="button-large">JSONダウンロード</button>
+        </div>
+        &nbsp;
+        &nbsp;
 
       </span>
     </div>
@@ -333,19 +339,21 @@
   <!-- Popup -->
   <div id="popup_edit_base" class="popup_edit">
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
-      <input id="popup_edit_text" type="text" autocomplete="off" name="name">
+      <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
       <div class="flex-box">
         <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" >
         <input id="popup_button_set_today" type="button" value="今日" >
+        <input id="popup_button_date_inc" type="button" value="+1d" >
+        <input id="popup_button_date_inc1w" type="button" value="+1w" >
       </div>
-      <input id="popup_edit_url" type="url" autocomplete="off" placeholder="URL" >
-      <input id="popup_edit_mail" type="text" autocomplete="off" placeholder="メール件名" >
-      <input id="popup_edit_note" type="text" autocomplete="off" placeholder="メモ(進捗など)" >
+      <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+      <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >
+      <input id="popup_edit_note" type="text" class="popup_size_fit" autocomplete="off" placeholder="メモ(進捗など)" >
       <input id="popup_edit_id" class="short-width" type="text" name="id">
       <input type="hidden" id="popup_edit_hidden_id" name="id" >
       <div>
-        <input type="submit" value="更新" >
-        <input type="button" id="popup_edit_cancel_btn" value="取消">
+        <input type="submit" class="button-small" value="OK" >
+        <input type="button" id="popup_edit_cancel_btn" class="button-small" value="Cancel">
       </div>
     </form>
   </div>
