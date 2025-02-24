@@ -61,7 +61,7 @@ function createButton() {
     let btn = document.createElement('button');
     btn.textContent = item.name;
     let keys = Object.keys(item.address);
-    btn.value = keys.join('; ');
+    btn.value = keys.join('; \n');
     let names = [];
     for (let k = 0; k < keys.length; k++) {
       names.push(item.address[keys[k]]);
