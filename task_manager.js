@@ -127,8 +127,10 @@ document.getElementById("import_tomorrows_meeting").addEventListener("click", re
 
 // Popup
 document.getElementById("popup_edit_form").addEventListener("submit", submit_edit_popup);
-// document.getElementById("popup_edit_update_btn").addEventListener("click", submit_edit_popup);
 document.getElementById("popup_edit_cancel_btn").addEventListener("click", close_edit_popup);
+// Popup(multi)
+document.getElementById("popup_edit_multi_form").addEventListener("submit", submit_edit_multi_popup);
+document.getElementById("popup_edit_multi_cancel_btn").addEventListener("click", close_edit_multi_popup);
 
 
 // document.querySelectorAll(".td_edit").forEach(function(elem) { elem.addEventListener('click', click_stock_list_item); });
@@ -169,6 +171,15 @@ document.getElementById("popup_button_date_inc1w").addEventListener("click", fun
     date_str = get_today_str(true, false).replaceAll('/','-');
   }
   let ret = addDays_s(new Date(date_str), 7, false);
+  document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
+});
+// 期限（+1Mするボタン）
+document.getElementById("popup_button_date_inc1m").addEventListener("click", function(){
+  let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false).replaceAll('/','-');
+  }
+  let ret = addMonths_s(new Date(date_str), 1, false);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
 });
 
@@ -395,6 +406,7 @@ function keyhandler_todays_list(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         let id = get_select_id(elem_id);
         if (id !== null) {
+          set_list_filter(elem_id_list_stock, 0);
           set_select(elem_id_list_stock, id);
           document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
         }
@@ -531,7 +543,7 @@ function contextmenu_handler_list(event) {
   event.preventDefault(); // 既定の動作をキャンセル
 
   // アイテムを選択
-  set_select(elem_id, parseInt(event.target.dataset.id));
+  set_select(elem_id, parseInt(event.target.dataset.id), false);
 
   if (event.shiftKey) {
     // テキストをコピー
@@ -599,7 +611,11 @@ function click_set_list_filter() {
  * @summary フィルタ設定
  */
 function set_list_filter(elem_id, filter_id) {
-  // リスト更新
+  // 同じフィルタなら何もしない
+  if (g_stock_filter_id === filter_id) {
+    return;
+  }
+
   g_stock_filter_id = filter_id;
   filter = g_filtersEx[filter_id];
   g_stock_filter = {name: filter.word, has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait };
@@ -622,25 +638,25 @@ function set_list_filter(elem_id, filter_id) {
 }
 
 /**
- * @summary フィルタ実行(前・後)
- * @param true:前へ / false:後ろへ
- */
+* @summary フィルタ実行(前・後)
+* @param true:前へ / false:後ろへ
+*/
 function move_list_filter(prev) {
+  let next_filter_id = 0;
   if (prev) {
     if (g_stock_filter_id > 0) {
-      g_stock_filter_id--;
+      next_filter_id = g_stock_filter_id - 1;
     }
   } else {
     if (g_stock_filter_id < g_filtersEx.length - 1) {
-      g_stock_filter_id++;
+      next_filter_id = g_stock_filter_id + 1;
     }
   }
-  // console.log(g_stock_filter_id);
-
+  // console.log(next_filter_id);
+ 
   // リスト更新
-  set_list_filter(elem_id_list_stock, g_stock_filter_id);
+  set_list_filter(elem_id_list_stock, next_filter_id);
 }
-
 
 /**
  * @summary フラグメール情報を取り込み ('メール'グループへ追加)
@@ -2086,7 +2102,7 @@ function get_select_id_ex(elem_id) {
  * @param エレメントID
  * @param 選択状態にするアイテムのID
  */
-function set_select(elem_id, id) {
+function set_select(elem_id, id, is_scroll) {
   if (id == null) {
     return;
   }
@@ -2103,12 +2119,14 @@ function set_select(elem_id, id) {
     }
   }
 
-  // 0.005秒後にスクロール
-  if (selected_top > 0) {
-    setTimeout(() => {
-      let list_top = document.getElementById(elem_id).getBoundingClientRect().top;
-      document.getElementById(elem_id).scrollTo({top: selected_top - list_top, left: 0, behavior: "smooth"});
-    }, 5);
+  if (is_scroll !== false) {
+    // 0.005秒後にスクロール
+    if (selected_top > 0) {
+      setTimeout(() => {
+        let list_top = document.getElementById(elem_id).getBoundingClientRect().top;
+        document.getElementById(elem_id).scrollTo({top: selected_top - list_top, left: 0, behavior: "smooth"});
+      }, 5);
+    }
   }
 }
 
@@ -2531,15 +2549,29 @@ function undo_item() {
 
 /**
  * @summary 選択中アイテムの 内部データid を取得
- * @param selectエレメントID
+ * @param アイテムID
  * @returns ID or null
  */
 function get_selected_id(elem_id) {
-  let elem = get_selected_option(elem_id);
-  if (elem !== null) {
-    return parseInt(elem.dataset.id);
+  let select_elems = get_selected_option(elem_id);
+  if (select_elems.length > 0) {
+    return parseInt(select_elems[0].dataset.id);
   }
   return null;
+}
+
+/**
+ * @summary 選択中アイテムの 内部データID(複数) を取得
+ * @param アイテムID(配列)
+ * @returns ID or null
+ */
+function get_selected_ids(elem_id) {
+  let ret = [];
+  let select_elems = get_selected_option(elem_id);
+  for (let i = 0; i < select_elems.length; i++) {
+    ret.push(parseInt(select_elems[i].dataset.id));
+  }
+  return ret;
 }
 
 /**
@@ -2548,13 +2580,14 @@ function get_selected_id(elem_id) {
  * @returns エレメントオブジェクト
  */
 function get_selected_option(elem_id) {
+  let ret = [];
   let options = document.getElementById(elem_id).options;
   for (let i = 0; i < options.length; i++) {
     if(options[i].selected) {
-      return options[i];
+      ret.push(options[i]);
     }
   }
-  return null;
+  return ret;
 }
 
 
@@ -2710,18 +2743,33 @@ function get_now_json() {
   return JSON.stringify(getInternalRawData(), null , "  ");
 }
 
+
 /**
  * @summary 編集ポップアップ表示
  * @param 要素ID
  */
 function show_edit_popup(elem_id) {
+  let selected_ids = get_selected_ids(elem_id);
+  if (selected_ids.length === 1) {
+    // 1件の編集
+    show_edit_popup_single(elem_id, selected_ids[0]);
+  } else if (selected_ids.length > 1) {
+    // 複数件の編集
+    show_edit_popup_multi(elem_id, selected_ids);
+  }
+}
+
+/**
+ * @summary 編集ポップアップ表示
+ * @param 要素ID
+ * @param 編集対象ID(配列)
+ */
+function show_edit_popup_single(elem_id, selected_id) {
   if (g_show_popup) {
     return;
   }
 
   let elem = document.getElementById("popup_edit_base");
-  let selected_id = get_selected_id(elem_id);
-
   let item = getInternal(selected_id);
   if (item.type === "group") {
     // 非表示
@@ -2731,6 +2779,12 @@ function show_edit_popup(elem_id) {
     document.getElementById("popup_edit_mail").style.display = "none";
     // メモ
     document.getElementById("popup_edit_note").style.display = "none";
+    // 済み
+    document.getElementById("popup_edit_done").style.display = "none";
+    document.getElementById("popup_edit_done_label").style.display = "none";
+    // 待ち
+    document.getElementById("popup_edit_wait").style.display = "none";
+    document.getElementById("popup_edit_wait_label").style.display = "none";
   }
 
   if (item.type === "item") {
@@ -2743,6 +2797,14 @@ function show_edit_popup(elem_id) {
     // メモ
     document.getElementById("popup_edit_note").value = item.note;
     document.getElementById("popup_edit_note").style.display = "block";
+    // 済み
+    document.getElementById("popup_edit_done").checked = (item.status === 'done');
+    document.getElementById("popup_edit_done").style.display = "block";
+    document.getElementById("popup_edit_done_label").style.display = "block";
+    // 待ち
+    document.getElementById("popup_edit_wait").checked = item.is_wait;
+    document.getElementById("popup_edit_wait").style.display = "block";
+    document.getElementById("popup_edit_wait_label").style.display = "block";
   }
 
   // タスク名
@@ -2759,9 +2821,9 @@ function show_edit_popup(elem_id) {
   document.getElementById("popup_edit_hidden_id").value = selected_id;
 
   // ポップアップをリストの選択位置へ移動
-  let selected_elem = get_selected_option(elem_id);
-  if (selected_elem !== null) {
-    let rect = selected_elem.getBoundingClientRect();
+  let selected_elems = get_selected_option(elem_id);
+  if (selected_elems.length > 0) {
+    let rect = selected_elems[0].getBoundingClientRect();
     elem.style.top = rect.top;
     elem.style.left = rect.right;
   }
@@ -2776,7 +2838,82 @@ function show_edit_popup(elem_id) {
 }
 
 /**
- * @summary グループ情報変更
+ * @summary 編集ポップアップ表示(複数用)
+ * @param 要素ID
+ * @param 編集対象ID(配列)
+ */
+function show_edit_popup_multi(elem_id, selected_ids) {
+  if (g_show_popup) {
+    return;
+  }
+
+  // コントロール状態取得
+  let is_wait = undefined;
+  let status = undefined;
+  for (let i = 0; i < selected_ids.length; i++) {
+    let item = getInternal(selected_ids[i]);
+    if (item.type === 'group') {
+      continue;
+    }
+
+    if (is_wait !== null) {
+      if (is_wait === undefined) {
+        is_wait = item.is_wait;
+      } else if (is_wait !== item.is_wait) {
+        is_wait = null;
+      }
+    }
+    if (status !== null) {
+      if (status === undefined) {
+        status = item.status;
+      } else if (status !== item.status) {
+        status = null;
+      }
+    }
+  }
+  
+  // 済み
+  if (is_wait === null) {
+    document.getElementById("popup_edit_multi_wait").indeterminate = true;
+  } else {
+    document.getElementById("popup_edit_multi_wait").indeterminate = false;
+    document.getElementById("popup_edit_multi_wait").checked = is_wait;
+  }
+  document.getElementById("popup_edit_multi_wait").style.display = "block";
+  document.getElementById("popup_edit_multi_wait_label").style.display = "block";
+  // 待ち
+  if (status === null) {
+    document.getElementById("popup_edit_multi_done").indeterminate = true;
+  } else {
+    document.getElementById("popup_edit_multi_done").indeterminate = false;
+    document.getElementById("popup_edit_multi_done").checked = (status === 'done');
+  }
+  document.getElementById("popup_edit_multi_done").style.display = "block";
+  document.getElementById("popup_edit_multi_done_label").style.display = "block";
+
+  // ID 
+  document.getElementById("popup_edit_multi_hidden_id").value = selected_ids.join(',');
+
+  // ポップアップをリストの選択位置へ移動
+  let elem = document.getElementById("popup_edit_multi_base");
+  let selected_elems = get_selected_option(elem_id);
+  if (selected_elems.length > 0) {
+    let rect = selected_elems[0].getBoundingClientRect();
+    elem.style.top = rect.top;
+    elem.style.left = rect.right;
+  }
+
+  // 表示
+  elem.style.display = "block";
+  // フォーカス移動
+  document.getElementById("popup_edit_multi_done").focus();
+
+  g_show_popup = true;
+  g_show_popup_list = elem_id;
+}
+
+/**
+ * @summary アイテム編集完了
  */
 function submit_edit_popup() {
   let new_name = document.getElementById("popup_edit_text").value;
@@ -2784,10 +2921,14 @@ function submit_edit_popup() {
   let new_url = document.getElementById("popup_edit_url").value;
   let new_mail = document.getElementById("popup_edit_mail").value;
   let new_note = document.getElementById("popup_edit_note").value;
+  let new_done = document.getElementById("popup_edit_done").checked;
+  let new_wait = document.getElementById("popup_edit_wait").checked;
   let id_hidden_str = document.getElementById("popup_edit_hidden_id").value;
   let id_edit_str = document.getElementById("popup_edit_id").value;
   let id_hidden = parseInt(id_hidden_str);
   let id_edit = parseInt(id_edit_str);
+
+  pushHistory();
 
   // 内部データ取得
   let item = getInternal(id_hidden);
@@ -2804,6 +2945,12 @@ function submit_edit_popup() {
     item.url = new_url;
     item.mail = new_mail;
     item.note = new_note;
+    item.is_wait = new_wait;
+    if (new_done) {
+      item.status = 'done';
+    } else {
+      item.status = 'yet';
+    }
   }
 
   // ID更新
@@ -2821,10 +2968,42 @@ function submit_edit_popup() {
 }
 
 /**
+ * @summary アイテム編集完了(Multi)
+ */
+function submit_edit_multi_popup() {
+  let new_done = document.getElementById("popup_edit_multi_done").checked;
+  let new_wait = document.getElementById("popup_edit_multi_wait").checked;
+  let id_hidden_str = document.getElementById("popup_edit_multi_hidden_id").value;
+
+  // 内部データ取得
+  let item = getInternal(id_hidden);
+
+  // ポップアップ消去
+  close_edit_popup();
+  // リスト更新
+  update_list();
+
+}
+
+/**
  * 編集ポップアップを閉じる
  */
 function close_edit_popup() {
   let elem = document.getElementById("popup_edit_base");
+  elem.style.display = "none";
+
+  // フォーカスをリストへ移動
+  document.getElementById(g_show_popup_list).focus();
+
+  g_show_popup = false;
+  g_show_popup_list = '';
+}
+
+/**
+ * 編集ポップアップを閉じる(Multi)
+ */
+function close_edit_multi_popup() {
+  let elem = document.getElementById("popup_edit_multi_base");
   elem.style.display = "none";
 
   // フォーカスをリストへ移動
@@ -2951,6 +3130,7 @@ function show_timeline(mode, showNested)
 
       // フィルタ解除
       set_list_filter(elem_id_list_stock, 0);
+      
       // クリックしたアイテムをリスト中で選択
       if (properties.items.length > 0) {
         set_select(elem_id_list_stock, properties.items[0]);
@@ -3215,6 +3395,48 @@ function addDays(target_date, days, exclude_weekend)
 }
 
 /**
+ * @summary 月を増減する(文字列を返却)
+ * @param 基準日(Date)
+ * @param 増減する月数
+ * @param 週末を除外するかどうか
+ * @returns String
+ */
+function addMonths_s(date, days, exclude_weekend)
+{
+  let dt = addMonths(date, days, exclude_weekend);
+  return get_date_str(dt, true, false, true);
+}
+
+/**
+ * @summary 月を増減する
+ * @param 基準日(Date)
+ * @param 増減する月数
+ * @returns Date
+ */
+function addMonths(target_date, months, exclude_weekend)
+{
+  let d = new Date(target_date);
+  d.setMonth(d.getMonth() + months);
+
+  // 週末の場合、月曜日まで進める
+  if (exclude_weekend)
+  {
+    // 曜日を取得（0:日曜、1:月曜、... 6:土曜）
+    const week = d.getDay();
+    if (week == 0)
+    {
+      return addDays(d, 1, false);
+    }
+    if (week == 6)
+    {
+      return addDays(d, 2, false);
+    }
+  }
+
+  return d;
+}
+
+/**
  * @summary 2つの日の差分日数を取得(当日を含める)
  * @param 日付1
  * @param 日付2
@@ -3353,8 +3575,3 @@ update_check_todays_done();
 // フィルターボタン生成
 // make_filter_buttons();
 make_filter_buttons_ex();
-
-
-let cls = new Circle();
-let val = cls.getArea();
-console.log(val);
