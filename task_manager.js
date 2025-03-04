@@ -141,6 +141,7 @@ document.getElementById(elem_id_list_today).addEventListener("keydown", keyhandl
 document.getElementById(elem_id_list_done).addEventListener("keydown", keyhandler_done_list);
 document.getElementById(elem_id_list_tomorrow).addEventListener("keydown", keyhandler_tomorroy_list);
 document.getElementById("popup_edit_base").addEventListener("keydown", keyhandler_edit_popup);
+document.getElementById("popup_edit_multi_base").addEventListener("keydown", keyhandler_edit_popup_multi);
 
 // wheel event
 document.getElementById(elem_id_list_stock).addEventListener("wheel", wheelhandler_stock_list);
@@ -515,6 +516,18 @@ function keyhandler_edit_popup(event) {
   switch (event.keyCode){
     case key_esc:       // ESC
       close_edit_popup();
+      break;
+  }
+}
+
+/**
+ * @summary 編集ポップアップ キーイベント処理(複数版)
+ * @param イベント情報
+ */
+function keyhandler_edit_popup_multi(event) {
+  switch (event.keyCode){
+    case key_esc:       // ESC
+    close_edit_multi_popup();
       break;
   }
 }
@@ -1469,7 +1482,7 @@ function get_todays_task_number() {
   for (let i = 0 ; i < keys.length; i++) {
     let items = g_list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
-      if (items[j].is_today > 0 && !items[j].is_non_task) {
+      if (items[j].is_today > 0 && !items[j].is_non_task && !items[j].is_tomorrow) {
         task_number++;
         if (items[j].status === 'done') {
           task_number_done++;
@@ -2109,11 +2122,17 @@ function set_select(elem_id, id, is_scroll) {
 
   // 全リストから選択アイテムを選択、選択アイテムを削除
   let selected_top = -1;
+  let elem_group = null;
   let options = document.getElementById(elem_id).options;
   for (let i = 0; i < options.length; i++) {
+    // スクロール位置取得の為にグループ要素を取っておく
+    if (options[i].classList.contains('group_top')) {
+      elem_group = options[i];
+    }
     if(options[i].dataset.id == id) {
       options[i].selected = true;
-      selected_top = options[i].offsetTop;  // 要素位置(スクロールの為に取得)
+      // selected_top = options[i].offsetTop;  // 要素位置(スクロールの為に取得)
+      selected_top = elem_group.offsetTop;  // 要素位置(スクロールの為に取得)
     } else {
       options[i].selected = false;
     }
@@ -2971,15 +2990,33 @@ function submit_edit_popup() {
  * @summary アイテム編集完了(Multi)
  */
 function submit_edit_multi_popup() {
-  let new_done = document.getElementById("popup_edit_multi_done").checked;
-  let new_wait = document.getElementById("popup_edit_multi_wait").checked;
-  let id_hidden_str = document.getElementById("popup_edit_multi_hidden_id").value;
+  let elem_done = document.getElementById("popup_edit_multi_done");
+  let elem_wait = document.getElementById("popup_edit_multi_wait");
+  let ids_str = document.getElementById("popup_edit_multi_hidden_id").value;
 
-  // 内部データ取得
-  let item = getInternal(id_hidden);
+  pushHistory();
+
+  let ids = ids_str.split(',');
+  for (let i = 0; i < ids.length; i++) {
+    let id = parseInt(ids[i]);
+    let item = getInternal(id);
+
+    // 済み状態
+    if(!elem_done.indeterminate) {
+      if (elem_done.checked) {
+        item.status = 'done';
+      } else {
+        item.status = 'yet';
+      }
+    }
+    // 待ち状態
+    if(!elem_wait.indeterminate) {
+      item.is_wait = elem_wait.checked;
+    }
+  }
 
   // ポップアップ消去
-  close_edit_popup();
+  close_edit_multi_popup();
   // リスト更新
   update_list();
 
