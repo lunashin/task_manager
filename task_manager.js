@@ -1111,9 +1111,11 @@ function addIntarnalData(id, name) {
  * @param 最後に追加したアイテムのID
  */
 function addIntarnalDataEx(id, names) {
+  let insert_pos_id = id;
   let last_id = null;
   for (let i = 0 ; i < names.length; i++) {
-    last_id = addIntarnalData(id, names[i]);
+    last_id = addIntarnalData(insert_pos_id, names[i]);
+    insert_pos_id = last_id;
   }
   return last_id;
 }
@@ -2138,6 +2140,9 @@ function set_select(elem_id, id, is_scroll) {
     }
   }
 
+  // フォーカス移動
+  document.getElementById(elem_id).focus();
+
   if (is_scroll !== false) {
     // 0.005秒後にスクロール
     if (selected_top > 0) {
@@ -3083,7 +3088,8 @@ function make_timeline_items()
       name = group.name;
     }
     let period = group.period + ' 12:00';
-    ret.push( { group: 'task', id: group.id, content: name, title: name, start: period, type: 'point', className: 'timeline_item_group' } );
+    let period_disp = new Date(group.period).getMonth()+1 + '/' + new Date(group.period).getDate();
+    ret.push( { group: 'task', id: group.id, content: name, title: period_disp + ' ' + name, start: period, type: 'point', className: 'timeline_item_group' } );
 
     // アイテムデータを追加
     for (let j = 0; j < group.sub_tasks.length; j++) {
@@ -3096,7 +3102,8 @@ function make_timeline_items()
       if (item.status === 'done') {
         className = 'timeline_item_item_done';
       }
-      ret.push( { group: 'task', id: item.id, content: item.name, title: item.name, start: period, type: 'point', className: className } );
+      let period_disp = new Date(item.period).getMonth()+1 + '/' + new Date(item.period).getDate();
+      ret.push( { group: 'task', id: item.id, content: item.name, title: period_disp + ' ' + item.name, start: period, type: 'point', className: className } );
     }
   }
   return ret;
