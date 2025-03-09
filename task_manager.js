@@ -149,18 +149,20 @@ document.getElementById(elem_id_list_stock).addEventListener("wheel", wheelhandl
 // Right Click
 document.getElementById(elem_id_list_stock).addEventListener("contextmenu", contextmenu_handler_list);
 document.getElementById(elem_id_list_today).addEventListener("contextmenu", contextmenu_handler_list);
+document.getElementById(elem_id_list_done).addEventListener("contextmenu", contextmenu_handler_list);
+document.getElementById(elem_id_list_tomorrow).addEventListener("contextmenu", contextmenu_handler_list);
 
 
 // Popup
 // 期限（今日にセットするボタン）
 document.getElementById("popup_button_set_today").addEventListener("click", function(){
-  document.getElementById("popup_edit_date").value = get_today_str(true, false).replaceAll('/','-');
+  document.getElementById("popup_edit_date").value = get_today_str(true, false, true).replaceAll('/','-');
 });
 // 期限（+1日するボタン）
 document.getElementById("popup_button_date_inc").addEventListener("click", function(){
   let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
   if (date_str === '') {
-    date_str = get_today_str(true, false).replaceAll('/','-');
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
   }
   let ret = addDays_s(new Date(date_str), 1, false);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
@@ -169,7 +171,7 @@ document.getElementById("popup_button_date_inc").addEventListener("click", funct
 document.getElementById("popup_button_date_inc1w").addEventListener("click", function(){
   let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
   if (date_str === '') {
-    date_str = get_today_str(true, false).replaceAll('/','-');
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
   }
   let ret = addDays_s(new Date(date_str), 7, false);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
@@ -178,12 +180,36 @@ document.getElementById("popup_button_date_inc1w").addEventListener("click", fun
 document.getElementById("popup_button_date_inc1m").addEventListener("click", function(){
   let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
   if (date_str === '') {
-    date_str = get_today_str(true, false).replaceAll('/','-');
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
   }
   let ret = addMonths_s(new Date(date_str), 1, false);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
 });
-
+// メモ追加ボタン
+document.getElementById("popup_edit_note_add_btn").addEventListener("click", function(){
+  let elem_popup_note = document.getElementById("popup_edit_note");
+  let date_str = get_date_str(new Date(), true, false, false, false);
+  let text_note = '';
+  if (elem_popup_note.value.length <= 0) {
+    text_note = date_str + ' ';
+  } else {
+    text_note = date_str + ' \n' + elem_popup_note.value;
+  }
+  elem_popup_note.value = text_note;
+  elem_popup_note.focus();
+  elem_popup_note.selectionStart = date_str.length+1;
+  elem_popup_note.selectionEnd = date_str.length+1;
+  elem_popup_note.scrollTo({top:0, left:0});
+});
+// メモ欄(Enterで編集完了)
+document.getElementById("popup_edit_note").addEventListener("keydown", function(event){
+  switch (event.keyCode){
+    case key_enter:     // Enter
+      event.preventDefault();
+      submit_edit_popup();
+      break;
+  }
+});
 
 
 // Show message Before Close Browwer
@@ -283,12 +309,17 @@ function keyhandler_stock_list(event) {
       break
     case key_s:           // s
       if (event.shiftKey) {
-        // ALLリストの選択アイテムを、今日のリストへ同期
+        // ALLリストの選択アイテムを、今日/済み/明日のリスト内を探して選択
         event.preventDefault(); // 既定の動作をキャンセル
         let id = get_select_id(elem_id);
         if (id !== null) {
-          set_select(elem_id_list_today, id);
-          document.getElementById(elem_id_list_today).focus();  // フォーカス移動
+          let is_sel = set_select(elem_id_list_today, id);
+          if (!is_sel) {
+            is_sel = set_select(elem_id_list_done, id);
+            if (!is_sel) {
+              is_sel = set_select(elem_id_list_tomorrow, id);
+            }
+          }
         }
         break;
       }
@@ -461,6 +492,18 @@ function keyhandler_done_list(event) {
     case key_arrow_left:       // ←
       return_item();   
       break;
+    case key_c:           // c
+      if (event.shiftKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name_for_mailquery(elem_id);
+        break;
+      }
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name(elem_id);
+        break;
+      }
+      break;
     case key_z:           // z
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
@@ -489,6 +532,18 @@ function keyhandler_tomorroy_list(event) {
   switch (event.keyCode){
     case key_arrow_left:  // ←
       set_tomorrow_item(elem_id , false);
+      break;
+    case key_c:           // c
+      if (event.shiftKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name_for_mailquery(elem_id);
+        break;
+      }
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name(elem_id);
+        break;
+      }
       break;
     case key_z:           // z
       if (event.ctrlKey) {
@@ -810,7 +865,7 @@ function get_meeting_text(schedules, target_d)
 function get_meeting_list(schedules, target_d)
 {
   let meetings = [];
-  let target_date_str = get_date_str(target_d,true,false,true);
+  let target_date_str = get_date_str(target_d,true,true,true,true);
 
   // 指定日の会議予定を抽出
   // { title:"会議", isCC:false, start:"2024/03/01 8:00", end:"2024/03/01 12:00" },
@@ -1267,7 +1322,7 @@ function makeInternalItem(name) {
     is_doing: false,
     is_tomorrow: false,
     last_update: '',
-    created: get_today_str(true, true),
+    created: get_today_str(true, true, true),
   };
   return ret;
 }
@@ -2116,10 +2171,11 @@ function get_select_id_ex(elem_id) {
  * @summary 指定された data-id のアイテムを選択状態にする
  * @param エレメントID
  * @param 選択状態にするアイテムのID
+ * @returns true:成功 / false:失敗(idなし)
  */
 function set_select(elem_id, id, is_scroll) {
   if (id == null) {
-    return;
+    return false;
   }
 
   // 全リストから選択アイテムを選択、選択アイテムを削除
@@ -2152,6 +2208,8 @@ function set_select(elem_id, id, is_scroll) {
       }, 5);
     }
   }
+
+  return (selected_top > 0);
 }
 
 /**
@@ -2202,7 +2260,7 @@ function move_today_item() {
   } else {
     item.is_today = 1;
   }
-  item.last_update = get_today_str(true, true);
+  item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
   update_list();
@@ -2226,7 +2284,7 @@ function remove_today_item() {
   pushHistory();
   item.is_today = 0;
   item.is_first = false;  // 優先タスクフラグ解除
-  item.last_update = get_today_str(true, true);
+  item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
   update_list();
@@ -2314,7 +2372,7 @@ function toggle_todays_wait() {
   }
   
   item.is_wait = !item.is_wait;
-  item.last_update = get_today_str(true, true);
+  item.last_update = get_today_str(true, true, true);
 
   update_list();
 }
@@ -2354,7 +2412,6 @@ function toggle_non_task(elem_id) {
   }
   
   item.is_non_task = !item.is_non_task;
-  // item.last_update = get_today_str(true, true);
 
   update_list();
 }
@@ -2394,7 +2451,7 @@ function done_item() {
   pushHistory();
   item.status = 'done';
   item.is_first = false;  // 優先タスクフラグ解除
-  item.last_update = get_today_str(true, true);
+  item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
   update_list();
@@ -2755,7 +2812,7 @@ function download_now_json() {
   const url = (window.URL || window.webkitURL).createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  let date_str = get_today_str(false, true);
+  let date_str = get_today_str(false, true, true);
   a.download = `task_manager_status_${date_str}.json`;
   a.click();
   a.remove();
@@ -3102,8 +3159,12 @@ function make_timeline_items()
       if (item.status === 'done') {
         className = 'timeline_item_item_done';
       }
-      let period_disp = new Date(item.period).getMonth()+1 + '/' + new Date(item.period).getDate();
-      ret.push( { group: 'task', id: item.id, content: item.name, title: period_disp + ' ' + item.name, start: period, type: 'point', className: className } );
+      let title = new Date(item.period).getMonth()+1 + '/' + new Date(item.period).getDate();
+      title += ' ' + item.name;
+      if (item.note !== '') {
+        title += '<br>---------------<br>' + item.note.replaceAll('\n', '<br>');
+      }
+      ret.push( { group: 'task', id: item.id, content: item.name, title: title, start: period, type: 'point', className: className } );
     }
   }
   return ret;
@@ -3342,10 +3403,11 @@ function floorEx(value, base) {
  * @param Dateオブジェクト
  * @param 区切り記号を入れるかどうか(/, :) (true|false)
  * @param 時刻を含めるかどうか (true|false)
+ * @param 年を含めるかどうか (true|false)
  * @param ゼロパディングするかどうか (true|false)
  * @returns 日付文字列 (yyyy/MM/dd or yyyyMMdd)
  */
-function get_date_str(d, is_separate, is_include_time, is_zero_padding) {
+function get_date_str(d, is_separate, is_include_time, is_include_year, is_zero_padding) {
 
   let year = d.getFullYear();
   let month = d.getMonth() + 1;
@@ -3367,22 +3429,31 @@ function get_date_str(d, is_separate, is_include_time, is_zero_padding) {
   if (is_separate === true) {
     sep = '/';
     sep2 = ':';
-}
+  }
+
+  let ret = '';
+  if (is_include_year) {
+    ret = `${year}${sep}${month}${sep}${date}`;
+  } else {
+    ret = `${month}${sep}${date}`;
+  }
 
   if (is_include_time === true) {
-    return `${year}${sep}${month}${sep}${date} ${hour}${sep2}${minute}`;
+    // return `${year}${sep}${month}${sep}${date} ${hour}${sep2}${minute}`;
+    ret = ret + ` ${hour}${sep2}${minute}`
   }
-  return `${year}${sep}${month}${sep}${date}`;
+  return ret;
 }
 
 /**
  * @summary 今日の日付文字列を返す
  * @param 区切り記号を入れるかどうか(/, :)
  * @param 時刻を含めるかどうか (true|false)
+ * @param 年を含めるかどうか (true|false)
  * @returns 日付文字列 (yyyy/MM/dd or yyyyMMdd)
  */
-function get_today_str(is_separate, is_include_time) {
-  return get_date_str(new Date(), is_separate, is_include_time, true);
+function get_today_str(is_separate, is_include_time, is_include_year) {
+  return get_date_str(new Date(), is_separate, is_include_time, is_include_year, true);
 }
 
 /**
@@ -3406,7 +3477,7 @@ function is_weekday(date)
 function addDays_s(date, days, exclude_weekend)
 {
   let dt = addDays(date, days, exclude_weekend);
-  return get_date_str(dt, true, false, true);
+  return get_date_str(dt, true, false, true, true);
 }
 
 /**
@@ -3448,7 +3519,7 @@ function addDays(target_date, days, exclude_weekend)
 function addMonths_s(date, days, exclude_weekend)
 {
   let dt = addMonths(date, days, exclude_weekend);
-  return get_date_str(dt, true, false, true);
+  return get_date_str(dt, true, false, true, true);
 }
 
 /**
@@ -3582,10 +3653,10 @@ function date_from_str_ex(date_str) {
   if (date_str.split('/').length === 2) {
     let d = new Date(date_str);
     d.setFullYear(new Date().getFullYear());
-    return get_date_str(d, true, false, true);
+    return get_date_str(d, true, false, true, true);
   }
 
-  return get_date_str(new Date(date_str), true, false, true);
+  return get_date_str(new Date(date_str), true, false, true, true);
 }
 
 
@@ -3619,3 +3690,42 @@ update_check_todays_done();
 // フィルターボタン生成
 // make_filter_buttons();
 make_filter_buttons_ex();
+
+
+
+
+
+// watch external server connection
+XMLHttpRequest = new Proxy(XMLHttpRequest, {
+  construct: function (target, args) {
+    const xhr = new target(...args);
+    // Do whatever you want with XHR request
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 1) {
+        // Before sent request to server
+        // xhr.setRequestHeader("Authorization", "XXXX-XXXX-XXXX-XXXX");
+        alert('Detect Server Connecttion! (XMLHttpRequest)');
+      }
+    };
+    return null;
+  },
+});
+
+window.fetch = new Proxy(window.fetch, {
+  apply: function (target, that, args) {
+    // args holds argument of fetch function
+    // Do whatever you want with fetch request
+    let temp = target.apply(that, args);
+    temp.then((res) => {
+      alert('Detect Server Connecttion! (fetch)');
+      console.log(res.url + ' / ' + res.status);
+      // console.log(res.body);
+
+      // After completion of request
+      // if (res.status === 401) {
+      //   alert("Session expired, please reload the page!");
+      // }
+    });
+    return temp;
+  },
+});

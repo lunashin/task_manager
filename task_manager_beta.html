@@ -62,7 +62,7 @@
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 170px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 210px; position: absolute; top:100px; left: 40px; }
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
 
@@ -340,6 +340,14 @@
   <div id="popup_edit_base" class="popup_edit">
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
       <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
+      <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+      <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >
+
+      <div class="flex-box">
+        <textarea id="popup_edit_note" class="popup_size_fit" rows="3" autocomplete="off" placeholder="メモ(進捗など)"></textarea>
+        <input type="button" id="popup_edit_note_add_btn" value="追加">
+      </div>
+
       <div class="flex-box">
         <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" >
         <input id="popup_button_set_today" type="button" value="今日" >
@@ -347,9 +355,7 @@
         <input id="popup_button_date_inc1w" type="button" value="+1w" >
         <input id="popup_button_date_inc1m" type="button" value="+1M" >
       </div>
-      <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
-      <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >
-      <input id="popup_edit_note" type="text" class="popup_size_fit" autocomplete="off" placeholder="メモ(進捗など)" >
+
       <div class="flex-box">
         <label id="popup_edit_done_label" for="popup_edit_done">済み</label>
         <input id="popup_edit_done" type="checkbox" class="" >
