@@ -1273,7 +1273,7 @@ function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
  * @returns 登録アイテムのID
  */
 function addIntarnalBlankData(id, set_today) {
-  const taskname = '-';
+  const taskname = '';
   if (set_today) {
     let item = makeInternalItem(taskname);
     item.is_today = 1;
@@ -2087,11 +2087,15 @@ function make_option(item, class_list, is_group_top, show_last_update) {
   let elem = document.createElement("option");
 
   // text
+  let disp_text = item.name;
+  if (disp_text === '') {
+    disp_text = '-';
+  }
   let before_icon = get_before_icons(item);
   if (before_icon !== '') {
-    elem.text = before_icon + ' ' + item.name + get_after_icons(item);
+    elem.text = before_icon + ' ' + disp_text + get_after_icons(item);
   } else {
-    elem.text = item.name + get_after_icons(item);
+    elem.text = disp_text + get_after_icons(item);
   }
 
   if (!is_group_top && item.period !== '') {
