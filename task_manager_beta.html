@@ -21,7 +21,7 @@
         .font_small { font-size: 70%; }
         
         /* --------- Task List --------*/
-        select {
+        select.task_list {
           width: 37vw;
           height: 700px;
         }
@@ -62,7 +62,7 @@
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 210px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 230px; position: absolute; top:100px; left: 40px; }
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
 
@@ -175,7 +175,7 @@
         &nbsp;
         <div id="set_filter_condition_div"></div>
       </div>
-      <select id="stock_list" class="stock_list" tabindex="1" multiple></select>
+      <select id="stock_list" class="stock_list task_list" tabindex="1" multiple></select>
     </div>
     &nbsp;&nbsp;&nbsp;
 
@@ -189,7 +189,7 @@
       <input type="checkbox" id="lock_todays_task">
       <label for="lock_todays_task">🔒ロック</label>
       <br>
-      <select id="todays_list" class="todays_list" tabindex="10" multiple></select>
+      <select id="todays_list" class="todays_list task_list" tabindex="10" multiple></select>
     </div>
     &nbsp;&nbsp;&nbsp;
 
@@ -259,7 +259,7 @@
         &nbsp;
 
         <!-- tips -->
-        <button class="tips_test button-large" type="button">ショートカットキー</button>
+        <!-- <button class="tips_test button-large" type="button">ショートカットキー</button>
         &nbsp;
         <p class="fukidashi"><共通><br>
           → : タスクのステータスを進める<br>
@@ -284,7 +284,8 @@
           f : ファーストタスクへ設定<br>
           z : 回答待ち状態<br>
           <br>
-        </p>
+        </p> -->
+
       </span>
 
       <br>
@@ -339,6 +340,7 @@
   <!-- Popup -->
   <div id="popup_edit_base" class="popup_edit">
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
+      <select id="popup_edit_group_list" class="popup_size_fit" size="1" name="groups" ></select>
       <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
       <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
       <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >

@@ -5,7 +5,7 @@ body {
 }
 
 /* Select */
-select {
+select.task_list {
     width: 37vw;
     height: 700px;
 }

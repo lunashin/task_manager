@@ -164,7 +164,7 @@ document.getElementById("popup_button_date_inc").addEventListener("click", funct
   if (date_str === '') {
     date_str = get_today_str(true, false, true).replaceAll('/','-');
   }
-  let ret = addDays_s(new Date(date_str), 1, false);
+  let ret = addDays_s(new Date(date_str), 1, true);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
 });
 // 期限（+1Wするボタン）
@@ -173,7 +173,7 @@ document.getElementById("popup_button_date_inc1w").addEventListener("click", fun
   if (date_str === '') {
     date_str = get_today_str(true, false, true).replaceAll('/','-');
   }
-  let ret = addDays_s(new Date(date_str), 7, false);
+  let ret = addDays_s(new Date(date_str), 7, true);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
 });
 // 期限（+1Mするボタン）
@@ -182,7 +182,7 @@ document.getElementById("popup_button_date_inc1m").addEventListener("click", fun
   if (date_str === '') {
     date_str = get_today_str(true, false, true).replaceAll('/','-');
   }
-  let ret = addMonths_s(new Date(date_str), 1, false);
+  let ret = addMonths_s(new Date(date_str), 1, true);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
 });
 // メモ追加ボタン
@@ -278,14 +278,14 @@ function keyhandler_stock_list(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         const add_id = addItemBehindSelectedItem(elem_id, true, false);
         update_list();
-        set_select(elem_id, add_id);
+        set_select(elem_id, add_id, false, false);
         break;
       }
       // 空白タスクを選択行の下へ追加
       event.preventDefault(); // 既定の動作をキャンセル
       const add_id = addItemBehindSelectedItem(elem_id, false, false);
       update_list();
-      set_select(elem_id, add_id);
+      set_select(elem_id, add_id, false, false);
       break;
     case key_c:           // c
       if (event.shiftKey) {
@@ -313,11 +313,11 @@ function keyhandler_stock_list(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         let id = get_select_id(elem_id);
         if (id !== null) {
-          let is_sel = set_select(elem_id_list_today, id);
+          let is_sel = set_select(elem_id_list_today, id, true, true);
           if (!is_sel) {
-            is_sel = set_select(elem_id_list_done, id);
+            is_sel = set_select(elem_id_list_done, id), true, true;
             if (!is_sel) {
-              is_sel = set_select(elem_id_list_tomorrow, id);
+              is_sel = set_select(elem_id_list_tomorrow, id, true, true);
             }
           }
         }
@@ -393,14 +393,14 @@ function keyhandler_todays_list(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         const add_id = addItemBehindSelectedItem(elem_id, true, true);
         update_list();
-        set_select(elem_id, add_id);
+        set_select(elem_id, add_id, false, false);
         break;
       }
       // 空白タスクを選択行の下へ追加
       event.preventDefault(); // 既定の動作をキャンセル
       const add_id = addItemBehindSelectedItem(elem_id, false, true);
       update_list();
-      set_select(elem_id, add_id);
+      set_select(elem_id, add_id, false, false);
       break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
@@ -439,7 +439,7 @@ function keyhandler_todays_list(event) {
         let id = get_select_id(elem_id);
         if (id !== null) {
           set_list_filter(elem_id_list_stock, 0);
-          set_select(elem_id_list_stock, id);
+          set_select(elem_id_list_stock, id, true, true);
           document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
         }
         break;
@@ -504,6 +504,19 @@ function keyhandler_done_list(event) {
         break;
       }
       break;
+    case key_s:           // s
+      if (event.shiftKey) {
+        // ALLリストの選択アイテムを、本リストと同期
+        event.preventDefault(); // 既定の動作をキャンセル
+        let id = get_select_id(elem_id);
+        if (id !== null) {
+          set_list_filter(elem_id_list_stock, 0); // フィルタ解除
+          set_select(elem_id_list_stock, id, true, true);
+          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+        }
+        break;
+      }
+      break;
     case key_z:           // z
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
@@ -542,6 +555,19 @@ function keyhandler_tomorroy_list(event) {
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         copy_selected_item_name(elem_id);
+        break;
+      }
+      break;
+    case key_s:           // s
+      if (event.shiftKey) {
+        // ALLリストの選択アイテムを、本リストと同期
+        event.preventDefault(); // 既定の動作をキャンセル
+        let id = get_select_id(elem_id);
+        if (id !== null) {
+          set_list_filter(elem_id_list_stock, 0); // フィルタ解除
+          set_select(elem_id_list_stock, id, true, true);
+          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+        }
         break;
       }
       break;
@@ -611,7 +637,7 @@ function contextmenu_handler_list(event) {
   event.preventDefault(); // 既定の動作をキャンセル
 
   // アイテムを選択
-  set_select(elem_id, parseInt(event.target.dataset.id), false);
+  set_select(elem_id, parseInt(event.target.dataset.id), false, false);
 
   if (event.shiftKey) {
     // テキストをコピー
@@ -651,7 +677,7 @@ function regist_from_textarea() {
   update_list();
 
   // 追加グループ選択
-  set_select(elem_id_list_stock, group_id);
+  set_select(elem_id_list_stock, group_id, true, true);
 
   // テキストをクリア
   document.getElementById("input_area").value = '';
@@ -710,7 +736,7 @@ function set_list_filter(elem_id, filter_id) {
 * @param true:前へ / false:後ろへ
 */
 function move_list_filter(prev) {
-  let next_filter_id = 0;
+  let next_filter_id = -1;
   if (prev) {
     if (g_stock_filter_id > 0) {
       next_filter_id = g_stock_filter_id - 1;
@@ -723,7 +749,9 @@ function move_list_filter(prev) {
   // console.log(next_filter_id);
  
   // リスト更新
-  set_list_filter(elem_id_list_stock, next_filter_id);
+  if (next_filter_id >= 0) {
+    set_list_filter(elem_id_list_stock, next_filter_id);
+  }
 }
 
 /**
@@ -768,7 +796,7 @@ function read_mail_flag() {
       update_list();
     
       // 選択
-      set_select(elem_id_list_stock, group.id);
+      set_select(elem_id_list_stock, group.id, true, true);
     }
   );
 }
@@ -820,7 +848,7 @@ function read_meeting(target_d) {
       update_list();
     
       // 選択
-      set_select(elem_id_list_stock, group.id);
+      set_select(elem_id_list_stock, group.id, true, true);
 
       // 変数削除 (削除できない)
       // delete schedules;
@@ -1038,6 +1066,19 @@ function get_internal_keys(filter, is_no_sort) {
 }
 
 /**
+ * @summary グループID一覧取得
+ * @return グループID一覧
+ */
+function get_group_ids() {
+  let ret = [];
+  let keys = get_internal_keys('', false);
+  for (let i = 0 ; i < keys.length; i++) {
+    ret.push(g_list_data[keys[i]].id);
+  }
+  return ret;
+}
+
+/**
  * @summary 内部データのアイテムを取得 (id指定)
  * @param ID
  * @returns アイテムデータ or null
@@ -1178,8 +1219,39 @@ function addIntarnalDataEx(id, names) {
 /**
  * @summary アイテムを指定グループへ追加(複数アイテム)
  * @param グループID
- * @param タスク名リスト 
+ * @param アイテム(複数)
+ * @param 同名のタスクがあった場合スキップするかどうか
  * @param 最後に追加したアイテムのID
+ */
+function addIntarnalDatasToGroup(group_id, items, is_ignore_same_name) {
+  // グループ取得
+  let group = getInternal(group_id);
+  if (group.type !== 'group') {
+    return null;
+  }
+
+  let last_id = null;
+  for (let i = 0 ; i < items.length; i++) {
+    if (is_ignore_same_name) {
+      // 同名のタスクが存在するか確認し、存在しなければ追加
+      if (getInternalFromName(items[i].name) === null) {
+        last_id = items[i].id;
+        group.sub_tasks.push(items[i]);
+      }
+    } else {
+      last_id = items[i].id;
+      group.sub_tasks.push(items[i]);
+    }
+  }
+  return last_id;
+}
+
+/**
+ * @summary アイテムを指定グループへ追加(複数アイテム)
+ * @param グループID
+ * @param タスク名リスト
+ * @param 同名のタスクがあった場合スキップするかどうか
+ * @returns 最後に追加したアイテムのID
  */
 function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
   // グループ取得
@@ -1188,22 +1260,11 @@ function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
     return null;
   }
 
-  let last_id = null;
+  let items = [];
   for (let i = 0 ; i < names.length; i++) {
-    if (is_ignore_same_name) {
-      // 同名のタスクが存在するか確認し、存在しなければ追加
-      if (getInternalFromName(names[i]) === null) {
-        let item = makeInternalItem(names[i])
-        last_id = item.id;
-        group.sub_tasks.push(item);
-      }
-    } else {
-      let item = makeInternalItem(names[i])
-      last_id = item.id;
-      group.sub_tasks.push(item);
-    }
+    items.push(makeInternalItem(names[i]));
   }
-  return last_id;
+  return addIntarnalDatasToGroup(group_id, items, is_ignore_same_name);
 }
 
 /**
@@ -2153,7 +2214,7 @@ function get_select_id_ex(elem_id) {
   for (let i = 0; i < options.length; i++) {
     if(options[i].selected) {
       if (options[i].classList.contains('group_top')) {
-        return null;
+        return [options[i].dataset.id];
       }
 
       let ret = [];
@@ -2168,12 +2229,30 @@ function get_select_id_ex(elem_id) {
 }
 
 /**
+ * @summary select要素の選択されているoption要素を取得
+ * @param select要素ID
+ * @returns 要素 or null
+ */
+function get_selected_element(elem_id) {
+  // 全リストから選択アイテムを選択、選択アイテムを削除
+  let options = document.getElementById(elem_id).options;
+  for (let i = 0; i < options.length; i++) {
+    if(options[i].selected) {
+      return options[i];
+    }
+  }
+  return null;
+}
+
+/**
  * @summary 指定された data-id のアイテムを選択状態にする
  * @param エレメントID
  * @param 選択状態にするアイテムのID
+ * @param スクロールするかどうか
+ * @param フォーカス移動するかどうか
  * @returns true:成功 / false:失敗(idなし)
  */
-function set_select(elem_id, id, is_scroll) {
+function set_select(elem_id, id, is_scroll, is_focus) {
   if (id == null) {
     return false;
   }
@@ -2197,7 +2276,9 @@ function set_select(elem_id, id, is_scroll) {
   }
 
   // フォーカス移動
-  document.getElementById(elem_id).focus();
+  if (is_focus) {
+    document.getElementById(elem_id).focus();
+  }
 
   if (is_scroll !== false) {
     // 0.005秒後にスクロール
@@ -2214,28 +2295,33 @@ function set_select(elem_id, id, is_scroll) {
 
 /**
  * @summary 指定された data-id のアイテムを選択状態にする
- * @param エレメントID
- * @param 選択状態にするアイテムのID(2つまでの候補)
+ * @param 要素ID
+ * @param 選択状態にするアイテムのID(2つまでの候補) (配列)
  */
 function set_select_ex(elem_id, ids) {
   if (ids == null) {
     return;
   }
 
-  // 全リストから選択アイテムを選択、選択アイテムを削除
-  let options = document.getElementById(elem_id).options;
-  for (let i = 0; i < options.length; i++) {
-    if(options[i].dataset.id == ids[0]) {
-      return options[i].selected = true;
-    }
+  let ret = set_select(elem_id, ids[0], true, true);
+  if (!ret && ids.length > 1) {
+    ret = set_select(elem_id, ids[1], true, true);
   }
 
-  // 対象IDが見つからなかった場合は、次の候補を検索
-  for (let i = 0; i < options.length; i++) {
-    if(options[i].dataset.id == ids[1]) {
-      return options[i].selected = true;
-    }
-  }
+  // // 全リストから選択アイテムを選択、選択アイテムを削除
+  // let options = document.getElementById(elem_id).options;
+  // for (let i = 0; i < options.length; i++) {
+  //   if(options[i].dataset.id == ids[0]) {
+  //     return options[i].selected = true;
+  //   }
+  // }
+
+  // // 対象IDが見つからなかった場合は、次の候補を検索
+  // for (let i = 0; i < options.length; i++) {
+  //   if(options[i].dataset.id == ids[1]) {
+  //     return options[i].selected = true;
+  //   }
+  // }
 }
 
 // 選択アイテムを今日のタスクへ移動
@@ -2266,7 +2352,7 @@ function move_today_item() {
   update_list();
 
   // 今日のリストのタスクを選択
-  set_select(elem_id_list_today, item.id);
+  set_select(elem_id_list_today, item.id, false, false);
 }
 
 // 選択アイテムを今日のタスクから削除
@@ -2854,6 +2940,8 @@ function show_edit_popup_single(elem_id, selected_id) {
   let item = getInternal(selected_id);
   if (item.type === "group") {
     // 非表示
+    // 所属グループ
+    document.getElementById("popup_edit_group_list").style.display = "none";
     // URL
     document.getElementById("popup_edit_url").style.display = "none";
     // メール
@@ -2869,6 +2957,22 @@ function show_edit_popup_single(elem_id, selected_id) {
   }
 
   if (item.type === "item") {
+    // 所属グループ
+    let elem_groups = document.getElementById("popup_edit_group_list");
+    elem_groups.innerHTML = '';
+    let group_id = getInternalGroupFromItemID(selected_id).id;
+    elem_groups.dataset.orgid = group_id;
+    // グループ一覧作成
+    let ids = get_group_ids();
+    for (let i = 0; i < ids.length; i++) {
+      let elem_option = document.createElement("option");
+      elem_option.text = getInternal(ids[i]).name;
+      elem_option.dataset.id = ids[i];
+      // 所属グループを選択
+      elem_option.selected = (ids[i] == group_id);
+      elem_groups.appendChild(elem_option);
+    }
+    document.getElementById("popup_edit_group_list").style.display = "block";
     // URL
     document.getElementById("popup_edit_url").value = item.url;
     document.getElementById("popup_edit_url").style.display = "block";
@@ -3014,11 +3118,8 @@ function submit_edit_popup() {
   // 内部データ取得
   let item = getInternal(id_hidden);
 
-  // if (item.type === 'group') {
-    // 入力値を適用
-    item.name = new_name.trim();
-    item.period = new_period.replaceAll('-', '/');
-  // }
+  item.name = new_name.trim();
+  item.period = new_period.replaceAll('-', '/');
 
   if (item.type === 'item') {
     // 入力値を適用
@@ -3032,6 +3133,20 @@ function submit_edit_popup() {
     } else {
       item.status = 'yet';
     }
+
+    // グループ
+    let elem_groups = document.getElementById("popup_edit_group_list");
+    let elem_sel_group_option = get_selected_element('popup_edit_group_list');
+    if (elem_sel_group_option.dataset.id !== elem_groups.dataset.orgid) {
+        // グループ変更があれば移動
+        // 複製
+        let item_copy = JSON.parse(JSON.stringify(item));
+        // 削除
+        removeIntarnalData(item.id);
+        // 追加
+        addIntarnalDatasToGroup(parseInt(elem_sel_group_option.dataset.id), [item_copy], false);
+    }
+
   }
 
   // ID更新
@@ -3238,9 +3353,9 @@ function show_timeline(mode, showNested)
       
       // クリックしたアイテムをリスト中で選択
       if (properties.items.length > 0) {
-        set_select(elem_id_list_stock, properties.items[0]);
+        set_select(elem_id_list_stock, properties.items[0], true, true);
       } else {
-        set_select(elem_id_list_stock, -1);
+        // set_select(elem_id_list_stock, -1, false, false); // 選択解除
       }
     });
   }
