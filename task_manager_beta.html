@@ -342,7 +342,11 @@
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
       <select id="popup_edit_group_list" class="popup_size_fit" size="1" name="groups" ></select>
       <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
-      <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+      <div class="flex-box">
+        <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+        <label id="popup_edit_url_app_label" for="popup_edit_url_app">App</label>
+        <input id="popup_edit_url_app" type="checkbox" class="" >
+      </div>
       <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >
 
       <div class="flex-box">

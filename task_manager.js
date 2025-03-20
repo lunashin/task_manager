@@ -893,7 +893,7 @@ function get_meeting_text(schedules, target_d)
 function get_meeting_list(schedules, target_d)
 {
   let meetings = [];
-  let target_date_str = get_date_str(target_d,true,true,true,true);
+  let target_date_str = get_date_str(target_d, true, false, true, true);
 
   // 指定日の会議予定を抽出
   // { title:"会議", isCC:false, start:"2024/03/01 8:00", end:"2024/03/01 12:00" },
@@ -1374,6 +1374,7 @@ function makeInternalItem(name) {
     name: name, 
     period: '',
     url: '',
+    is_open_app: false,
     status: 'yet', 
     mail: '',
     note: '',
@@ -1555,6 +1556,10 @@ function adjust_attr_internal_data() {
       // URL
       if (item.url === undefined) {
         item.url = '';
+      }
+      // URL(is_open_app)
+      if (item.is_open_app === undefined) {
+        item.is_open_app = false;
       }
       // is_wait
       if (item.is_wait === undefined) {
@@ -2702,7 +2707,11 @@ function open_select_items_url(elem_id) {
     return;
   }
   if (item.url !== '' ) {
-    window.open(item.url, '_blank');
+    let url = item.url;
+    if (item.is_open_app) {
+      url = get_app_uri(item.url) + url;
+    }
+    open_url(url);
   }
 }
 
@@ -2948,6 +2957,8 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_group_list").style.display = "none";
     // URL
     document.getElementById("popup_edit_url").style.display = "none";
+    document.getElementById("popup_edit_url_app_label").style.display = "none";
+    document.getElementById("popup_edit_url_app").style.display = "none";
     // メール
     document.getElementById("popup_edit_mail").style.display = "none";
     // メモ
@@ -2980,6 +2991,9 @@ function show_edit_popup_single(elem_id, selected_id) {
     // URL
     document.getElementById("popup_edit_url").value = item.url;
     document.getElementById("popup_edit_url").style.display = "block";
+    document.getElementById("popup_edit_url_app").checked = item.is_open_app;
+    document.getElementById("popup_edit_url_app").style.display = "block";
+    document.getElementById("popup_edit_url_app_label").style.display = "block";
     // メール
     document.getElementById("popup_edit_mail").value = item.mail;
     document.getElementById("popup_edit_mail").style.display = "block";
@@ -3108,6 +3122,7 @@ function submit_edit_popup() {
   let new_name = document.getElementById("popup_edit_text").value;
   let new_period = document.getElementById("popup_edit_date").value;
   let new_url = document.getElementById("popup_edit_url").value;
+  let new_is_open_app = document.getElementById("popup_edit_url_app").checked;
   let new_mail = document.getElementById("popup_edit_mail").value;
   let new_note = document.getElementById("popup_edit_note").value;
   let new_done = document.getElementById("popup_edit_done").checked;
@@ -3129,6 +3144,7 @@ function submit_edit_popup() {
     // 入力値を適用
     item.name = new_name.trim();
     item.url = new_url;
+    item.is_open_app = new_is_open_app;
     item.mail = new_mail;
     item.note = new_note;
     item.is_wait = new_wait;
@@ -3150,7 +3166,6 @@ function submit_edit_popup() {
         // 追加
         addIntarnalDatasToGroup(parseInt(elem_sel_group_option.dataset.id), [item_copy], false);
     }
-
   }
 
   // ID更新
@@ -3496,6 +3511,31 @@ function load_script(filename, fn) {
       }
     }
   };
+}
+
+/**
+ * @summary URLを開く(別タブ)
+ * @param URL
+ */
+function open_url(url) {
+  window.open(url, '_blank');
+}
+
+/**
+ * @summary 
+ * @param URL
+ */
+function get_app_uri(url) {
+  if (url.indexOf('.xlsx?') > 0) {
+    return 'ms-excel:ofe|u|:';
+  }
+  if (url.indexOf('.pptx?') > 0) {
+    return 'ms-powerpoint:ofe|u|:';
+  }
+  if (url.indexOf('.docx?') > 0) {
+    return 'ms-word:ofe|u|:';
+  }
+  return '';
 }
 
 /**
