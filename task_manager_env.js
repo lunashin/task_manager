@@ -33,4 +33,5 @@ const g_filtersEx = [
   { name: '📥Mail', word: '', has_mail: true },
   { name: '📓Note', word: '', has_note: true },
   { name: '💤待ち', word: '', is_wait: true },
+  { name: '🔴優先', word: '', priority: true },
 ];

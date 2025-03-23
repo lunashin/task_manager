@@ -98,6 +98,7 @@
         .timeline_item_group { font-size: 110%; font-weight: bold; }
         .timeline_item_item { font-size: 80%; color:blue }
         .timeline_item_item_done { font-size: 60%; color:rgb(182, 182, 182); }
+        .timeline_item_item_priority { font-size: 80%; font-weight: bold; color:red }
 
 
         /* --------------- Address ---------------- */
@@ -196,9 +197,9 @@
     <!-- Done List -->
     <div>
       <div>
-        <div class="list-title">処理済み</div>
+        <div class="list-title">今日の処理済み</div>
         <button id="copy_done_list" class="button-mid">コピー</button>
-        <button id="release_todays_done" class="button-mid">処理済み解除</button>
+        <button id="release_todays_done" class="button-mid">今日を解除</button>
         <br>
         <select id="done_list" class="done_list h-half" tabindex="20" multiple></select>
       </div>
@@ -342,11 +343,14 @@
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
       <select id="popup_edit_group_list" class="popup_size_fit" size="1" name="groups" ></select>
       <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
-      <div class="flex-box">
-        <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
-        <label id="popup_edit_url_app_label" for="popup_edit_url_app">App</label>
-        <input id="popup_edit_url_app" type="checkbox" class="" >
+      <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+      <div id="popup_edit_url_app_type" class="flex-box">
+        <label><input type="radio" name="url_app_type" value="auto">Auto</label>
+        <label><input type="radio" name="url_app_type" value="excel">Excel</label>
+        <label><input type="radio" name="url_app_type" value="powerpoint" checked>Ppt</label>
+        <label><input type="radio" name="url_app_type" value="word">Word</label>
       </div>
+
       <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >
 
       <div class="flex-box">
@@ -367,7 +371,10 @@
         <input id="popup_edit_done" type="checkbox" class="" >
         <label id="popup_edit_wait_label" for="popup_edit_wait">待ち</label>
         <input id="popup_edit_wait" type="checkbox" class="" >
+        <label id="popup_edit_priority_label" for="popup_edit_priority">優先</label>
+        <input id="popup_edit_priority" type="checkbox" class="" >
       </div>
+
       <input id="popup_edit_created" type="text" disabled >
       <input id="popup_edit_id" class="short-width" type="text" name="id">
       <input type="hidden" id="popup_edit_hidden_id" name="id" >
