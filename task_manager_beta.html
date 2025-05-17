@@ -66,6 +66,19 @@
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
 
+        /* ----------- pupup items note (mousehover) ---------- */
+        .popup_items_note { 
+          display: none;
+          font-weight: bold;
+          background-color: rgb(235, 235, 235); 
+          padding: 5px; 
+          border-style: solid; 
+          border-color: #000000; 
+          border-radius: 10px; 
+          border-width: 1px;
+          position: absolute;
+        }
+
         /* ----------- Copy pupup ---------- */
         .popup_copy { display: none; position: absolute; }
         .popup_copy_text { color: green; font-size: 150%; font-weight: bold; text-shadow: 2px 2px 0px #FFFFFF; }
@@ -371,7 +384,7 @@
         <input id="popup_edit_done" type="checkbox" class="" >
         <label id="popup_edit_wait_label" for="popup_edit_wait">待ち</label>
         <input id="popup_edit_wait" type="checkbox" class="" >
-        <label id="popup_edit_priority_label" for="popup_edit_priority">優先</label>
+        <label id="popup_edit_priority_label" for="popup_edit_priority">重要</label>
         <input id="popup_edit_priority" type="checkbox" class="" >
       </div>
 
@@ -401,6 +414,9 @@
       </div>
     </form>
   </div>
+
+  <!-- Popup -->
+  <div id="popup_items_note" class="popup_items_note"></div>
 
   
   <!-- Copy Notifycation -->

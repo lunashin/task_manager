@@ -648,6 +648,32 @@ function contextmenu_handler_list(event) {
   }
 }
 
+/**
+ * @summary リスト要素 mouseover
+ */
+function mouseover_handler_option(event) {
+  if (event.shiftKey) {
+    let note = getInternal(parseInt(event.target.dataset.id)).note
+    if (note !== undefined && note !== '') {
+      let elem = document.getElementById('popup_items_note');
+      elem.style.display = 'block';
+      elem.innerHTML = note.replaceAll('\n', '<br>');
+      elem.style.top = event.clientY;
+      elem.style.left = event.clientX;
+      // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
+    }
+  }
+}
+
+/**
+ * @summary リスト要素 mouseleave
+ */
+function mouseleave_handler_option(event) {
+  let elem = document.getElementById('popup_items_note');
+  elem.style.display = 'none';
+  elem.innerHTML = '';
+  // console.log( event.target.dataset.id +' : ' + 'mouse leave');
+}
 
 
 
@@ -1038,10 +1064,10 @@ function setInternalGroup(key, group_data) {
 /**
  * @summary 内部データのキーリストを条件に沿って返す
  * @param フィルタ文字列
- * @param ソート指定 true:ソートしない / false:期限の早い順にソートする
+ * @param ソート種類 (string:文字列順, period:期限の早い順)
  * @return キー一覧
  */
-function get_internal_keys(filter, is_no_sort) {
+function get_internal_keys(filter, sort_type) {
   let keys = Object.keys(g_list_data);
   let ary = [];
   for (let i = 0 ; i < keys.length; i++) {
@@ -1054,8 +1080,11 @@ function get_internal_keys(filter, is_no_sort) {
     }
   }
 
-  if (!is_no_sort) {
+  if (sort_type === 'period') {
     ary.sort(compareFn);
+  }
+  if (sort_type === 'string') {
+    ary.sort();
   }
 
   ret = [];
@@ -1143,7 +1172,7 @@ function get_internal_keys_ex(filter_dict) {
  */
 function get_group_ids() {
   let ret = [];
-  let keys = get_internal_keys('', false);
+  let keys = get_internal_keys('', 'string');
   for (let i = 0 ; i < keys.length; i++) {
     ret.push(g_list_data[keys[i]].id);
   }
@@ -1157,7 +1186,7 @@ function get_group_ids() {
  */
 function getInternal(id) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
 
   //　アイテムデータを検索
   for (let i = 0 ; i < keys.length; i++) {
@@ -1187,7 +1216,7 @@ function getInternal(id) {
  */
 function getInternalFromName(name) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
 
   //　アイテムデータを検索
   for (let i = 0 ; i < keys.length; i++) {
@@ -1217,7 +1246,7 @@ function getInternalFromName(name) {
  */
 function getInternalGroupFromItemID(id) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
 
   //　アイテムデータを検索
   for (let i = 0 ; i < keys.length; i++) {
@@ -1490,7 +1519,7 @@ function genGroupID() {
  */
 function removeIntarnalData(id, is_remove_empty_group) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = g_list_data[keys[i]]
 
@@ -1584,7 +1613,7 @@ function popHistory() {
  */
 function adjust_attr_internal_data() {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
 
   // group
   for (let i = 0 ; i < keys.length; i++) {
@@ -1679,7 +1708,7 @@ function get_todays_task_number() {
   let task_number_done = 0;
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     let items = g_list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
@@ -1697,7 +1726,7 @@ function get_todays_task_number() {
 // Allリストをテキストで取得
 function get_all_text() {
   let copy_text = '';
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
 
   for (let i = 0 ; i < keys.length; i++) {
     copy_text += g_list_data[keys[i]].name;
@@ -1723,7 +1752,7 @@ function get_todays_list_text(mode) {
 
   // 対象となるタスクリストを作成
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   
   for (let i = 0 ; i < keys.length; i++) {
     let ary = [];
@@ -1764,7 +1793,7 @@ function get_done_list_text() {
   let copy_text = '';
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
 
   for (let i = 0 ; i < keys.length; i++) {
     let ary = [];
@@ -1793,7 +1822,7 @@ function update_last_id() {
   let last_id = 0;
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     // group ID
     if (g_list_data[keys[i]].id > last_group_id) {
@@ -1821,7 +1850,7 @@ function update_last_id() {
 */
 function renumbering_groupid() {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   let groupid = g_initial_group_id;
  
   for (let i = 0 ; i < keys.length; i++) {
@@ -1859,7 +1888,7 @@ function update_list_common(list_data, elem_id, filter, func_is_show, func_get_c
   let select = document.getElementById(elem_id);
   select.innerHTML = '';
 
-  let keys = get_internal_keys(filter, false);
+  let keys = get_internal_keys(filter, 'period');
   for (let i = 0 ; i < keys.length; i++) {
     // アイテムの要素一覧を作成
     let append_elems = [];
@@ -2201,10 +2230,10 @@ function make_option(item, class_list, is_group_top, show_last_update) {
     elem.text += ' (🕘' + get_display_date_str(item.last_update) + ')';
   }
   // title
-  elem.title = item.name;
-  if (!is_group_top && item.note !== '') {
-    elem.title += '\n--------------\n' + item.note;
-  }
+  // elem.title = item.name;
+  // if (!is_group_top && item.note !== '') {
+  //   elem.title += '\n--------------\n' + item.note;
+  // }
   // value
   elem.value = elem.text;
   // data-id
@@ -2226,6 +2255,10 @@ function make_option(item, class_list, is_group_top, show_last_update) {
     let indent_count = max_icon_num - [...before_icon].length;    // max 4 indent
     elem.style.textIndent = indent_count + 'rem';
   }
+
+  // イベント
+  elem.addEventListener('mouseover', mouseover_handler_option);
+  elem.addEventListener('mouseleave', mouseleave_handler_option);
 
   return elem;
 }
@@ -2532,7 +2565,7 @@ function clear_first_task() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     // let items = g_list_data[keys[i]].sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2571,7 +2604,7 @@ function release_todays_add_task() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     // let items = g_list_data[keys[i]].sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2674,7 +2707,7 @@ function release_todays_done() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     // items = g_list_data[keys[i]].sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2719,7 +2752,7 @@ function release_tomorrow_item() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   for (let i = 0 ; i < keys.length; i++) {
     // items = g_list_data[keys[i]].sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2870,7 +2903,7 @@ function get_selected_option(elem_id) {
 // 保存
 function save_data() {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', true);
+  let keys = get_internal_keys('', null);
   if (keys.length <= 0) {
     return;
   }
@@ -3367,7 +3400,7 @@ function make_timeline_items()
 {
   let ret = [];
 
-  let keys = get_internal_keys(g_stock_filter.name, true);
+  let keys = get_internal_keys(g_stock_filter.name, null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
     if (group.period === undefined || group.period === '') {
