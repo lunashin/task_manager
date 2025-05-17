@@ -94,7 +94,7 @@ document.getElementById("btn_input_reflect").addEventListener("click", regist_fr
 document.getElementById("btn_input_json").addEventListener("click", regist_from_json);
 
 // stock list
-document.getElementById("copy_stock_list").addEventListener("click", copy_stock_list);
+document.getElementById("copy_stock_list").addEventListener("click", copy_all_task_blob);
 
 // todays list
 document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
@@ -3026,6 +3026,80 @@ function copy_now_json() {
   navigator.clipboard.writeText(copy_text);
 
   copy_animation(this);
+}
+
+/**
+ * @summary 全てのタスクをエクセルへ貼り付け可能なBLOB形式でコピー
+ */
+function copy_all_task_blob() {
+  let html = get_html_table();
+  // console.log(html);
+  // document.getElementById('table_test').innerHTML = html; // test
+  const item = new ClipboardItem({
+    'text/html': new Blob([html], { type: 'text/html' })
+  });
+  navigator.clipboard.write([item]);
+
+  copy_animation(this);
+}
+
+/**
+ * @summary HTMLテーブル取得(全てのタスク)
+ * @returns HTMLテーブル
+ */
+function get_html_table() {
+  let html = '';
+  let keys = get_internal_keys('', 'string');
+
+  html += '<table style="border-collapse: collapse; border: 1px solid;" >';
+  html += '<thead>\n';
+  html += '<tr>\n';
+  html += '<th scope="col">PJ: タスク</th>\n'
+  html += '<th scope="col">サブタスク</th>\n'
+  html += '<th scope="col">期限</th>\n'
+  html += '<th scope="col">リンク</th>\n'
+  html += '<th scope="col">備考</th>\n'
+  html += '</tr>\n';
+  html += '</thead>\n';
+
+  html += '<tbody>';
+  html += '\n';
+
+  for (let i = 0; i < keys.length; i++) {
+    // タスク情報
+    let group = g_list_data[keys[i]];
+    html += '<tr>\n';
+    html += `<td>${group.name}</td>\n`;
+    html += `<td></td>\n`;
+    html += `<td>${group.period}</td>\n`;
+    html += `<td></td>\n`;
+    html += `<td></td>\n`;
+    html += '</tr>\n';
+    items = group.sub_tasks;
+
+    // サブタスク情報
+    for (let j = 0; j < items.length; j++) {
+      let item = items[j];
+      let style = '';
+      if (item.status === 'done') {
+        style = 'style="font-size: 80%; color:rgb(182, 182, 182);"';
+      }
+      let td_link_content = '';
+      if (item.url !== '') {
+        td_link_content = `<a href="${item.url}">リンク</a>`;
+      }
+      html += '<tr>\n';
+      html += `<td></td>\n`;
+      html += `<td ${style}>${item.name}</td>\n`;
+      html += `<td ${style}>${item.period}</td>\n`;
+      html += `<td ${style}>${td_link_content}</td>\n`;
+      html += `<td ${style}>${item.note.replaceAll('\n','<br>')}</td>\n`;
+      html += '</tr>\n';
+    }
+  }
+  html += '</tbody>';
+  html += '</table>';
+  return html;
 }
 
 // 現在の状態をJSONファイルとしてダウンロード

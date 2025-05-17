@@ -155,6 +155,15 @@
           border-radius: 10px;
         }
 
+        /* table */
+        table {
+          border-collapse: collapse;
+          border: 2px solid rgb(140 140 140);
+        }
+        th,td {
+          border: 1px solid rgb(160 160 160);
+          padding: 8px 10px;
+        }
     </style>
 
     <!-- 環境ごとのCSS(上のCSSを上書き) -->
@@ -185,7 +194,7 @@
     <div>
       <div class="list-title">全タスク</div>
       <div class="flex-box">
-        <button id="copy_stock_list" class="button-mid">コピー</button>
+        <button id="copy_stock_list" class="button-mid">Talbeコピー</button>
         &nbsp;
         <div id="set_filter_condition_div"></div>
       </div>
@@ -423,7 +432,6 @@
   <div id="popup_copy_base" class="popup_copy">
     <span id="popup_copy_text" class="popup_copy_text">Copy!</span>
   </div>
-
 
 </body>
 
