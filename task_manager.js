@@ -659,7 +659,7 @@ function mouseover_handler_option(event) {
       elem.style.display = 'block';
       elem.innerHTML = note.replaceAll('\n', '<br>');
       elem.style.top = event.clientY;
-      elem.style.left = event.clientX;
+      elem.style.left = event.clientX + 20;
       // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
     }
   }
@@ -1630,6 +1630,10 @@ function adjust_attr_internal_data() {
     if (group.created === undefined) {
       group.created = '';
     }
+    // ignore_table_copy
+    if (group.ignore_table_copy === undefined) {
+      group.ignore_table_copy = false;
+    }
   }
 
   // item
@@ -2257,7 +2261,7 @@ function make_option(item, class_list, is_group_top, show_last_update) {
   }
 
   // イベント
-  elem.addEventListener('mouseover', mouseover_handler_option);
+  elem.addEventListener('mousemove', mouseover_handler_option);
   elem.addEventListener('mouseleave', mouseleave_handler_option);
 
   return elem;
@@ -3057,8 +3061,8 @@ function get_html_table() {
   html += '<th scope="col">PJ: タスク</th>\n'
   html += '<th scope="col">サブタスク</th>\n'
   html += '<th scope="col">期限</th>\n'
-  html += '<th scope="col">リンク</th>\n'
-  html += '<th scope="col">備考</th>\n'
+  html += '<th scope="col">リンク等</th>\n'
+  html += '<th scope="col">進捗等</th>\n'
   html += '</tr>\n';
   html += '</thead>\n';
 
@@ -3068,6 +3072,9 @@ function get_html_table() {
   for (let i = 0; i < keys.length; i++) {
     // タスク情報
     let group = g_list_data[keys[i]];
+    if (group.ignore_table_copy) {
+      continue;
+    }
     html += '<tr>\n';
     html += `<td>${group.name}</td>\n`;
     html += `<td></td>\n`;
@@ -3150,6 +3157,12 @@ function show_edit_popup_single(elem_id, selected_id) {
   let elem = document.getElementById("popup_edit_base");
   let item = getInternal(selected_id);
   if (item.type === "group") {
+    // 表示
+    // Tコピー除外
+    document.getElementById("popup_edit_ignore_tcopy").checked = item.ignore_table_copy;
+    document.getElementById("popup_edit_ignore_tcopy").style.display = "block";
+    document.getElementById("popup_edit_ignore_tcopy_label").style.display = "block";
+
     // 非表示
     // 所属グループ
     document.getElementById("popup_edit_group_list").style.display = "none";
@@ -3214,6 +3227,9 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_priority").checked = item.priority;
     document.getElementById("popup_edit_priority").style.display = "block";
     document.getElementById("popup_edit_priority_label").style.display = "block";
+    // Tコピー除外 (非表示)
+    document.getElementById("popup_edit_ignore_tcopy").style.display = "none";
+    document.getElementById("popup_edit_ignore_tcopy_label").style.display = "none";
   }
 
   // タスク名
@@ -3334,6 +3350,7 @@ function submit_edit_popup() {
   let new_done = document.getElementById("popup_edit_done").checked;
   let new_wait = document.getElementById("popup_edit_wait").checked;
   let new_priority = document.getElementById("popup_edit_priority").checked;
+  let new_ignore_table_copy = document.getElementById("popup_edit_ignore_tcopy").checked;
   let id_hidden_str = document.getElementById("popup_edit_hidden_id").value;
   let id_edit_str = document.getElementById("popup_edit_id").value;
   let id_hidden = parseInt(id_hidden_str);
@@ -3346,6 +3363,11 @@ function submit_edit_popup() {
 
   item.name = new_name.trim();
   item.period = new_period.replaceAll('-', '/');
+
+  if (item.type === 'group') {
+    // 入力値を適用
+    item.ignore_table_copy = new_ignore_table_copy;
+  }
 
   if (item.type === 'item') {
     // 入力値を適用
@@ -3362,7 +3384,7 @@ function submit_edit_popup() {
       item.status = 'yet';
     }
 
-    // グループ
+    // 所属グループ
     let elem_groups = document.getElementById("popup_edit_group_list");
     let elem_sel_group_option = get_selected_element('popup_edit_group_list');
     if (elem_sel_group_option.dataset.id !== elem_groups.dataset.orgid) {
@@ -3477,18 +3499,20 @@ function make_timeline_items()
   let keys = get_internal_keys(g_stock_filter.name, null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
-    if (group.period === undefined || group.period === '') {
-      continue;
-    }
+    // if (group.period === undefined || group.period === '') {
+    //   continue;
+    // }
 
     // グループデータを追加
-    let name = keys[i];
-    if (group.name !== undefined) {
-      name = group.name;
+    if (group.period !== undefined && group.period !== '') {
+      let name = keys[i];
+      if (group.name !== undefined) {
+        name = group.name;
+      }
+      let period = group.period + ' 12:00';
+      let period_disp = new Date(group.period).getMonth()+1 + '/' + new Date(group.period).getDate();
+      ret.push( { group: 'task', id: group.id, content: name, title: period_disp + ' ' + name, start: period, type: 'point', className: 'timeline_item_group' } );
     }
-    let period = group.period + ' 12:00';
-    let period_disp = new Date(group.period).getMonth()+1 + '/' + new Date(group.period).getDate();
-    ret.push( { group: 'task', id: group.id, content: name, title: period_disp + ' ' + name, start: period, type: 'point', className: 'timeline_item_group' } );
 
     // アイテムデータを追加
     for (let j = 0; j < group.sub_tasks.length; j++) {
