@@ -107,6 +107,7 @@ document.getElementById("lock_todays_task").addEventListener("click", toggle_loc
 
 // done list
 document.getElementById("copy_done_list").addEventListener("click", copy_todays_done_list);
+document.getElementById("copy_updates_list").addEventListener("click", copy_todays_updates_list);
 document.getElementById("release_todays_done").addEventListener("click", release_todays_done);
 
 // tomorrow list
@@ -1081,10 +1082,10 @@ function get_internal_keys(filter, sort_type) {
   }
 
   if (sort_type === 'period') {
-    ary.sort(compareFn);
+    ary.sort(compareFn_period);
   }
   if (sort_type === 'string') {
-    ary.sort();
+    ary.sort(compareFn_string);
   }
 
   ret = [];
@@ -1485,6 +1486,7 @@ function makeInternalItem(name) {
     is_wait: false,
     is_doing: false,
     is_tomorrow: false,
+    is_non_task: false,
     priority: false,
     last_update: '',
     created: get_today_str(true, true, true),
@@ -1756,7 +1758,7 @@ function get_todays_list_text(mode) {
 
   // 対象となるタスクリストを作成
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys('', 'string');
   
   for (let i = 0 ; i < keys.length; i++) {
     let ary = [];
@@ -1782,10 +1784,43 @@ function get_todays_list_text(mode) {
       copy_text += "●" + g_list_data[keys[i]].name;
       copy_text += '\n';
       for (let j = 0 ; j < ary.length; j++) {
-        copy_text += ary[j];
+        copy_text += '  ' + ary[j];
         copy_text += '\n';
       }
       // copy_text += '\n';
+    }
+  }
+
+  return copy_text;
+}
+
+/**
+ * @summary 本日更新されたタスクをテキストで取得
+ * @returns テキスト
+ */
+function get_todays_updates_text() {
+  let copy_text = '';
+
+  // 対象となるタスクリストを作成
+  let keys = get_internal_keys('', 'string');
+  
+  for (let i = 0 ; i < keys.length; i++) {
+    let ary = [];
+    let items = g_list_data[keys[i]].sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      if (items[j].last_update.includes(get_today_str(true, false, true))) {
+        ary.push(items[j].name);
+      }
+    }
+
+    // テキストを整形
+    if (ary.length > 0) {
+      copy_text += "●" + g_list_data[keys[i]].name;
+      copy_text += '\n';
+      for (let j = 0 ; j < ary.length; j++) {
+        copy_text += '  ' + ary[j];
+        copy_text += '\n';
+      }
     }
   }
 
@@ -2281,7 +2316,7 @@ function get_before_icons(item) {
   let ret = '';
   if(item.url !== '') {
     if (item.url_app_type !== 'auto') {
-      ret += 'Ⓜ';
+      ret += '🌏';
     } else {
       ret += '🌏';
     }
@@ -2486,7 +2521,7 @@ function move_today_item() {
   } else {
     item.is_today = 1;
   }
-  item.last_update = get_today_str(true, true, true);
+  // item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
   update_list();
@@ -2510,7 +2545,7 @@ function remove_today_item() {
   pushHistory();
   item.is_today = 0;
   item.is_first = false;  // 優先タスクフラグ解除
-  item.last_update = get_today_str(true, true, true);
+  // item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
   update_list();
@@ -2972,6 +3007,14 @@ function copy_todays_done_list() {
   copy_animation(this);
 }
 
+// 今日更新のあったタスクをクリップボードにコピー
+function copy_todays_updates_list() {
+  let copy_text = get_todays_updates_text();
+  navigator.clipboard.writeText(copy_text);
+
+  copy_animation(this);
+}
+
 /**
  * @summary 選択アイテムテキストをクリップボードにコピー
  * @param 要素ID
@@ -3036,7 +3079,7 @@ function copy_now_json() {
  * @summary 全てのタスクをエクセルへ貼り付け可能なBLOB形式でコピー
  */
 function copy_all_task_blob() {
-  let html = get_html_table();
+  let html = get_html_table(true);
   // console.log(html);
   // document.getElementById('table_test').innerHTML = html; // test
   const item = new ClipboardItem({
@@ -3049,9 +3092,10 @@ function copy_all_task_blob() {
 
 /**
  * @summary HTMLテーブル取得(全てのタスク)
+ * @param 非タスクの扱い(true:含めない / false:含める)
  * @returns HTMLテーブル
  */
-function get_html_table() {
+function get_html_table(ignre_non_task) {
   let html = '';
   let keys = get_internal_keys('', 'string');
 
@@ -3075,19 +3119,28 @@ function get_html_table() {
     if (group.ignore_table_copy) {
       continue;
     }
-    html += '<tr>\n';
-    html += `<td>${group.name}</td>\n`;
-    html += `<td></td>\n`;
-    html += `<td>${group.period}</td>\n`;
-    html += `<td></td>\n`;
-    html += `<td></td>\n`;
-    html += '</tr>\n';
-    items = group.sub_tasks;
 
+    let html_group = '';
+    html_group += '<tr>\n';
+    html_group += `<td>${group.name}</td>\n`;
+    html_group += `<td></td>\n`;
+    html_group += `<td>${group.period}</td>\n`;
+    html_group += `<td></td>\n`;
+    html_group += `<td></td>\n`;
+    html_group += '</tr>\n';
+    
     // サブタスク情報
+    let html_items = '';
+    let items = group.sub_tasks;
     for (let j = 0; j < items.length; j++) {
       let item = items[j];
       let style = '';
+      
+      // 非タスクはスキップ
+      if (ignre_non_task === true && item.is_non_task === true) {
+        continue;
+      }
+
       if (item.status === 'done') {
         style = 'style="font-size: 80%; color:rgb(182, 182, 182);"';
       }
@@ -3095,13 +3148,17 @@ function get_html_table() {
       if (item.url !== '') {
         td_link_content = `<a href="${item.url}">リンク</a>`;
       }
-      html += '<tr>\n';
-      html += `<td></td>\n`;
-      html += `<td ${style}>${item.name}</td>\n`;
-      html += `<td ${style}>${item.period}</td>\n`;
-      html += `<td ${style}>${td_link_content}</td>\n`;
-      html += `<td ${style}>${item.note.replaceAll('\n','<br>')}</td>\n`;
-      html += '</tr>\n';
+      html_items += '<tr>\n';
+      html_items += `<td></td>\n`;
+      html_items += `<td ${style}>${item.name}</td>\n`;
+      html_items += `<td ${style}>${item.period}</td>\n`;
+      html_items += `<td ${style}>${td_link_content}</td>\n`;
+      html_items += `<td ${style}>${item.note.replaceAll('\n','<br>')}</td>\n`;
+      html_items += '</tr>\n';
+    }
+    // サブタスクが1つでもあれば追加
+    if (html_items !=='') {
+      html += html_group + html_items;
     }
   }
   html += '</tbody>';
@@ -3402,6 +3459,8 @@ function submit_edit_popup() {
   if (id_hidden !== id_edit) {
     item.id = id_edit;
   }
+  // 最終更新日更新
+  item.last_update = get_today_str(true, true, true);
 
   // ポップアップ消去
   close_edit_popup();
@@ -3684,7 +3743,7 @@ function show_copy_popup(event, add_text) {
  * @param 比較対象データ2
  * @returns 結果(0:変更なし / <0:aをbの前に並べる / >0:aをbの後に並べる )
  */
-function compareFn(data1, data2) {
+function compareFn_period(data1, data2) {
   const period1 = new Date(data1.period);
   const period2 = new Date(data2.period);
 
@@ -3706,6 +3765,24 @@ function compareFn(data1, data2) {
   if (period1 < period2) {
    return -1;
   } else if (period1 > period2) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+* @summary 内部データソート 比較関数
+* @param 比較対象データ1
+* @param 比較対象データ2
+* @returns 結果(0:変更なし / <0:aをbの前に並べる / >0:aをbの後に並べる )
+*/
+function compareFn_string(data1, data2) {
+  let name1 = data1.name;
+  let name2 = data2.name;
+ 
+  if (name1 < name2) {
+   return -1;
+  } else if (name1 > name2) {
     return 1;
   }
   return 0;

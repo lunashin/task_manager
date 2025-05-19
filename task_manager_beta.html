@@ -62,7 +62,7 @@
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 230px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 250px; position: absolute; top:100px; left: 40px; }
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
 
@@ -220,9 +220,12 @@
     <div>
       <div>
         <div class="list-title">今日の処理済み</div>
-        <button id="copy_done_list" class="button-mid">コピー</button>
-        <button id="release_todays_done" class="button-mid">今日を解除</button>
-        <br>
+        <div class="flex-box">
+          <button id="copy_done_list" class="button-mid">コピー</button>
+          <button id="copy_updates_list" class="button-mid">本日更新を<br>コピー</button>
+          &nbsp;
+          <button id="release_todays_done" class="button-mid">今日を解除</button>
+        </div>
         <select id="done_list" class="done_list h-half" tabindex="20" multiple></select>
       </div>
 
