@@ -1798,7 +1798,7 @@ function get_todays_list_text(mode) {
  * @summary 本日更新されたタスクをテキストで取得
  * @returns テキスト
  */
-function get_todays_updates_text() {
+function get_todays_updates_text(ignre_non_task) {
   let copy_text = '';
 
   // 対象となるタスクリストを作成
@@ -1808,8 +1808,13 @@ function get_todays_updates_text() {
     let ary = [];
     let items = g_list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
-      if (items[j].last_update.includes(get_today_str(true, false, true))) {
-        ary.push(items[j].name);
+      let item = items[j];
+      // 非タスクはスキップ
+      if (ignre_non_task === true && item.is_non_task === true) {
+        continue;
+      }
+      if (item.last_update.includes(get_today_str(true, false, true))) {
+        ary.push(item.name);
       }
     }
 
@@ -3009,7 +3014,7 @@ function copy_todays_done_list() {
 
 // 今日更新のあったタスクをクリップボードにコピー
 function copy_todays_updates_list() {
-  let copy_text = get_todays_updates_text();
+  let copy_text = get_todays_updates_text(true);
   navigator.clipboard.writeText(copy_text);
 
   copy_animation(this);
