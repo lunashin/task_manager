@@ -62,7 +62,7 @@
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 260px; height: 250px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { display: none; background-color: aquamarine; width: 300px; height: 250px; position: absolute; top:100px; left: 40px; }
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
 
@@ -368,7 +368,10 @@
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
       <select id="popup_edit_group_list" class="popup_size_fit" size="1" name="groups" ></select>
       <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
-      <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+      <div class="flex-box">
+        <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+        <input id="popup_button_copy_url" type="button" value="Copy" >
+      </div>
       <div id="popup_edit_url_app_type" class="flex-box">
         <label><input type="radio" name="url_app_type" value="auto">Auto</label>
         <label><input type="radio" name="url_app_type" value="excel">Excel</label>
@@ -389,6 +392,8 @@
         <input id="popup_button_date_inc" type="button" value="+1d" >
         <input id="popup_button_date_inc1w" type="button" value="+1w" >
         <input id="popup_button_date_inc1m" type="button" value="+1M" >
+        &nbsp;&nbsp;
+        <input id="popup_button_date_clear" type="button" value=" C " >
       </div>
 
       <div class="flex-box">

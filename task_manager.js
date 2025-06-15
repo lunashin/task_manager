@@ -155,6 +155,12 @@ document.getElementById(elem_id_list_tomorrow).addEventListener("contextmenu", c
 
 
 // Popup
+// URL（Copyボタン）
+document.getElementById("popup_button_copy_url").addEventListener("click", function(){
+  let url = document.getElementById("popup_edit_url").value;
+  navigator.clipboard.writeText(url);
+  copy_animation(this);
+});
 // 期限（今日にセットするボタン）
 document.getElementById("popup_button_set_today").addEventListener("click", function(){
   document.getElementById("popup_edit_date").value = get_today_str(true, false, true).replaceAll('/','-');
@@ -185,6 +191,10 @@ document.getElementById("popup_button_date_inc1m").addEventListener("click", fun
   }
   let ret = addMonths_s(new Date(date_str), 1, true);
   document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
+});
+// 期限（Clearボタン）
+document.getElementById("popup_button_date_clear").addEventListener("click", function(){
+  document.getElementById("popup_edit_date").value = '';
 });
 // メモ追加ボタン
 document.getElementById("popup_edit_note_add_btn").addEventListener("click", function(){
@@ -332,6 +342,8 @@ function keyhandler_stock_list(event) {
         undo_item()
         break;
       }
+      event.preventDefault(); // 既定の動作をキャンセル
+      toggle_wait(elem_id);
       break;
     case key_space:       // space
       if (event.shiftKey) {
@@ -454,7 +466,7 @@ function keyhandler_todays_list(event) {
         break;
       }
       event.preventDefault(); // 既定の動作をキャンセル
-      toggle_todays_wait();
+      toggle_wait(elem_id);
       break;
     case key_space:       // space
       if (event.shiftKey) {
@@ -2624,10 +2636,10 @@ function clear_first_task() {
 /**
  * 待ち状態を設定
  */
-function toggle_todays_wait() {
+function toggle_wait(elem_id) {
   pushHistory();
 
-  let id = get_selected_id(elem_id_list_today);
+  let id = get_selected_id(elem_id);
   if (id === null) {
     return;
   }
@@ -3230,6 +3242,7 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_group_list").style.display = "none";
     // URL
     document.getElementById("popup_edit_url").style.display = "none";
+    document.getElementById("popup_button_copy_url").style.display = "none";
     document.getElementById("popup_edit_url_app_type").style.display = "none";
     // メール
     document.getElementById("popup_edit_mail").style.display = "none";
@@ -3266,6 +3279,7 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_group_list").style.display = "block";
     // URL
     document.getElementById("popup_edit_url").value = item.url;
+    document.getElementById("popup_button_copy_url").style.display = "block";
     document.getElementById("popup_edit_url").style.display = "block";
     // URLアプリ種類
     document.getElementById("popup_edit_form").elements['url_app_type'].value = item.url_app_type;
@@ -3596,7 +3610,11 @@ function make_timeline_items()
       if (item.note !== '') {
         title += '<br>---------------<br>' + item.note.replaceAll('\n', '<br>');
       }
-      ret.push( { group: 'task', id: item.id, content: item.name, title: title, start: period, type: 'point', className: className } );
+      let name = item.name;
+      if (item.is_wait) {
+        name += get_after_icons(item);
+      }
+      ret.push( { group: 'task', id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
     }
   }
   return ret;
@@ -3666,7 +3684,7 @@ function show_timeline(mode, showNested)
       }
 
       // フィルタ解除
-      set_list_filter(elem_id_list_stock, 0);
+      // set_list_filter(elem_id_list_stock, 0);
       
       // クリックしたアイテムをリスト中で選択
       if (properties.items.length > 0) {
