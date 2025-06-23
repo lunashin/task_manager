@@ -47,7 +47,7 @@ var g_last_id = 0;
 
 // 全リストのフィルタ
 // {name: '[文字列]', has_url: [true|false], has_mail: [true|false], has_note: [true|false], is_wait: [true|false], priority:[true|false] };
-var g_stock_filter = {};
+var g_stock_filter = {group_name: '', item_name: '' , has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
 var g_stock_filter_id = 0;
 
 // 編集履歴
@@ -95,6 +95,7 @@ document.getElementById("btn_input_json").addEventListener("click", regist_from_
 
 // stock list
 document.getElementById("copy_stock_list").addEventListener("click", copy_all_task_blob);
+document.getElementById("stock_list_filter_text").addEventListener("input", change_filter_text);
 
 // todays list
 document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
@@ -314,6 +315,13 @@ function keyhandler_stock_list(event) {
       event.preventDefault(); // 既定の動作をキャンセル
       remove_selected_item(elem_id);
       break;
+    case key_f:           // f
+      if (event.ctrlKey) {
+        event.preventDefault();
+        // 検索文字入力欄へフォーカス移動
+        document.getElementById('stock_list_filter_text').focus();
+        break;
+      }
     case key_n:           //n
       // 非タスク化
       toggle_non_task(elem_id);
@@ -688,7 +696,17 @@ function mouseleave_handler_option(event) {
   // console.log( event.target.dataset.id +' : ' + 'mouse leave');
 }
 
+/**
+ * @summary フィルタ文字列変更
+ */
+function change_filter_text(event) {
+  console.log(event.target.value);
 
+  // フィルタ条件変更
+  g_stock_filter = {group_name: '', item_name: event.target.value, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
+  update_stock_list(g_stock_filter);
+  show_timeline();
+}
 
 
 
@@ -751,7 +769,7 @@ function set_list_filter(elem_id, filter_id) {
 
   g_stock_filter_id = filter_id;
   filter = g_filtersEx[filter_id];
-  g_stock_filter = {name: filter.word, has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority };
+  g_stock_filter = {group_name: filter.word, item_name: '', has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority };
   update_stock_list(g_stock_filter);
 
   // ボタン選択状態変更
@@ -1933,26 +1951,31 @@ function renumbering_groupid() {
  * @summary リスト表示更新
  * @param リストデータ
  * @param 更新対象リストのエレメントID
- * @param グループフィルタ文字列
+ * @param フィルタ文字列(グループが対象)
+ * @param フィルタ文字列(アイテムが対象)
  * @param 表示判定コールバック
  * @param クラスリスト取得コールバック
  * @param 最終更新日表示判定コールバック
  * @param 空のグループ表示判定コールバック
  */
-function update_list_common(list_data, elem_id, filter, func_is_show, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
+function update_list_common(list_data, elem_id, filter_group, filter_item, func_is_show, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
   let selected_ids = get_select_id_ex(elem_id);
   let select = document.getElementById(elem_id);
   select.innerHTML = '';
 
-  let keys = get_internal_keys(filter, 'period');
+  let keys = get_internal_keys(filter_group, 'period');
   for (let i = 0 ; i < keys.length; i++) {
     // アイテムの要素一覧を作成
     let append_elems = [];
     let items = list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
       let item = items[j];
+      // リスト側の表示条件
       if (func_is_show(item) === true) {
-        append_elems.push(make_option(item, func_get_classes(item), false, func_show_lastupdate(item)));
+        // フィルタ条件(大文字/小文字区別しない)
+        if (item.name.toLowerCase().indexOf(filter_item.toLowerCase()) !== -1) {
+          append_elems.push(make_option(item, func_get_classes(item), false, func_show_lastupdate(item)));
+        }
       }
     }
 
@@ -1989,11 +2012,11 @@ function update_list_common(list_data, elem_id, filter, func_is_show, func_get_c
 
 /**
  * @summary ALLタスクリスト更新
- * @param フィルタ(dict) { name:'', has_url:[true|false], has_mail:[true|false], has_note:[true|false] }
+ * @param フィルタ(dict) { group_name:[グループ名フィルタ], item_name:[アイテム名フィルタ],  has_url:[true|false], has_mail:[true|false], has_note:[true|false], is_wait:[true|false], priority:[true|false] }
  */
 function update_stock_list(filter) {
   update_list_common(
-    getInternalRawData(), elem_id_list_stock, filter.name,
+    getInternalRawData(), elem_id_list_stock, filter.group_name, filter.item_name,
     function(item) {
       // 表示条件
       if (filter.has_url && item.url === '') {
@@ -2044,7 +2067,7 @@ function update_stock_list(filter) {
     },
     function() {
       // アイテムが無いグループを表示するかどうか
-      if (filter.has_url || filter.has_mail || filter.has_note || filter.is_wait || filter.priority) {
+      if (filter.item_name !== '' || filter.has_url || filter.has_mail || filter.has_note || filter.is_wait || filter.priority) {
         // 特殊条件の場合は非表示
         return false;
       }
@@ -2058,7 +2081,7 @@ function update_stock_list(filter) {
  */
 function update_todays_list() {
   update_list_common(
-    getInternalRawData(), elem_id_list_today, '', 
+    getInternalRawData(), elem_id_list_today, '', '',
     function(item) {
       // 表示条件
       if (item.is_tomorrow) {
@@ -2122,7 +2145,7 @@ function update_todays_list() {
  */
 function update_done_list() {
   update_list_common(
-    getInternalRawData(), elem_id_list_done, '', 
+    getInternalRawData(), elem_id_list_done, '', '', 
     function(item) {
       // 表示条件
       return (item.is_today > 0 && item.status === 'done');
@@ -2151,7 +2174,7 @@ function update_done_list() {
 */
 function update_tomorrow_list() {
   update_list_common(
-    getInternalRawData(), elem_id_list_tomorrow, '',
+    getInternalRawData(), elem_id_list_tomorrow, '', '',
     function(item) {
       // 表示条件
       return (item.is_tomorrow);
@@ -3574,7 +3597,7 @@ function make_timeline_items()
 {
   let ret = [];
 
-  let keys = get_internal_keys(g_stock_filter.name, null);
+  let keys = get_internal_keys(g_stock_filter.group_name, null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
     // if (group.period === undefined || group.period === '') {
@@ -3595,7 +3618,12 @@ function make_timeline_items()
     // アイテムデータを追加
     for (let j = 0; j < group.sub_tasks.length; j++) {
       let item = group.sub_tasks[j];
+      // 期限設定確認
       if (item.period === undefined || item.period === '') {
+        continue;
+      }
+      // アイテムフィルタ
+      if (item.name.toLowerCase().indexOf(g_stock_filter.item_name.toLowerCase()) === -1) {
         continue;
       }
       let period = item.period + ' 12:00';

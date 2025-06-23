@@ -196,9 +196,11 @@
       <div class="flex-box">
         <button id="copy_stock_list" class="button-mid">Talbeコピー</button>
         &nbsp;
+        <!-- フィルタボタン表示エリア -->
         <div id="set_filter_condition_div"></div>
       </div>
-      <select id="stock_list" class="stock_list task_list" tabindex="1" multiple></select>
+      <input type="text" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
+      <select id="stock_list" class="stock_list task_list" tabindex="10" multiple></select>
     </div>
     &nbsp;&nbsp;&nbsp;
 
@@ -212,7 +214,7 @@
       <input type="checkbox" id="lock_todays_task">
       <label for="lock_todays_task">🔒ロック</label>
       <br>
-      <select id="todays_list" class="todays_list task_list" tabindex="10" multiple></select>
+      <select id="todays_list" class="todays_list task_list" tabindex="20" multiple></select>
     </div>
     &nbsp;&nbsp;&nbsp;
 
@@ -226,14 +228,14 @@
           &nbsp;
           <button id="release_todays_done" class="button-mid">今日を解除</button>
         </div>
-        <select id="done_list" class="done_list h-half" tabindex="20" multiple></select>
+        <select id="done_list" class="done_list h-half" tabindex="30" multiple></select>
       </div>
 
       <div>
         <div class="list-title">明日のタスク</div>
         <button id="release_tomorrow" class="button-mid">今日へ移動</button>
         <br>
-        <select id="tomorrow_list" class="tomorrow_list h-half" tabindex="20" multiple></select>
+        <select id="tomorrow_list" class="tomorrow_list h-half" tabindex="40" multiple></select>
       </div>
     </div>
   </div>
