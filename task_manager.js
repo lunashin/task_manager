@@ -3153,6 +3153,17 @@ function get_html_table(ignre_non_task) {
   html += '<tbody>';
   html += '\n';
 
+  // 現在日時挿入
+  let html_group = '';
+  html_group += '<tr>\n';
+  html_group += `<td>最終更新日時</td>\n`;
+  html_group += `<td>${get_today_str(true, true, true)}</td>\n`;
+  html_group += `<td></td>\n`;
+  html_group += `<td></td>\n`;
+  html_group += `<td></td>\n`;
+  html_group += '</tr>\n';
+  html += html_group;
+
   for (let i = 0; i < keys.length; i++) {
     // タスク情報
     let group = g_list_data[keys[i]];
