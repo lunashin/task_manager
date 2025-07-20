@@ -2078,7 +2078,9 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
       // params (group)
       let group_top = {}
       group_top.name = `${list_data[keys[i]].name} ( ${get_display_date_str(list_data[keys[i]].period)} ) (〜 ${list_data[keys[i]].period} )`;
+      group_top.type = 'group';
       group_top.id = list_data[keys[i]].id;
+      group_top.favorite = list_data[keys[i]].favorite;
       // class (group)
       let classes = ["group_top"];
       if (list_data[keys[i]].period !== '') {
@@ -2488,18 +2490,24 @@ function get_before_icons(item) {
  * @returns アイコン
  */
 function get_after_icons(item) {
-  // アイテム以外なら空
-  if (item.type !== 'item') {
-    return '';
-  }
-
   let ret = '';
-  if(item.is_wait) {
-    ret = '💤';
+
+  // グループ
+  if (item.type === 'group') {
+    if (item.favorite) {
+      ret = '❤️';
+    }
   }
 
-  if(ret !== '') {
-    ret += ' ';
+  // アイテム
+  if (item.type === 'item') {
+    if(item.is_wait) {
+      ret = '💤';
+    }
+
+    if(ret !== '') {
+      ret += ' ';
+    }
   }
   return ret;
 }
