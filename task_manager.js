@@ -22,6 +22,7 @@ const key_a = 65;
 const key_c = 67;
 const key_d = 68;
 const key_f = 70;
+const key_l = 76;
 const key_n = 78;
 const key_s = 83;
 const key_z = 90;
@@ -47,7 +48,7 @@ var g_last_id = 0;
 
 // 全リストのフィルタ
 // {name: '[文字列]', has_url: [true|false], has_mail: [true|false], has_note: [true|false], is_wait: [true|false], priority:[true|false] };
-var g_stock_filter = {group_name: '', item_name: '' , has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
+var g_stock_filter = {group_name: '', item_name: '' , has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false, is_group_favorite: false};
 var g_stock_filter_id = 0;
 
 // 編集履歴
@@ -121,6 +122,7 @@ document.getElementById("load").addEventListener("click", load_data);
 document.getElementById("add_item").addEventListener("click", add_items);
 document.getElementById("remove_item").addEventListener("click", remove_selected_item_stock_list);
 document.getElementById("undo").addEventListener("click", undo_item);
+document.getElementById('scroll_lock').addEventListener("click", toggle_scroll_lock);
 document.getElementById("copy_now_json").addEventListener("click", copy_now_json);
 document.getElementById("download_now_json").addEventListener("click", download_now_json);
 document.getElementById("import_mail_flag").addEventListener("click", read_mail_flag);
@@ -138,6 +140,7 @@ document.getElementById("popup_edit_multi_cancel_btn").addEventListener("click",
 // document.querySelectorAll(".td_edit").forEach(function(elem) { elem.addEventListener('click', click_stock_list_item); });
 
 // Key event
+document.addEventListener("keydown", keyhandler_body);
 document.getElementById(elem_id_list_stock).addEventListener("keydown", keyhandler_stock_list);
 document.getElementById(elem_id_list_today).addEventListener("keydown", keyhandler_todays_list);
 document.getElementById(elem_id_list_done).addEventListener("keydown", keyhandler_done_list);
@@ -256,6 +259,19 @@ function click_handler_todays_list(event) {
     // outlook用クエリコピー
     event.preventDefault(); // 既定の動作をキャンセル
     copy_selected_item_name_for_mailquery(elem_id);
+  }
+}
+
+/**
+ * @summary Body キーイベント処理
+ * @param イベント情報
+ */
+function keyhandler_body(event) {
+  switch (event.keyCode){
+    case key_l:    // L
+      // 画面スクロールロック切り替え
+      toggle_scroll_lock();
+      break;
   }
 }
 
@@ -768,8 +784,9 @@ function set_list_filter(elem_id, filter_id) {
   }
 
   g_stock_filter_id = filter_id;
-  filter = g_filtersEx[filter_id];
-  g_stock_filter = {group_name: filter.word, item_name: '', has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority };
+  // let filter = g_filtersEx[g_stock_filter_id];
+  // g_stock_filter = {group_name: filter.word, item_name: '', has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority, is_group_favorite: filter.is_group_favorite };
+  g_stock_filter = make_filter_info(g_stock_filter_id);
   update_stock_list(g_stock_filter);
 
   // ボタン選択状態変更
@@ -786,6 +803,16 @@ function set_list_filter(elem_id, filter_id) {
 
   // タイムライン更新
   show_timeline();
+}
+
+/**
+ * @summary 内部用フィルタ情報作成
+ * @param フィルタID
+ * @returns 内部用フィルタ情報
+ */
+function make_filter_info(filter_id) {
+  let filter = g_filtersEx[filter_id];
+  return {group_name: filter.word, item_name: '', has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority, is_group_favorite: filter.is_group_favorite };
 }
 
 /**
@@ -1101,34 +1128,47 @@ function setInternalGroup(key, group_data) {
 }
 
 /**
- * @summary 内部データのキーリストを条件に沿って返す
- * @param フィルタ文字列
- * @param ソート種類 (string:文字列順, period:期限の早い順)
+ * @summary 内部データのキーリストを返す
+ * @param フィルタ情報(グループに対して適用)
+ * @param ソート種類 (null:なし, 'string':文字列順, 'period':期限の早い順)
  * @return キー一覧
  */
 function get_internal_keys(filter, sort_type) {
   let keys = Object.keys(g_list_data.tasks);
-  let ary = [];
+
+  // フィルタ条件に沿ってJSONキー(グループID)を抽出
+  let ary = []; // [ {name:'', period:yyyy/mm/dd} ... ]
   for (let i = 0 ; i < keys.length; i++) {
-    if (filter !== '' && filter !== undefined) {
-      if (getInternalGroup(keys[i]).name.indexOf(filter) >= 0) {
-        ary.push({ name: keys[i], period: getInternalGroup(keys[i]).period });
+    let group = getInternalGroup(keys[i]);
+    // グループお気に入り確認
+    if (filter !== null && filter.is_group_favorite === true) {
+      if (group.favorite) {
+        ary.push({ key: keys[i], name: group.name, period: group.period });
+      }
+      continue;
+    }
+    // グループ名フィルタ一致確認
+    if (filter !== null && filter.group_name !== '') {
+      if (new RegExp(filter.group_name.toLowerCase()).test(group.name.toLowerCase())) {
+        ary.push({ key: keys[i], name: group.name, period: group.period });
       }
     } else {
-      ary.push({ name: keys[i], period: getInternalGroup(keys[i]).period });
+      ary.push({ key: keys[i], name: group.name, period: group.period });
     }
   }
 
+  // ソート
   if (sort_type === 'period') {
-    ary.sort(compareFn_period);
+    ary.sort(compareFn_period); // 期限でソート
   }
   if (sort_type === 'string') {
-    ary.sort(compareFn_string);
+    ary.sort(compareFn_string); // グループ名でソート
   }
 
+  // 戻り値作成(キーのみの一覧)
   ret = [];
   for (let i = 0 ; i < ary.length; i++) {
-    ret.push(ary[i].name);
+    ret.push(ary[i].key);
   }
   return ret;
 }
@@ -1138,72 +1178,72 @@ function get_internal_keys(filter, sort_type) {
  * @param フィルタ情報(dict)
  * @return キー一覧(配列)
  */
-function get_internal_keys_ex(filter_dict) {
-  let keys = Object.keys(g_list_data.tasks);
+// function get_internal_keys_ex(filter_dict) {
+//   let keys = Object.keys(g_list_data.tasks);
 
-  // グループ名を検証し、グループ一覧作成
-  let keys_target0 = [];
-  for (let i = 0 ; i < keys.length; i++) {
-    if (filter_dict !== null && filter_dict.name !== undefined && filter_dict.name !== '') {
-      if (getInternalGroup(keys[i]).name.indexOf(filter_dict.name) >= 0) {
-        keys_target0.push(keys[i]);
-      }
-    } else {
-      keys_target0.push(keys[i]);
-    }
-  }
+//   // グループ名を検証し、グループ一覧作成
+//   let keys_target0 = [];
+//   for (let i = 0 ; i < keys.length; i++) {
+//     if (filter_dict !== null && filter_dict.name !== undefined && filter_dict.name !== '') {
+//       if (getInternalGroup(keys[i]).name.indexOf(filter_dict.name) >= 0) {
+//         keys_target0.push(keys[i]);
+//       }
+//     } else {
+//       keys_target0.push(keys[i]);
+//     }
+//   }
 
-  // 期限でソート
-  // if (!is_no_sort) {
-  //   ary.sort(compareFn);
-  // }
+//   // 期限でソート
+//   // if (!is_no_sort) {
+//   //   ary.sort(compareFn);
+//   // }
 
-  let keys_target = [];
+//   let keys_target = [];
 
-  // アイテムを確認し、フィルタ条件に一致しないグループを除外
-  for (let i = 0 ; i < keys_target0.length; i++) {
-    let tasks = getInternalGroup(keys_target0[i]).sub_tasks;
+//   // アイテムを確認し、フィルタ条件に一致しないグループを除外
+//   for (let i = 0 ; i < keys_target0.length; i++) {
+//     let tasks = getInternalGroup(keys_target0[i]).sub_tasks;
 
-    // {name: '[文字列]', has_url: [true|false], has_mail: [true|false], has_note: [true|false], is_wait: [true|false], priority:[true|false] };
-    let hit = false;
-    for (let k = 0 ; k < tasks.length; k++) {
-      if (filter_dict.has_url !== undefined && filter_dict.has_url === true) {
-        if (tasks[k].url !== '') {
-          hit = true;
-        }
-      }
-      if (filter_dict.has_mail !== undefined && filter_dict.has_mail === true) {
-        if (tasks[k].mail !== '') {
-          hit = true;
-        }
-      }
-      if (filter_dict.has_note !== undefined && filter_dict.has_note === true) {
-        if (tasks[k].note !== '') {
-          hit = true;
-        }
-      }
-      if (filter_dict.is_wait !== undefined && filter_dict.is_wait === true) {
-        if (tasks[k].is_wait === true) {
-          hit = true;
-        }
-      }
-      if (filter_dict.priority !== undefined && filter_dict.priority === true) {
-        if (tasks[k].priority === true) {
-          hit = true;
-        }
-      }
-    }
-    if (hit) {
-      keys_target.push(keys_target0[i]);
-    }
-  }
+//     // {name: '[文字列]', has_url: [true|false], has_mail: [true|false], has_note: [true|false], is_wait: [true|false], priority:[true|false] };
+//     let hit = false;
+//     for (let k = 0 ; k < tasks.length; k++) {
+//       if (filter_dict.has_url !== undefined && filter_dict.has_url === true) {
+//         if (tasks[k].url !== '') {
+//           hit = true;
+//         }
+//       }
+//       if (filter_dict.has_mail !== undefined && filter_dict.has_mail === true) {
+//         if (tasks[k].mail !== '') {
+//           hit = true;
+//         }
+//       }
+//       if (filter_dict.has_note !== undefined && filter_dict.has_note === true) {
+//         if (tasks[k].note !== '') {
+//           hit = true;
+//         }
+//       }
+//       if (filter_dict.is_wait !== undefined && filter_dict.is_wait === true) {
+//         if (tasks[k].is_wait === true) {
+//           hit = true;
+//         }
+//       }
+//       if (filter_dict.priority !== undefined && filter_dict.priority === true) {
+//         if (tasks[k].priority === true) {
+//           hit = true;
+//         }
+//       }
+//     }
+//     if (hit) {
+//       keys_target.push(keys_target0[i]);
+//     }
+//   }
 
-  ret = [];
-  for (let i = 0 ; i < keys_target.length; i++) {
-    ret.push(keys_target[i]);
-  }
-  return ret;
-}
+//   ret = [];
+//   for (let i = 0 ; i < keys_target.length; i++) {
+//     ret.push(keys_target[i]);
+//   }
+//   return ret;
+// }
 
 /**
  * @summary グループID一覧取得
@@ -1211,7 +1251,7 @@ function get_internal_keys_ex(filter_dict) {
  */
 function get_group_ids() {
   let ret = [];
-  let keys = get_internal_keys('', 'string');
+  let keys = get_internal_keys(null, 'string');
   for (let i = 0 ; i < keys.length; i++) {
     ret.push(getInternalGroup(keys[i]).id);
   }
@@ -1225,7 +1265,7 @@ function get_group_ids() {
  */
 function getInternal(id) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
 
   //　アイテムデータを検索
   for (let i = 0 ; i < keys.length; i++) {
@@ -1255,7 +1295,7 @@ function getInternal(id) {
  */
 function getInternalFromName(name) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
 
   //　アイテムデータを検索
   for (let i = 0 ; i < keys.length; i++) {
@@ -1285,7 +1325,7 @@ function getInternalFromName(name) {
  */
 function getInternalGroupFromItemID(id) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
 
   //　アイテムデータを検索
   for (let i = 0 ; i < keys.length; i++) {
@@ -1561,7 +1601,7 @@ function genGroupID() {
  */
 function removeIntarnalData(id, is_remove_empty_group) {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
 
@@ -1655,7 +1695,7 @@ function popHistory() {
  */
 function adjust_attr_internal_data() {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
 
   // group
   for (let i = 0 ; i < keys.length; i++) {
@@ -1675,6 +1715,10 @@ function adjust_attr_internal_data() {
     // ignore_table_copy
     if (group.ignore_table_copy === undefined) {
       group.ignore_table_copy = false;
+    }
+    // favorite
+    if (group.favorite === undefined) {
+      group.favorite = false;
     }
     // is_trashed
     if (group.is_trashed === undefined) {
@@ -1793,7 +1837,7 @@ function get_todays_task_number() {
   let task_number_done = 0;
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     let items = getInternalGroup(keys[i]).sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
@@ -1811,7 +1855,7 @@ function get_todays_task_number() {
 // Allリストをテキストで取得
 function get_all_text() {
   let copy_text = '';
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
 
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
@@ -1838,7 +1882,7 @@ function get_todays_list_text(mode) {
 
   // 対象となるタスクリストを作成
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', 'string');
+  let keys = get_internal_keys(null, 'string');
   
   for (let i = 0 ; i < keys.length; i++) {
     let ary = [];
@@ -1882,7 +1926,7 @@ function get_todays_updates_text(ignre_non_task) {
   let copy_text = '';
 
   // 対象となるタスクリストを作成
-  let keys = get_internal_keys('', 'string');
+  let keys = get_internal_keys(null, 'string');
   
   for (let i = 0 ; i < keys.length; i++) {
     let ary = [];
@@ -1917,7 +1961,7 @@ function get_done_list_text() {
   let copy_text = '';
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
 
   for (let i = 0 ; i < keys.length; i++) {
     let ary = [];
@@ -1946,7 +1990,7 @@ function update_last_id() {
   let last_id = 0;
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     // group ID
     let group = getInternalGroup(keys[i]);
@@ -1975,7 +2019,7 @@ function update_last_id() {
 */
 function renumbering_groupid() {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   let groupid = g_initial_group_id;
  
   for (let i = 0 ; i < keys.length; i++) {
@@ -2004,10 +2048,10 @@ function renumbering_groupid() {
  * @param 更新対象リストのエレメントID
  * @param フィルタ文字列(グループが対象)
  * @param フィルタ文字列(アイテムが対象)
- * @param 表示判定コールバック
- * @param クラスリスト取得コールバック
- * @param 最終更新日表示判定コールバック
- * @param 空のグループ表示判定コールバック
+ * @param コールバック(表示判定) / func(アイテム情報)
+ * @param コールバック(クラスリスト取得) / func(アイテム情報)
+ * @param コールバック(最終更新日表示判定) / func(アイテム情報)
+ * @param コールバック(空グループ表示判定) / func()
  */
 function update_list_common(list_data, elem_id, filter_group, filter_item, func_is_show, func_get_classes, func_show_lastupdate, func_is_show_empty_group) {
   let selected_ids = get_select_id_ex(elem_id);
@@ -2060,32 +2104,43 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
   set_select_ex(elem_id, selected_ids, false);
 }
 
+/**
+ * @summary 全タスクのアイテム表示判定
+ * @param item
+ * @param フィルタ(dict) { group_name:[グループ名フィルタ], item_name:[アイテム名フィルタ],  has_url:[true|false], has_mail:[true|false], has_note:[true|false], is_wait:[true|false], priority:[true|false], is_group_favorite:[true|false] }
+ */
+function is_show_item_stock_list(item, filter) {
+  // 表示条件
+  if (filter.has_url && item.url === '') {
+    return false;
+  }
+  if (filter.has_mail && item.mail === '') {
+    return false;
+  }
+  if (filter.has_note && item.note === '') {
+    return false;
+  }
+  if (filter.is_wait && item.is_wait !== true) {
+    return false;
+  }
+  if (filter.priority && item.priority !== true) {
+    return false;
+  }
+  if (filter.is_group_favorite && getInternalGroupFromItemID(item.id).favorite !== true) {
+    return false;
+  }
+  return true;
+}
 
 /**
  * @summary ALLタスクリスト更新
- * @param フィルタ(dict) { group_name:[グループ名フィルタ], item_name:[アイテム名フィルタ],  has_url:[true|false], has_mail:[true|false], has_note:[true|false], is_wait:[true|false], priority:[true|false] }
+ * @param フィルタ(dict) { group_name:[グループ名フィルタ], item_name:[アイテム名フィルタ],  has_url:[true|false], has_mail:[true|false], has_note:[true|false], is_wait:[true|false], priority:[true|false], is_group_favorite:[true|false] }
  */
 function update_stock_list(filter) {
   update_list_common(
-    getInternalRawTasksData(), elem_id_list_stock, filter.group_name, filter.item_name,
+    getInternalRawTasksData(), elem_id_list_stock, filter, filter.item_name,
     function(item) {
-      // 表示条件
-      if (filter.has_url && item.url === '') {
-        return false;
-      }
-      if (filter.has_mail && item.mail === '') {
-        return false;
-      }
-      if (filter.has_note && item.note === '') {
-        return false;
-      }
-      if (filter.is_wait && item.is_wait !== true) {
-        return false;
-      }
-      if (filter.priority && item.priority !== true) {
-        return false;
-      }
-      return true;
+      return is_show_item_stock_list(item, filter);
     },
     function(item) {
       // クラスリスト
@@ -2118,7 +2173,7 @@ function update_stock_list(filter) {
     },
     function() {
       // アイテムが無いグループを表示するかどうか
-      if (filter.item_name !== '' || filter.has_url || filter.has_mail || filter.has_note || filter.is_wait || filter.priority) {
+      if (filter.item_name !== '' || filter.has_url || filter.has_mail || filter.has_note || filter.is_wait || filter.priority || filter.is_group_favorite) {
         // 特殊条件の場合は非表示
         return false;
       }
@@ -2132,7 +2187,7 @@ function update_stock_list(filter) {
  */
 function update_todays_list() {
   update_list_common(
-    getInternalRawTasksData(), elem_id_list_today, '', '',
+    getInternalRawTasksData(), elem_id_list_today, null, '',
     function(item) {
       // 表示条件
       if (item.is_tomorrow) {
@@ -2196,7 +2251,7 @@ function update_todays_list() {
  */
 function update_done_list() {
   update_list_common(
-    getInternalRawTasksData(), elem_id_list_done, '', '', 
+    getInternalRawTasksData(), elem_id_list_done, null, '', 
     function(item) {
       // 表示条件
       return (item.is_today > 0 && item.status === 'done');
@@ -2225,7 +2280,7 @@ function update_done_list() {
 */
 function update_tomorrow_list() {
   update_list_common(
-    getInternalRawTasksData(), elem_id_list_tomorrow, '', '',
+    getInternalRawTasksData(), elem_id_list_tomorrow, null, '',
     function(item) {
       // 表示条件
       return (item.is_tomorrow);
@@ -2695,7 +2750,7 @@ function clear_first_task() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     // let items = getInternalGroup(keys[i]).sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2734,7 +2789,7 @@ function release_todays_add_task() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     // let items = getInternalGroup(keys[i]).sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2837,7 +2892,7 @@ function release_todays_done() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     // items = getInternalGroup(keys[i]).sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2882,7 +2937,7 @@ function release_tomorrow_item() {
   pushHistory();
 
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   for (let i = 0 ; i < keys.length; i++) {
     // items = getInternalGroup(keys[i]).sub_tasks;
     let items = getInternalGroup(keys[i]).sub_tasks;
@@ -2982,6 +3037,18 @@ function undo_item() {
 }
 
 /**
+ * @summary 画面スクロールロック切り替え
+ */
+function toggle_scroll_lock() {
+  let body = document.getElementsByTagName('body');
+  if (body[0].classList.contains('no_scroll')) {
+    body[0].classList.remove('no_scroll');
+  } else {
+    body[0].classList.add('no_scroll');
+  }
+}
+
+/**
  * @summary 選択中アイテムの 内部データid を取得
  * @param アイテムID
  * @returns ID or null
@@ -3033,7 +3100,7 @@ function get_selected_option(elem_id) {
 // 保存
 function save_data() {
   // let keys = Object.keys(g_list_data);
-  let keys = get_internal_keys('', null);
+  let keys = get_internal_keys(null, null);
   if (keys.length <= 0) {
     return;
   }
@@ -3196,7 +3263,7 @@ function copy_all_task_blob() {
  */
 function get_html_table(ignre_non_task) {
   let html = '';
-  let keys = get_internal_keys('', 'string');
+  let keys = get_internal_keys(null, 'string');
 
   html += '<table style="border-collapse: collapse; border: 1px solid;" >';
   html += '<thead>\n';
@@ -3329,6 +3396,10 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_ignore_tcopy").checked = item.ignore_table_copy;
     document.getElementById("popup_edit_ignore_tcopy").style.display = "block";
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "block";
+    // お気に入り
+    document.getElementById("popup_edit_favorite").checked = item.favorite;
+    document.getElementById("popup_edit_favorite").style.display = "block";
+    document.getElementById("popup_edit_favorite_label").style.display = "block";
 
     // 非表示
     // 所属グループ
@@ -3399,6 +3470,9 @@ function show_edit_popup_single(elem_id, selected_id) {
     // Tコピー除外 (非表示)
     document.getElementById("popup_edit_ignore_tcopy").style.display = "none";
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "none";
+    // お気に入り (非表示)
+    document.getElementById("popup_edit_favorite").style.display = "none";
+    document.getElementById("popup_edit_favorite_label").style.display = "none";
   }
 
   // タスク名
@@ -3520,6 +3594,7 @@ function submit_edit_popup() {
   let new_wait = document.getElementById("popup_edit_wait").checked;
   let new_priority = document.getElementById("popup_edit_priority").checked;
   let new_ignore_table_copy = document.getElementById("popup_edit_ignore_tcopy").checked;
+  let new_favorite = document.getElementById("popup_edit_favorite").checked;
   let id_hidden_str = document.getElementById("popup_edit_hidden_id").value;
   let id_edit_str = document.getElementById("popup_edit_id").value;
   let id_hidden = parseInt(id_hidden_str);
@@ -3534,8 +3609,10 @@ function submit_edit_popup() {
   item.period = new_period.replaceAll('-', '/');
 
   if (item.type === 'group') {
-    // 入力値を適用
+    // Tコピー除外
     item.ignore_table_copy = new_ignore_table_copy;
+    // お気に入り
+    item.favorite = new_favorite;
   }
 
   if (item.type === 'item') {
@@ -3651,23 +3728,37 @@ function close_edit_multi_popup() {
 
 /**
  * @summary タイムライン: グループデータ作成
+ * @param true:1つのグループのみ作成 / false:該当グループ毎に作成
  * @returns タイムライングループデータ(配列)
  */
-function make_timeline_groups() {
+function make_timeline_groups(is_one_group) {
+  let group_id_default = 'task';
   let groups = [];
-  groups.push( {id: 'task', content: 'タスク', title: 'タスク' } );
+  if (is_one_group) {
+    // 1つのグループに全アイテムをまとめる
+    groups.push( {id: group_id_default, content: 'タスク', title: 'タスク' } );
+  } else {
+    // グループ毎にアイテムを分ける
+    let keys = get_internal_keys(g_stock_filter, null);
+    for (let i = 0 ; i < keys.length; i++) {
+      let group = getInternalGroup(keys[i]);
+      groups.push( {id: group.id, content: group.name, title: group.name } );
+    }
+  }
   return groups;
 }
 
 /**
  * @summary タイムライン: アイテムデータ作成
+ * @param true:1つのグループのみ作成 / false:該当グループ毎に作成
  * @returns タイムラインアイテムデータ(配列)
  */
-function make_timeline_items()
+function make_timeline_items(is_one_group)
 {
   let ret = [];
+  let group_id_default = 'task';
 
-  let keys = get_internal_keys(g_stock_filter.group_name, null);
+  let keys = get_internal_keys(g_stock_filter, null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
     // if (group.period === undefined || group.period === '') {
@@ -3682,38 +3773,57 @@ function make_timeline_items()
       }
       let period = group.period + ' 12:00';
       let period_disp = new Date(group.period).getMonth()+1 + '/' + new Date(group.period).getDate();
-      ret.push( { group: 'task', id: group.id, content: name, title: period_disp + ' ' + name, start: period, type: 'point', className: 'timeline_item_group' } );
+      // Timeline Group ID
+      let timeline_group_id = group_id_default;
+      if (!is_one_group) {
+        timeline_group_id = group.id;
+      }
+      ret.push( { group: timeline_group_id, id: group.id, content: name, title: period_disp + ' ' + name, start: period, type: 'point', className: 'timeline_item_group' } );
     }
 
     // アイテムデータを追加
     for (let j = 0; j < group.sub_tasks.length; j++) {
       let item = group.sub_tasks[j];
-      // 期限設定確認
+      // 期限設定なし
       if (item.period === undefined || item.period === '') {
         continue;
       }
-      // アイテムフィルタ
+      // 表示条件確認
+      if (!is_show_item_stock_list(item, g_stock_filter)) {
+        continue;
+      }
+      // フィルタ条件のマッチを確認
       if (item.name.toLowerCase().indexOf(g_stock_filter.item_name.toLowerCase()) === -1) {
         continue;
       }
+
+      // 日時
       let period = item.period + ' 12:00';
+      // クラス
       let className = 'timeline_item_item';
       if (item.status === 'done') {
         className = 'timeline_item_item_done';
       } else if (item.priority) {
         className = 'timeline_item_item_priority';
       }
+      // マウスオーバー時に表示するテキスト
       let title = new Date(item.period).getMonth()+1 + '/' + new Date(item.period).getDate();
       title += ' ' + item.name;
       if (item.note !== '') {
         title += '<br>---------------<br>' + item.note.replaceAll('\n', '<br>');
       }
+      // 表示テキスト
       let group_name = '<div>(' + group.name.substring(0,10) + '...) <br></div>';
       let name = group_name + item.name;
       if (item.is_wait) {
         name += get_after_icons(item);
       }
-      ret.push( { group: 'task', id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
+      // Timeline Group ID
+      let timeline_group_id = group_id_default;
+      if (!is_one_group) {
+        timeline_group_id = group.id;
+      }
+      ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
     }
   }
   return ret;
@@ -3731,8 +3841,9 @@ function show_timeline(mode, showNested)
   const container = document.getElementById('visualization');
 
   // make group/item
-  groups = groups.concat(make_timeline_groups());
-  items = items.concat(make_timeline_items());
+  let is_one_group = (g_stock_filter_id === 0);
+  groups = groups.concat(make_timeline_groups(is_one_group));
+  items = items.concat(make_timeline_items(is_one_group));
 
   let today = new Date(Date.now()); // 今日
   let today_str= today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate();
