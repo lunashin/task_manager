@@ -100,6 +100,7 @@ document.getElementById("stock_list_filter_text").addEventListener("input", chan
 
 // todays list
 document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
+document.getElementById("todays_expires_to_todays_list").addEventListener("click", move_today_item_todays_expires);
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
@@ -123,6 +124,7 @@ document.getElementById("add_item").addEventListener("click", add_items);
 document.getElementById("remove_item").addEventListener("click", remove_selected_item_stock_list);
 document.getElementById("undo").addEventListener("click", undo_item);
 document.getElementById('scroll_lock').addEventListener("click", toggle_scroll_lock);
+document.getElementById('copy_generate_password').addEventListener("click", copy_generate_password);
 document.getElementById("copy_now_json").addEventListener("click", copy_now_json);
 document.getElementById("download_now_json").addEventListener("click", download_now_json);
 document.getElementById("import_mail_flag").addEventListener("click", read_mail_flag);
@@ -2103,7 +2105,7 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
   }
 
   // 選択
-  set_select_ex(elem_id, selected_ids, false);
+  set_select_ex(elem_id, selected_ids, false, false);
 }
 
 /**
@@ -2627,14 +2629,14 @@ function set_select(elem_id, id, is_scroll, is_focus) {
  * @param 選択状態にするアイテムのID(2つまでの候補) (配列)
  * @param フォーカス移動する/しない
  */
-function set_select_ex(elem_id, ids, is_focus) {
+function set_select_ex(elem_id, ids, is_scroll, is_focus) {
   if (ids == null) {
     return;
   }
 
-  let ret = set_select(elem_id, ids[0], true, is_focus);
+  let ret = set_select(elem_id, ids[0], is_scroll, is_focus);
   if (!ret && ids.length > 1) {
-    ret = set_select(elem_id, ids[1], true, is_focus);
+    ret = set_select(elem_id, ids[1], is_scroll, is_focus);
   }
 
   // // 全リストから選択アイテムを選択、選択アイテムを削除
@@ -2682,6 +2684,35 @@ function move_today_item() {
 
   // 今日のリストのタスクを選択
   set_select(elem_id_list_today, item.id, false, false);
+}
+
+/**
+ * 今日が期限のアイテムを今日のタスクへ移動
+ */
+function move_today_item_todays_expires() {
+  pushHistory();
+  let keys = get_internal_keys(null, null);
+  for (let i = 0 ; i < keys.length; i++) {
+    let items = getInternalGroup(keys[i]).sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      // 今日のタスク
+      if (get_days_from_today(items[j].period) === 0) {
+        // idから内部データの配列を取得し、ステータスを変更
+        if (items[j].is_today >= 1) {
+          // すでに今日のタスクの場合は何もしない
+          continue;
+        }
+        // 今日のタスクを設定
+        if (g_lock_todays_task) {
+          items[j].is_today = 2;  // 今日の追加タスク
+        } else {
+          items[j].is_today = 1;
+        }
+      }
+    }
+  }
+  // リストへ反映
+  update_list();
 }
 
 // 選択アイテムを今日のタスクから削除
@@ -3245,6 +3276,14 @@ function copy_selected_item_name_for_mailquery(elem_id, event) {
 function copy_now_json() {
   let copy_text = get_now_json();
   navigator.clipboard.writeText(copy_text);
+
+  copy_animation(this);
+}
+
+// パスワード生成&コピー
+function copy_generate_password() {
+  let gen_pass = generateSecurePassword();
+  navigator.clipboard.writeText(gen_pass);
 
   copy_animation(this);
 }
@@ -4373,7 +4412,7 @@ function get_display_date_str(date_str) {
 function get_days_from_today(date_str) {
   let d = new Date(date_str);
   let d_now = new Date();
-  let days = get_days(d, d_now, true);
+  let days = get_days(d, d_now, false);
   return days;
 }
 

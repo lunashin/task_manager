@@ -9,6 +9,7 @@
 
     <!-- task_manager.js -->
     <script src="task_manager_env.js" type="text/javascript" defer></script>
+    <script src="crypt.js" type="text/javascript" defer></script>
     <script src="task_manager.js" type="text/javascript" defer></script>
 
     <style type="text/css">
@@ -208,6 +209,7 @@
     <div>
       <div id="label_todays_task" class="list-title">今日のタスク</div>
       <button id="copy_todays_list" class="button-mid">コピー</button>
+      <button id="todays_expires_to_todays_list" class="button-mid">登録(本日期限)</button>
       <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
       <input type="checkbox" id="toggle_show_done">
       <label for="toggle_show_done">済み表示切替</label>
@@ -286,35 +288,9 @@
         &nbsp;
         &nbsp;
         <button id="scroll_lock" class="button-large">スクロール<br>ロック(l)</button>
-
-        <!-- tips -->
-        <!-- <button class="tips_test button-large" type="button">ショートカットキー</button>
         &nbsp;
-        <p class="fukidashi"><共通><br>
-          → : タスクのステータスを進める<br>
-          ← : タスクのステータスを戻す<br>
-          Enter or Space : タスク内容編集<br>
-          a : タスク追加<br>
-          Shift + a : タスク複製<br>
-          d : タスク削除<br>
-          Shift + s : リスト選択状態の同期<br>
-          Ctrl + c : コピー<br>
-          Shift + c : コピー(Outlook検索用クエリ)<br>
-          Shift + space : 登録URLを開く<br>
-          Ctrl + z: 戻す<br>
-          右クリック: コピー<br>
-          Shift + 右クリック: コピー(Outlook検索用クエリ)<br>
-          <br>
-          <全リストのみ><br>
-          Alt + ↑ : タスクを前へ(全リストのみ)<br>
-          Alt + ↓ : タスクを後ろへ(全リストのみ)<br>
-          <br>
-          <今日のリストのみ><br>
-          f : ファーストタスクへ設定<br>
-          z : 回答待ち状態<br>
-          <br>
-        </p> -->
-
+        &nbsp;
+        <button id="copy_generate_password" class="button-mid">パスワード生成</button>
       </span>
 
       <br>
