@@ -156,6 +156,48 @@
           border-radius: 10px;
         }
 
+        /* --------------- 出勤ステータス ---------------- */
+        /* 共通スタイル：角丸の枠＋余白 */
+        .status_box {
+          display: inline-block;
+          position: relative;
+          padding: 6px 12px;
+          margin: 4px;
+          border-radius: 12px; /* 角を丸く */
+          font-weight: bold;
+          color: #fff; /* 文字は白 */
+        }
+
+        /* 在宅状況ごとの色 */
+        .status_office {
+          background-color: #e74c3c; /* 赤 */
+        }
+        .status_remote {
+          background-color: #27ae60; /* 緑 */
+        }
+        .status_dayoff {
+          background-color: #7f8c8d; /* グレー */
+        }
+        .status_out {
+          background-color: darkorange; /* 黄色 */
+        }
+        .status_wework {
+          background-color: blue; /* 青 */
+        }
+
+        /* AM/PM 休暇バッジ */
+        .dayoff_badge {
+          position: absolute;
+          bottom: -4px;
+          right: -4px;
+          background: #f1c40f;
+          color: #000;
+          font-size: 9px;
+          font-weight: bold;
+          padding: 2px 4px;
+          border-radius: 6px;
+        }
+
         /* table */
         table {
           border-collapse: collapse;
@@ -335,6 +377,9 @@
   <br>
   <br>
 
+
+  <!-- 出社/在宅状況 -->
+  <div id="member_status_area"></div>
 
 
   <!-- Calender -->

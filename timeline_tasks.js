@@ -1,8 +1,8 @@
 // 更新時刻
-const last_update = "{@last_update}";
+window.last_update = "{@last_update}";
 
 // tasks
-const tasks = [
+window.tasks = [
 // AUTO GENERATED >>>
 { id:1, pj:"新規開発", title: "テスト", period: "2024-03-22", detail:"これはテストです。\nテストなんです。", status: "作業中" },
 { id:2, pj:"クラウドサービス", title: "タスク001", period: "2024-03-15", detail:"たすく001です。", status: "未着手" },
@@ -17,10 +17,11 @@ const tasks = [
 ];
 
 // Schedule
-const schedules = [
+window.schedules = [
 // AUTO GENERATED >>>
-{ title:"会議1", isCC:false, start:"2024/12/15 8:00", end:"2024/12/15 9:00" },
-{ title:"会議2", isCC:false, start:"2024/3/2 9:00", end:"2024/3/2 10:00" },
+{ title:"会議1", isCC:false, start:"2025/08/30 8:00", end:"2025/08/30 9:00" },
+{ title:"会議11", isCC:false, start:"2025/08/30 8:00", end:"2025/08/30 9:00" },
+{ title:"会議2", isCC:false, start:"2025/09/01 9:00", end:"2025/09/01 10:00" },
 { title:"会議3", isCC:false, start:"2024/12/22 22:00", end:"2024/12/22 22:25" },
 { title:"会議3", isCC:false, start:"2024/12/22 10:00", end:"2024/12/22 13:15" },
 { title:"会議4", isCC:false, start:"2024/12/22 12:00", end:"2024/12/22 18:00" },
@@ -28,7 +29,7 @@ const schedules = [
 ];
 
 // Members Status(出社状況)
-const members_status = [
+window.members_status = [
 // AUTO GENERATED >>>
 // <<< AUTO GENERATED
 ];

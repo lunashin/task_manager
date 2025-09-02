@@ -75,6 +75,7 @@ const post_days = 8;
 // const g_meeting_script = 'timeline_tasks.js';
 const g_mail_flag = '../timeline_mail_flag.js.txt';
 const g_meeting_script = '../timeline_tasks.js';
+const g_work_schedule_file = 'timeline_work_schedule.js';
 
 
 
@@ -845,13 +846,13 @@ function move_list_filter(prev) {
  */
 function read_mail_flag() {
   // ボタン無効化
-  this.disabled = true;
+  // this.disabled = true;
 
   // スクリプト読み込み
   load_script(
     g_mail_flag,   // 読み取りファイル
     function() {
-      if (mail_flag === undefined) {
+      if (window.mail_flag === undefined) {
         return;
       }
     
@@ -869,11 +870,11 @@ function read_mail_flag() {
       
       // タスクを追加
       let items = [];
-      for (let i =0; i < mail_flag.length; i++) {
-        let name = `(${mail_flag[i].receive_date}) ${mail_flag[i].title}`;
+      for (let i =0; i < window.mail_flag.length; i++) {
+        let name = `(${window.mail_flag[i].receive_date}) ${mail_flag[i].title}`;
         if (getInternalFromName(name) === null) {
           let item = makeInternalItem(name);
-          item.mail = mail_flag[i].title;
+          item.mail = window.mail_flag[i].title;
           group.sub_tasks.push(item);
         }
       }
@@ -892,14 +893,14 @@ function read_mail_flag() {
  */
 function read_todays_meeting() {
   read_meeting(new Date());
-  this.disabled = true;
+  // this.disabled = true;
 }
 /**
  * @summary 明日の会議予定を取り込み
  */
 function read_tomorrows_meeting() {
   read_meeting(addDays(new Date(), 1, true));
-  this.disabled = true;
+  // this.disabled = true;
 }
 
 /**
@@ -911,10 +912,10 @@ function read_meeting(target_d) {
   load_script(
     g_meeting_script,   // 読み取りファイル 
     function() {
-      if (schedules === undefined) {
+      if (window.schedules === undefined) {
         return;
       }
-      let meeting_list = get_meeting_text(schedules, target_d);
+      let meeting_list = get_meeting_text(window.schedules, target_d);
       if (meeting_list.length <= 0) {
         return;
       }
@@ -952,7 +953,7 @@ function get_meeting_text(schedules, target_d)
 {
   let meetings = get_meeting_list(schedules, target_d);
   if (meetings.length <= 0) {
-    return null;
+    return [];
   }
 
   let ret = [];
@@ -995,6 +996,22 @@ function get_meeting_list(schedules, target_d)
   }
   
   return meetings;
+}
+
+/**
+ * @summary 出勤予定を取り込み(from timeline_tasks.js)
+ */
+function read_work_schedule() {
+  // スクリプト読み込み
+  load_script(
+    g_work_schedule_file,
+    function() {
+      if (window.members_status === undefined) {
+        return;
+      }
+      show_remote_status();
+    }
+  );
 }
 
 /**
@@ -3953,8 +3970,34 @@ function show_timeline(mode, showNested)
   }
 }
 
-
-
+/**
+* @summary 出社/在宅状況を表示
+*/
+function show_remote_status() {
+  let html = '';
+  for (let i = 0; i < members_status.length; i++) {
+    for (let k = 0; k < members.length; k++) {
+      let cls = "status_office";
+      let badge = "";
+      const s = members_status[i][k];
+  
+      if (s === "リモート") {
+        cls = "status_remote";
+      } else if (s === "出張") {
+        cls = "status_out";
+      } else if (s === "名古屋WeWork") {
+        cls = "status_wework";
+      } else if (s.startsWith("休暇")) {
+        cls = "status_dayoff";
+        if (s.includes("AM")) badge = `<span class="dayoff_badge">AM</span>`;
+        if (s.includes("PM")) badge = `<span class="dayoff_badge">PM</span>`;
+      }
+      html += `<span class="status_box ${cls}">${members[k]}${badge}</span>`;
+    }
+    html += "<br>";
+  }
+  document.getElementById("member_status_area").innerHTML = html;
+}
 
 
 
@@ -4470,7 +4513,8 @@ update_check_todays_lock();
 // make_filter_buttons();
 make_filter_buttons_ex();
 
-
+// 出社/在宅状況の表示
+read_work_schedule();
 
 
 
