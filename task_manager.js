@@ -131,6 +131,7 @@ document.getElementById("download_now_json").addEventListener("click", download_
 document.getElementById("import_mail_flag").addEventListener("click", read_mail_flag);
 document.getElementById("import_todays_meeting").addEventListener("click", read_todays_meeting);
 document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
+document.getElementById("read_member_status").addEventListener("click", read_work_schedule);
 
 // Popup
 document.getElementById("popup_edit_form").addEventListener("submit", submit_edit_popup);
@@ -3458,11 +3459,11 @@ function show_edit_popup_single(elem_id, selected_id) {
     // 表示
     // Tコピー除外
     document.getElementById("popup_edit_ignore_tcopy").checked = item.ignore_table_copy;
-    document.getElementById("popup_edit_ignore_tcopy").style.display = "block";
+    // document.getElementById("popup_edit_ignore_tcopy").style.display = "block";
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "block";
     // お気に入り
     document.getElementById("popup_edit_favorite").checked = item.favorite;
-    document.getElementById("popup_edit_favorite").style.display = "block";
+    // document.getElementById("popup_edit_favorite").style.display = "block";
     document.getElementById("popup_edit_favorite_label").style.display = "block";
 
     // 非表示
@@ -3478,13 +3479,13 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_note").style.display = "none";
     document.getElementById("popup_edit_note_add_btn").style.display = "none";
     // 済み
-    document.getElementById("popup_edit_done").style.display = "none";
+    // document.getElementById("popup_edit_done").style.display = "none";
     document.getElementById("popup_edit_done_label").style.display = "none";
     // 待ち
-    document.getElementById("popup_edit_wait").style.display = "none";
+    // document.getElementById("popup_edit_wait").style.display = "none";
     document.getElementById("popup_edit_wait_label").style.display = "none";
     // 優先
-    document.getElementById("popup_edit_priority").style.display = "none";
+    // document.getElementById("popup_edit_priority").style.display = "none";
     document.getElementById("popup_edit_priority_label").style.display = "none";
   }
 
@@ -3521,21 +3522,21 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_note_add_btn").style.display = "block";
     // 済み
     document.getElementById("popup_edit_done").checked = (item.status === 'done');
-    document.getElementById("popup_edit_done").style.display = "block";
+    // document.getElementById("popup_edit_done").style.display = "block";
     document.getElementById("popup_edit_done_label").style.display = "block";
     // 待ち
     document.getElementById("popup_edit_wait").checked = item.is_wait;
-    document.getElementById("popup_edit_wait").style.display = "block";
+    // document.getElementById("popup_edit_wait").style.display = "block";
     document.getElementById("popup_edit_wait_label").style.display = "block";
     // 優先
     document.getElementById("popup_edit_priority").checked = item.priority;
-    document.getElementById("popup_edit_priority").style.display = "block";
+    // document.getElementById("popup_edit_priority").style.display = "block";
     document.getElementById("popup_edit_priority_label").style.display = "block";
     // Tコピー除外 (非表示)
-    document.getElementById("popup_edit_ignore_tcopy").style.display = "none";
+    // document.getElementById("popup_edit_ignore_tcopy").style.display = "none";
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "none";
     // お気に入り (非表示)
-    document.getElementById("popup_edit_favorite").style.display = "none";
+    // document.getElementById("popup_edit_favorite").style.display = "none";
     document.getElementById("popup_edit_favorite_label").style.display = "none";
   }
 
@@ -3980,14 +3981,14 @@ function show_remote_status() {
       let cls = "status_office";
       let badge = "";
       const s = members_status[i][k];
-  
+ 
       if (s === "リモート") {
         cls = "status_remote";
       } else if (s === "出張") {
         cls = "status_out";
       } else if (s === "名古屋WeWork") {
         cls = "status_wework";
-      } else if (s.startsWith("休暇")) {
+      } else if (s.includes("休暇")) {
         cls = "status_dayoff";
         if (s.includes("AM")) badge = `<span class="dayoff_badge">AM</span>`;
         if (s.includes("PM")) badge = `<span class="dayoff_badge">PM</span>`;
@@ -3998,6 +3999,7 @@ function show_remote_status() {
   }
   document.getElementById("member_status_area").innerHTML = html;
 }
+
 
 
 

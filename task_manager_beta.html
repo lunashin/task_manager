@@ -59,11 +59,43 @@
         button.set_filter_condition_on { background-color: #FFCCFF; }
         button:hover { background-color: rgb(168, 168, 168); }
 
+        /* Custom Checkbox */
+        .checkbox_ex {
+          font-family: system-ui, sans-serif;
+        }
+        /* チェックボックス本体は非表示 */
+        input.checkbox_ex[type="checkbox"] {
+          display: none;
+        }
+        /* ボタン風ラベル */
+        label.checkbox_ex {
+          display: inline-block;
+          padding: 5px 12px;
+          margin: 4px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          background: #f9f9f9;
+          cursor: pointer;
+          user-select: none;
+          transition: all 0.2s ease;
+        }
+        /* hover */
+        label.checkbox_ex:hover {
+          background: #f0f0f0;
+        }
+        /* チェック状態の共通スタイル */
+        input.checkbox_ex[type="checkbox"]:checked + label.checkbox_ex {
+          background: blue;
+          color: white;
+          border-color: blue;
+          font-weight: 600;
+        }
+
         /* Edit */
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 300px; height: 250px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { display: none; background-color: aquamarine; width: 300px; height: 270px; position: absolute; top:100px; left: 40px; }
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
 
@@ -379,7 +411,10 @@
 
 
   <!-- 出社/在宅状況 -->
-  <div id="member_status_area"></div>
+  <div class="flex-box">
+    <button id="read_member_status">Read</button>
+    <div id="member_status_area"></div>
+  </div>
 
 
   <!-- Calender -->
@@ -421,16 +456,16 @@
       </div>
 
       <div class="flex-box">
-        <label id="popup_edit_done_label" for="popup_edit_done">済み</label>
-        <input id="popup_edit_done" type="checkbox" class="" >
-        <label id="popup_edit_wait_label" for="popup_edit_wait">待ち</label>
-        <input id="popup_edit_wait" type="checkbox" class="" >
-        <label id="popup_edit_priority_label" for="popup_edit_priority">重要</label>
-        <input id="popup_edit_priority" type="checkbox" class="" >
-        <label id="popup_edit_ignore_tcopy_label" for="popup_edit_ignore_tcopy">Tコピー除外</label>
-        <input id="popup_edit_ignore_tcopy" type="checkbox" class="" >
-        <label id="popup_edit_favorite_label" for="popup_edit_favorite">お気に入り</label>
-        <input id="popup_edit_favorite" type="checkbox" class="" >
+        <input class="checkbox_ex" id="popup_edit_done" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_done_label" for="popup_edit_done">済み</label>
+        <input class="checkbox_ex" id="popup_edit_wait" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_wait_label" for="popup_edit_wait">待ち</label>
+        <input class="checkbox_ex" id="popup_edit_priority" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_priority_label" for="popup_edit_priority">重要</label>
+        <input class="checkbox_ex" id="popup_edit_ignore_tcopy" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_ignore_tcopy_label" for="popup_edit_ignore_tcopy">Tコピー除外</label>
+        <input class="checkbox_ex" id="popup_edit_favorite" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_favorite_label" for="popup_edit_favorite">お気に入り</label>
       </div>
 
       <input id="popup_edit_created" type="text" disabled >
@@ -447,10 +482,10 @@
   <div id="popup_edit_multi_base" class="popup_edit">
     <form id="popup_edit_multi_form" onsubmit="return false;" novalidate >
       <div class="flex-box">
-        <label id="popup_edit_multi_done_label" for="popup_edit_done">済み</label>
-        <input id="popup_edit_multi_done" type="checkbox" class="" >
-        <label id="popup_edit_multi_wait_label" for="popup_edit_wait">待ち</label>
-        <input id="popup_edit_multi_wait" type="checkbox" class="" >
+        <label class="checkbox_ex" id="popup_edit_multi_done_label" for="popup_edit_done">済み</label>
+        <input class="checkbox_ex" id="popup_edit_multi_done" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_multi_wait_label" for="popup_edit_wait">待ち</label>
+        <input class="checkbox_ex" id="popup_edit_multi_wait" type="checkbox" >
       </div>
       <input type="hidden" id="popup_edit_multi_hidden_id" name="id" >
       <div>
