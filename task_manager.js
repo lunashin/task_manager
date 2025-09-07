@@ -73,9 +73,10 @@ const post_days = 8;
 // ファイル名
 // const g_mail_flag = 'timeline_mail_flag.js.txt';
 // const g_meeting_script = 'timeline_tasks.js';
+// const g_work_schedule_file = 'timeline_work_schedule.js';
 const g_mail_flag = '../timeline_mail_flag.js.txt';
 const g_meeting_script = '../timeline_tasks.js';
-const g_work_schedule_file = 'timeline_work_schedule.js';
+const g_work_schedule_file = '../timeline_tasks.js'
 
 
 
@@ -204,6 +205,11 @@ document.getElementById("popup_button_date_inc1m").addEventListener("click", fun
 document.getElementById("popup_button_date_clear").addEventListener("click", function(){
   document.getElementById("popup_edit_date").value = '';
 });
+// 期限変更イベント(曜日を表示)
+document.getElementById("popup_edit_date").addEventListener("change", updateWeekDay);
+document.getElementById("popup_edit_date").addEventListener("input", updateWeekDay);
+
+
 // メモ追加ボタン
 document.getElementById("popup_edit_note_add_btn").addEventListener("click", function(){
   let elem_popup_note = document.getElementById("popup_edit_note");
@@ -873,9 +879,13 @@ function read_mail_flag() {
       let items = [];
       for (let i =0; i < window.mail_flag.length; i++) {
         let name = `(${window.mail_flag[i].receive_date}) ${mail_flag[i].title}`;
+        let period = extractDateYMD(mail_flag[i].title);
         if (getInternalFromName(name) === null) {
           let item = makeInternalItem(name);
           item.mail = window.mail_flag[i].title;
+          if (period !== null) {
+            item.period = period; // 期限
+          }
           group.sub_tasks.push(item);
         }
       }
@@ -1105,6 +1115,10 @@ function convert_internal_data(input) {
       group_id = new_group.id;
     } else {
       let item = makeInternalItem(lines[i]);
+      let period = extractDateYMD(lines[i]);
+      if (period !== null) {
+       item.period = period;  // 期限
+      }
       internal_list[group_id].sub_tasks.push(item);
     }
   }
@@ -1393,7 +1407,15 @@ function addItemBehind(id, item) {
  * @returns 追加アイテムのID
  */
 function addIntarnalData(id, name) {
+  // item作成
   let item = makeInternalItem(name);
+
+  // 期限抽出
+  let period = extractDateYMD(name);
+  if (period !== null) {
+    item.period = period;
+  }
+
   if (addItemBehind(id, item)) {
     return item.id;
   }
@@ -3571,6 +3593,44 @@ function show_edit_popup_single(elem_id, selected_id) {
 }
 
 /**
+ * @summary ポップアップ内 期限の曜日を更新
+ */
+function updateWeekDay() {
+  // 曜日リスト（日曜始まり）
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const weekDayDiv = document.getElementById("popup_edit_week_day");
+
+  const val = document.getElementById("popup_edit_date").value; // "YYYY-MM-DD" 形式
+  if (!val) {
+    weekDayDiv.textContent = "";
+    return;
+  }
+  const d = new Date(val);
+  const w = weekdays[d.getDay()];
+  weekDayDiv.textContent = `(${w})`;
+}
+
+/**
+ * @summary ポップアップの期限をjsで変更した場合のイベントフック
+ */
+(function hookValueSetterOnce(el) {
+  try {
+    const proto = Object.getPrototypeOf(el);
+    const desc  = Object.getOwnPropertyDescriptor(proto, "value");
+    if (desc && typeof desc.set === "function" && typeof desc.get === "function") {
+      Object.defineProperty(el, "value", {
+        configurable: true,
+        enumerable:   desc.enumerable,
+        get()  { return desc.get.call(el); },
+        set(v) { desc.set.call(el, v); updateWeekDay(); }
+      });
+    }
+  } catch (e) {
+  }
+})(document.getElementById("popup_edit_date"));
+
+
+/**
  * @summary 編集ポップアップ表示(複数用)
  * @param 要素ID
  * @param 編集対象ID(配列)
@@ -3804,7 +3864,7 @@ function make_timeline_groups(is_one_group) {
     groups.push( {id: group_id_default, content: 'タスク', title: 'タスク' } );
   } else {
     // グループ毎にアイテムを分ける
-    let keys = get_internal_keys(g_stock_filter, null);
+    let keys = get_internal_keys(g_stock_filter, 'string');
     for (let i = 0 ; i < keys.length; i++) {
       let group = getInternalGroup(keys[i]);
       groups.push( {id: group.id, content: group.name, title: group.name } );
@@ -4481,6 +4541,82 @@ function date_from_str_ex(date_str) {
   return get_date_str(new Date(date_str), true, false, true, true);
 }
 
+/**
+ * @summary 文字列から日付を1つ抽出して "yyyy/MM/dd" で返す
+ *  - 年なし（M/D or M月D日）は「今年」を補完
+ *  - 全角→半角（数字・スラッシュ・ハイフン）へ正規化
+ *  - 妥当なカレンダ日付のみ採用（存在しない日付は弾く）
+ * 見つからなければ null を返す
+ */
+function extractDateYMD(input) {
+  if (typeof input !== "string") return null;
+
+  // 1) 全角 → 半角（数字・スラッシュ・ハイフン・ドット）
+  const zenkakuToHankaku = (s) =>
+    s.replace(/[！-～]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+     .replace(/　/g, " "); // 全角スペース→半角
+  let s = zenkakuToHankaku(input);
+
+  // 2) 日本語の年月日や区切りを統一
+  //    "2025年9月7日" → "2025/9/7"
+  //    区切りは最終的に "/" に寄せる
+  s = s
+    .replace(/[.]/g, "/")
+    .replace(/-/g, "/")
+    .replace(/年/g, "/")
+    .replace(/月/g, "/")
+    .replace(/日/g, "/")
+    .replace(/\/+/g, "/"); // スラッシュ連続を1個に
+
+  // 前後のノイズを減らす（カンマや多空白）
+  s = s.replace(/[,，]/g, " ").trim();
+
+  // 3) 正規表現で候補を探す（優先: 年あり → 年なし）
+  // 年あり: 4桁年 / M / D
+  const yearFull = /(\d{4})\/(\d{1,2})\/(\d{1,2})/;
+  const m = s.match(yearFull);
+  if (m) {
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10);
+    const d = parseInt(m[3], 10);
+    if (isValidYMD(y, mo, d)) return formatYMD(y, mo, d);
+  }
+
+  // 年なし: M / D（今年を補完）
+  const mdOnly = /(^|[^\d])(\d{1,2})\/(\d{1,2})(?!\d)/;
+  const m2 = s.match(mdOnly);
+  if (m2) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = parseInt(m2[2], 10);
+    const d = parseInt(m2[3], 10);
+    if (isValidYMD(y, mo, d)) return formatYMD(y, mo, d);
+  }
+
+  // 見つからない場合
+  return null;
+}
+
+/**
+ * @summary 有効な日付かどうか判定
+ */
+function isValidYMD(y, m, d) {
+  if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+  const dt = new Date(y, m - 1, d);
+  return (
+    dt.getFullYear() === y &&
+    dt.getMonth() === m - 1 &&
+    dt.getDate() === d
+  );
+}
+
+/**
+ * @summary 日付文字列作成
+ */
+function formatYMD(y, m, d) {
+  const z2 = (n) => String(n).padStart(2, "0");
+  return `${y}/${z2(m)}/${z2(d)}`;
+}
 
 
 
