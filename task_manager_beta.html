@@ -239,6 +239,38 @@
           border-radius: 6px;
         }
 
+        /* --------------- コピーアニメーション(浮かせる文字 (湯気風)) ---------------- */
+        .copy-steam {
+          position: absolute;
+          left: 0; top: 0;
+          transform: translate(-50%, 0);
+          font-family: system-ui, sans-serif;
+          font-weight: 700;
+          font-size: 14px;
+          color: #333;
+          pointer-events: none;
+          white-space: nowrap;
+          animation: steamRise 2s ease-out forwards;
+          text-shadow: 0 0 4px rgba(0,0,0,0.15);
+        }
+        @keyframes steamRise {
+          0% {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+            filter: blur(0px);        /* くっきり */
+          }
+          70% {
+            opacity: 0.8;
+            transform: translate(-50%, -40px) scale(1.05);
+            filter: blur(4px);        /* 少しぼやけ始める */
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -60px) scale(1.1);
+            filter: blur(12px);       /* かなりぼやけて消える */
+          }
+        }
+
         /* table */
         table {
           border-collapse: collapse;
@@ -292,7 +324,7 @@
     <div>
       <div>
         <div id="label_todays_must_task" class="list-title">今日の必須タスク</div>
-        <button id="copy_todays_must_list" class="button-mid">コピー</button>
+        <!-- <button id="copy_todays_must_list" class="button-mid">コピー</button> -->
         <!-- <input type="checkbox" id="toggle_show_done"> -->
         <!-- <label for="toggle_show_done">済み表示切替</label> -->
         <!-- <input type="checkbox" id="lock_todays_task"> -->

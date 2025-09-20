@@ -170,7 +170,7 @@ document.getElementById(elem_id_list_tomorrow).addEventListener("contextmenu", c
 document.getElementById("popup_button_copy_url").addEventListener("click", function(){
   let url = document.getElementById("popup_edit_url").value;
   navigator.clipboard.writeText(url);
-  copy_animation(this);
+  copy_animation2(this);
 });
 // 期限（今日にセットするボタン）
 document.getElementById("popup_button_set_today").addEventListener("click", function(){
@@ -3401,7 +3401,7 @@ function copy_stock_list() {
   let copy_text = get_all_text();
   navigator.clipboard.writeText(copy_text);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 // 今日のタスクリストをクリップボードにコピー
@@ -3413,7 +3413,7 @@ function copy_todays_list() {
   let copy_text = get_todays_list_text(mode);
   navigator.clipboard.writeText(copy_text);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 // 済みリストをクリップボードにコピー
@@ -3421,7 +3421,7 @@ function copy_todays_done_list() {
   let copy_text = get_todays_list_text(1);
   navigator.clipboard.writeText(copy_text);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 // 今日更新のあったタスクをクリップボードにコピー
@@ -3429,7 +3429,7 @@ function copy_todays_updates_list() {
   let copy_text = get_todays_updates_text(true);
   navigator.clipboard.writeText(copy_text);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 /**
@@ -3489,7 +3489,7 @@ function copy_now_json() {
   let copy_text = get_now_json();
   navigator.clipboard.writeText(copy_text);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 // パスワード生成&コピー
@@ -3497,7 +3497,7 @@ function copy_generate_password() {
   let gen_pass = generateSecurePassword();
   navigator.clipboard.writeText(gen_pass);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 /**
@@ -3512,7 +3512,7 @@ function copy_all_task_blob() {
   });
   navigator.clipboard.write([item]);
 
-  copy_animation(this);
+  copy_animation2(this);
 }
 
 /**
@@ -4267,6 +4267,27 @@ function copy_animation(elem) {
     elem.style.backgroundColor = backgroundColor_org;
   }, 500);
 }
+
+/**
+ * @summary コピーアニメーション(copyの文字がふわっと浮き上がる)
+ * @param イベント情報
+ */
+function copy_animation2(elem) {
+  // ボタン中央位置を計算
+  const btn = document.getElementById(elem.id);
+  const rect = btn.getBoundingClientRect();
+  const x = rect.left + rect.width / 2 + window.scrollX;
+  const y = rect.top  + rect.height / 2 + window.scrollY - 10;
+
+  const steam = document.createElement('span');
+  steam.className = 'copy-steam';
+  steam.textContent = 'Copy!';
+  steam.style.left = `${x}px`;
+  steam.style.top  = `${y}px`;
+  document.body.appendChild(steam);
+  steam.addEventListener('animationend', () => steam.remove(), { once: true });
+}
+
 
 /**
  * カーソル位置にコピーポップアップ表示 (500msecで消去)
