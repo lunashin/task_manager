@@ -10,6 +10,7 @@
 
 // Element ID
 const elem_id_list_stock = 'stock_list';
+const elem_id_list_today_must = 'todays_must_list';
 const elem_id_list_today = 'todays_list';
 const elem_id_list_done = 'done_list';
 const elem_id_list_tomorrow = 'tomorrow_list';
@@ -147,6 +148,7 @@ document.getElementById("popup_edit_multi_cancel_btn").addEventListener("click",
 // Key event
 document.addEventListener("keydown", keyhandler_body);
 document.getElementById(elem_id_list_stock).addEventListener("keydown", keyhandler_stock_list);
+document.getElementById(elem_id_list_today_must).addEventListener("keydown", keyhandler_todays_must_list);
 document.getElementById(elem_id_list_today).addEventListener("keydown", keyhandler_todays_list);
 document.getElementById(elem_id_list_done).addEventListener("keydown", keyhandler_done_list);
 document.getElementById(elem_id_list_tomorrow).addEventListener("keydown", keyhandler_tomorroy_list);
@@ -406,6 +408,64 @@ function keyhandler_stock_list(event) {
 }
 
 /**
+ * @summary 今日のMustリスト キーイベント処理
+ * @param イベント情報
+ */
+function keyhandler_todays_must_list(event) {
+  const elem_id = elem_id_list_today_must;
+
+  switch (event.keyCode){
+    case key_arrow_down:  // ↓
+      if (event.altKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // Mustタスクへ移動
+        clear_todays_must_task(elem_id);
+        break;
+      }
+      break;
+    case key_arrow_right: // →
+      done_item(elem_id);
+      break;
+    case key_d:           // d
+      event.preventDefault(); // 既定の動作をキャンセル
+      remove_selected_item(elem_id);
+      break;
+    case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        break;
+      }
+      event.preventDefault(); // 既定の動作をキャンセル
+      toggle_wait(elem_id);
+      break;
+    case key_space:       // space
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        break;
+      }
+      // 編集ポップアップ
+      if (g_show_popup) {
+        close_edit_popup();
+      } else {
+        show_edit_popup(elem_id);
+      }
+      break;
+    case key_enter:     // Enter
+      event.preventDefault(); // 既定の動作をキャンセル
+      // 編集ポップアップ
+      if (g_show_popup) {
+        close_edit_popup();
+      } else {
+        show_edit_popup(elem_id);
+      }
+      break;
+  }
+}
+
+/**
  * @summary 今日のリスト キーイベント処理
  * @param イベント情報
  */
@@ -415,6 +475,9 @@ function keyhandler_todays_list(event) {
   switch (event.keyCode){
     case key_arrow_up:    // ↑
       if (event.altKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // Mustタスクへ移動
+        set_todays_must_task(elem_id);
         break;
       }
       break;
@@ -432,7 +495,7 @@ function keyhandler_todays_list(event) {
         set_tomorrow_item(elem_id , true);
         break;
       }
-      done_item();
+      done_item(elem_id);
       break;
     case key_a:           // a
       if (event.shiftKey) {
@@ -771,6 +834,7 @@ function regist_from_textarea() {
  */
 function update_list() {
   update_stock_list(g_stock_filter);
+  update_todays_must_list();
   update_todays_list();
   update_done_list();
   update_tomorrow_list();
@@ -1780,6 +1844,10 @@ function adjust_attr_internal_data() {
       if (item.is_today === false) {
         item.is_today = 0;
       }
+      // is_todays_must
+      if (item.is_todays_must === undefined) {
+        item.is_todays_must = false;
+      }
       // type
       if (item.type === undefined) {
         item.type = 'item';
@@ -2227,6 +2295,65 @@ function update_stock_list(filter) {
 }
 
 /**
+ * 今日のMustリストを更新
+ */
+function update_todays_must_list()
+{
+  update_list_common(
+    getInternalRawTasksData(), elem_id_list_today_must, null, '',
+    function(item) {
+      // 表示条件
+      if (item.is_tomorrow) {
+        // 明日のタスク
+        return false;
+      }
+      if (!g_is_show_todays_done) {
+        // 今日の済みタスク表示OFF
+        return (item.is_today > 0 && item.is_todays_must === true && item.status == 'yet');
+      }
+      return (item.is_today > 0 && item.is_todays_must === true);
+    },
+    function(item) {
+      // クラスリスト
+      let classes = ["group_level1"];
+      if (item.status === 'done') {
+        classes.push('done');
+      }
+      if (item.is_first === true) {
+        classes.push('first');
+      }
+      if (item.is_today >= 2) {
+        classes.push('later');
+      }
+      if (item.is_wait === true) {
+        classes.push('wait');
+      }
+      if (item.is_non_task === true) {
+        classes.push('non_task');
+      }
+      if (item.is_doing === true) {
+        classes.push('now');
+      }
+      if (item.url !== '') {
+        classes.push('has_url');
+      }
+      return classes;
+    },
+    function(item) {
+      // 更新日表示判定
+      if (item.is_wait === true) {
+        return true;
+      }
+      return false;
+    },
+    function() {
+      // アイテムが無いグループを表示するかどうか
+      return false;
+    }
+  );
+}
+
+/**
  * 今日のリストを更新
  */
 function update_todays_list() {
@@ -2240,9 +2367,9 @@ function update_todays_list() {
       }
       if (!g_is_show_todays_done) {
         // 今日の済みタスク表示OFF
-        return (item.is_today > 0 && item.status == 'yet');
+        return (item.is_today > 0 && item.is_todays_must === false && item.status == 'yet');
       }
-      return (item.is_today > 0);
+      return (item.is_today > 0 && item.is_todays_must === false);
     },
     function(item) {
       // クラスリスト
@@ -2284,10 +2411,10 @@ function update_todays_list() {
   );
 
   // タスク進捗率 更新
-  const task_number_info = get_todays_task_number();
-  let rate = Math.floor(task_number_info.task_number_done / task_number_info.task_number * 100);
-  let label = `今日のタスク (${task_number_info.task_number_done}/${task_number_info.task_number}) (${rate}%)`;
-  document.getElementById("label_todays_task").innerHTML = label;
+  // const task_number_info = get_todays_task_number();
+  // let rate = Math.floor(task_number_info.task_number_done / task_number_info.task_number * 100);
+  // let label = `今日のタスク (${task_number_info.task_number_done}/${task_number_info.task_number}) (${rate}%)`;
+  // document.getElementById("label_todays_task").innerHTML = label;
 }
 
 /**
@@ -2902,6 +3029,45 @@ function toggle_non_task(elem_id) {
   update_list();
 }
 
+// 今日の必須タスクに設定
+function set_todays_must_task(elem_id) {
+  pushHistory();
+
+  let id = get_selected_id(elem_id);
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+  
+  if (item.is_today !== 0) {
+    item.is_todays_must = true;
+  }
+
+  update_list();
+}
+
+// 今日の必須タスクを解除
+function clear_todays_must_task(elem_id) {
+  pushHistory();
+
+  let id = get_selected_id(elem_id);
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+  
+  item.is_todays_must = false;
+
+  update_list();
+}
 
 /**
  * 今日のリストの済みアイテム表示/非表示を切り替え
@@ -2923,8 +3089,14 @@ function toggle_lock_todays_task() {
 /**
  * @summary 選択アイテムを処理済みへ
  */
-function done_item() {
-  let id = get_select_id(elem_id_list_today);
+function done_item(elem_id) {
+  let id = null;
+  if (typeof elem_id === "object") {
+    // クリックイベントから飛んできた
+    id = parseInt(elem_id.target.dataset.id);
+  } else {
+    id = get_select_id(elem_id);
+  }
   if (id === null) {
     return;
   }

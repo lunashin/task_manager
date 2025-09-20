@@ -26,6 +26,14 @@
           width: 37vw;
           height: 700px;
         }
+        select.h-half-w {
+          width: 37vw;
+          height: 400px;
+        }
+        select.h-half-w2 {
+          width: 37vw;
+          height: 200px;
+        }
         select.h-half {
           width: 20vw;
           height: 300px;
@@ -33,6 +41,7 @@
         .list-title { font-size: 140%; font-weight: bold; }
 
         .stock_list { background-color: white; }
+        .todays_must_list { background-color: rgb(248, 251, 209); }
         .todays_list { background-color: rgb(251, 225, 229); }
         .done_list { background-color: rgb(214, 230, 235); }
 
@@ -279,19 +288,36 @@
     </div>
     &nbsp;&nbsp;&nbsp;
 
-    <!-- Todays List -->
+    <!-- Todays Must List -->
     <div>
-      <div id="label_todays_task" class="list-title">今日のタスク</div>
-      <button id="copy_todays_list" class="button-mid">コピー</button>
-      <button id="todays_expires_to_todays_list" class="button-mid">登録(本日期限)</button>
-      <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
-      <input type="checkbox" id="toggle_show_done">
-      <label for="toggle_show_done">済み表示切替</label>
-      <input type="checkbox" id="lock_todays_task">
-      <label for="lock_todays_task">🔒ロック</label>
-      <br>
-      <select id="todays_list" class="todays_list task_list" tabindex="20" multiple></select>
+      <div>
+        <div id="label_todays_must_task" class="list-title">今日の必須タスク</div>
+        <button id="copy_todays_must_list" class="button-mid">コピー</button>
+        <!-- <input type="checkbox" id="toggle_show_done"> -->
+        <!-- <label for="toggle_show_done">済み表示切替</label> -->
+        <!-- <input type="checkbox" id="lock_todays_task"> -->
+        <!-- <label for="lock_todays_task">🔒ロック</label> -->
+        <br>
+        <select id="todays_must_list" class="todays_must_list h-half-w2" tabindex="20" multiple></select>
+      </div>
+
+      &nbsp;&nbsp;&nbsp;
+
+      <!-- Todays List -->
+      <div>
+        <div id="label_todays_task" class="list-title">今日やりたいタスク</div>
+        <button id="copy_todays_list" class="button-mid">コピー</button>
+        <button id="todays_expires_to_todays_list" class="button-mid">登録(本日期限)</button>
+        <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
+        <input type="checkbox" id="toggle_show_done">
+        <label for="toggle_show_done">済み表示切替</label>
+        <input type="checkbox" id="lock_todays_task">
+        <label for="lock_todays_task">🔒ロック</label>
+        <br>
+        <select id="todays_list" class="todays_list h-half-w" tabindex="20" multiple></select>
+      </div>
     </div>
+
     &nbsp;&nbsp;&nbsp;
 
     <!-- Done List -->
