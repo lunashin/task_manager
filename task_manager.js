@@ -362,9 +362,12 @@ function keyhandler_stock_list(event) {
         if (id !== null) {
           let is_sel = set_select(elem_id_list_today, id, true, true);
           if (!is_sel) {
-            is_sel = set_select(elem_id_list_done, id), true, true;
+            is_sel = set_select(elem_id_list_today_must, id, true, true);
             if (!is_sel) {
-              is_sel = set_select(elem_id_list_tomorrow, id, true, true);
+              is_sel = set_select(elem_id_list_done, id, true, true);
+              if (!is_sel) {
+                is_sel = set_select(elem_id_list_tomorrow, id, true, true);
+              }
             }
           }
         }
@@ -404,6 +407,10 @@ function keyhandler_stock_list(event) {
         show_edit_popup(elem_id);
       }
       break;
+    case key_esc:       // ESC
+      event.preventDefault(); // 既定の動作をキャンセル
+      clear_filter_text();
+      break;
   }
 }
 
@@ -416,7 +423,7 @@ function keyhandler_todays_must_list(event) {
 
   switch (event.keyCode){
     case key_arrow_down:  // ↓
-      if (event.altKey) {
+      if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         // Mustタスクへ移動
         clear_todays_must_task(elem_id);
@@ -429,6 +436,19 @@ function keyhandler_todays_must_list(event) {
     case key_d:           // d
       event.preventDefault(); // 既定の動作をキャンセル
       remove_selected_item(elem_id);
+      break;
+    case key_s:           // s
+      if (event.shiftKey) {
+        // ALLリストの選択アイテムを、今日のリストと同期
+        event.preventDefault(); // 既定の動作をキャンセル
+        let id = get_select_id(elem_id);
+        if (id !== null) {
+          set_list_filter(elem_id_list_stock, 0);
+          set_select(elem_id_list_stock, id, true, true);
+          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+        }
+        break;
+      }
       break;
     case key_z:           // z
       if (event.ctrlKey) {
@@ -474,7 +494,7 @@ function keyhandler_todays_list(event) {
 
   switch (event.keyCode){
     case key_arrow_up:    // ↑
-      if (event.altKey) {
+      if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         // Mustタスクへ移動
         set_todays_must_task(elem_id);
@@ -795,6 +815,21 @@ function change_filter_text(event) {
   g_stock_filter = {group_name: '', item_name: event.target.value, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
   update_stock_list(g_stock_filter);
   show_timeline();
+}
+
+/**
+ * @summary フィルタ文字列クリア
+ */
+function clear_filter_text() {
+  // テキストボックスをクリア
+  let elem = document.getElementById("stock_list_filter_text");
+  elem.value = '';
+  // イベント発火
+  const inputEvent = new InputEvent('input', {
+    bubbles: true, // イベントが伝播するのを許可する
+    cancelable: true // イベントをキャンセルできるのを許可する
+  });
+  elem.dispatchEvent(inputEvent);
 }
 
 
@@ -1667,6 +1702,7 @@ function makeInternalItem(name) {
     mail: '',
     note: '',
     is_today: 0,  // 0:明日以降 / 1:今日 / 2:今日の追加分 
+    is_todays_must: false,
     is_first: false, 
     is_wait: false,
     is_doing: false,
