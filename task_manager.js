@@ -3402,8 +3402,12 @@ function save_data() {
 }
 
 // 復元
-function load_data() {
-  let yesno = confirm('現在の状態を破棄して読み込みますか？');
+function load_data(show_confirm = true) {
+  let yesno = true;
+  if (show_confirm) {
+    yesno = confirm('現在の状態を破棄して読み込みますか？');
+  }
+
   if (yesno) {
     pushHistory();
 
@@ -4846,6 +4850,21 @@ function formatYMD(y, m, d) {
   const z2 = (n) => String(n).padStart(2, "0");
   return `${y}/${z2(m)}/${z2(d)}`;
 }
+
+
+
+
+
+
+
+//---------------------------------------
+// Initialize
+//---------------------------------------
+(function init() {
+  console.log('call init');
+  load_data(false);
+})();
+
 
 
 
