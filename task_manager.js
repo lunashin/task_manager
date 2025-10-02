@@ -976,9 +976,20 @@ function read_mail_flag() {
 
       pushHistory();
       
+      // 最後に読み込んだIDを検索して、読み込み開始を移動
+      let mail_id_prev = get_last_mail_id();
+      let start_index = 0;
+      for (let i = 0; i < window.mail_flag.length; i++) {
+        if (mail_flag[i].id === mail_id_prev) {
+          start_index = i + 1;
+          break;
+        }
+      }
+
       // タスクを追加
+      let mail_id_last = '';
       let items = [];
-      for (let i =0; i < window.mail_flag.length; i++) {
+      for (let i = start_index; i < window.mail_flag.length; i++) {
         let name = `(${window.mail_flag[i].receive_date}) ${mail_flag[i].title}`;
         let period = extractDateYMD(mail_flag[i].title);
         if (getInternalFromName(name) === null) {
@@ -988,7 +999,12 @@ function read_mail_flag() {
             item.period = period; // 期限
           }
           group.sub_tasks.push(item);
+          // 最後のIDを記憶
+          mail_id_last = mail_flag[i].id;
         }
+      }
+      if (mail_id_last !== '') {
+        set_last_mail_id(mail_id_last);
       }
 
       // addIntarnalDataEx2(group.id, titles, true);
@@ -2179,6 +2195,21 @@ function renumbering_groupid() {
   g_last_group_id = groupid;
 }
 
+/**
+ * @summary 最後に読み込んだメールID取得
+ * @returns メールID(初回はundefined)
+ */
+function get_last_mail_id() {
+    return g_list_data.config.last_mail_id;
+}
+
+/**
+ * @summary 最後に読み込んだメールID保存
+ * @param メールID
+ */
+function set_last_mail_id(mail_id) {
+    g_list_data.config.last_mail_id = mail_id;
+}
 
 
 
