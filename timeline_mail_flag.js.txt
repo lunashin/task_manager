@@ -1,7 +1,7 @@
  window.mail_flag = [
-    { title: "aaa", receive_date: "2024/12/1", id: "aaa" },
-    { title: "bbb", receive_date: "2024/12/2", id: "bbb" },
-    { title: "ccc", receive_date: "2024/12/2", id: "ccc" },
-    { title: "ddd", receive_date: "2024/12/4", id: "ddd" },
-    { title: "ddddd", receive_date: "2024/12/4", id: "eee" },
+    { title: "aaa", receive_date: "2024/12/1", messageid: "aaa" },
+    { title: "bbb", receive_date: "2024/12/2", messageid: "bbb" },
+    { title: "ccc", receive_date: "2024/12/2", messageid: "ccc" },
+    { title: "ddd", receive_date: "2024/12/4", messageid: "ddd" },
+    { title: "ddddd", receive_date: "2024/12/4", messageid: "eee" },
 ];

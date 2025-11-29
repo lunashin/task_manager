@@ -71,12 +71,15 @@ var timeline = null;
 const past_days = 2;
 const post_days = 8;
 
+// 会議登録先グループ名
+const g_meeting_group_name = '会議';
+
 // ファイル名
 // const g_mail_flag = 'timeline_mail_flag.js.txt';
-// const g_meeting_script = 'timeline_tasks.js';
+const g_meeting_script = 'timeline_tasks.js';
 // const g_work_schedule_file = 'timeline_work_schedule.js';
 const g_mail_flag = '../timeline_mail_flag.js.txt';
-const g_meeting_script = '../export/timeline_schedule.js';
+// const g_meeting_script = '../export/timeline_schedule.js';
 const g_work_schedule_file = '../export/timeline_work_status.js'
 
 
@@ -433,6 +436,10 @@ function keyhandler_todays_must_list(event) {
     case key_arrow_right: // →
       done_item(elem_id);
       break;
+    case key_arrow_left: // ←
+      pushHistory();
+      clear_today_and_must_task(elem_id);
+      break;
     case key_d:           // d
       event.preventDefault(); // 既定の動作をキャンセル
       remove_selected_item(elem_id);
@@ -507,7 +514,7 @@ function keyhandler_todays_list(event) {
       }
       break;
     case key_arrow_left: // ←
-      remove_today_item();
+      remove_today_item(elem_id);
       break;
     case key_arrow_right: // →
       if (event.ctrlKey) {
@@ -980,7 +987,7 @@ function read_mail_flag() {
       let mail_id_prev = get_last_mail_id();
       let start_index = 0;
       for (let i = 0; i < window.mail_flag.length; i++) {
-        if (mail_flag[i].id === mail_id_prev) {
+        if (mail_flag[i].messageid === mail_id_prev) {
           start_index = i + 1;
           break;
         }
@@ -1000,7 +1007,7 @@ function read_mail_flag() {
           }
           group.sub_tasks.push(item);
           // 最後のIDを記憶
-          mail_id_last = mail_flag[i].id;
+          mail_id_last = mail_flag[i].messageid;
         }
       }
       if (mail_id_last !== '') {
@@ -1049,18 +1056,18 @@ function read_meeting(target_d) {
       }
     
       // 追加先グループ取得
-      const group_name = '会議';
-      let group = getInternalFromName(group_name);
+      let group = getInternalFromName(g_meeting_group_name);
       if (group === null) {
         // グループがなければ追加
-        group = makeInternalGroup(group_name, '');
-        // g_list_data[group_name] = group;
-        setInternalGroup(group_name, group);
+        group = makeInternalGroup(g_meeting_group_name, '');
+        // g_list_data[g_meeting_group_name] = group;
+        setInternalGroup(g_meeting_group_name, group);
       }
       // タスクリストへ追加
       pushHistory();
-      addIntarnalDataEx2(group.id, meeting_list, true);
-      update_list(false);
+      let date_str = get_date_str(target_d, true, false, true, true);
+      addIntarnalDataEx2(group.id, meeting_list, true, date_str);
+      update_list(true);
     
       // 選択
       set_select(elem_id_list_stock, group.id, true, true);
@@ -1087,13 +1094,15 @@ function get_meeting_text(schedules, target_d)
   let ret = [];
   for (let i = 0; i < meetings.length; i++) {
     let title = meetings[i].title;
+    let location = meetings[i].location.replaceAll('Teams会議', '');
+    if (location) {location = '💺' +location};
     let start_time = meetings[i].start.split(" ")[1];
     let end_time = meetings[i].end.split(" ")[1];
     let d_s = new Date(meetings[i].start);
     let d_e = new Date(meetings[i].end);
     let diff_msec = (d_e - d_s);
     let diff_hour = floorEx(diff_msec / 1000 / 60 / 60, 10);
-    ret.push(`${title} (${start_time}〜${end_time} / ${diff_hour}h)`);
+    ret.push(`${title} ${location} (${start_time}〜${end_time} / ${diff_hour}h)`);
   }
 
   return ret;
@@ -1592,7 +1601,7 @@ function addIntarnalDatasToGroup(group_id, items, is_ignore_same_name) {
  * @param 同名のタスクがあった場合スキップするかどうか
  * @returns 最後に追加したアイテムのID
  */
-function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
+function addIntarnalDataEx2(group_id, names, is_ignore_same_name, period='') {
   // グループ取得
   let group = getInternal(group_id);
   if (group.type !== 'group') {
@@ -1601,7 +1610,9 @@ function addIntarnalDataEx2(group_id, names, is_ignore_same_name) {
 
   let items = [];
   for (let i = 0 ; i < names.length; i++) {
-    items.push(makeInternalItem(names[i]));
+    let item = makeInternalItem(names[i]);
+    item.period = period;
+    items.push(item);
   }
   return addIntarnalDatasToGroup(group_id, items, is_ignore_same_name);
 }
@@ -2952,8 +2963,8 @@ function move_today_item_todays_expires() {
 }
 
 // 選択アイテムを今日のタスクから削除
-function remove_today_item() {
-  let id = get_select_id(elem_id_list_today);
+function remove_today_item(elem_id) {
+  let id = get_select_id(elem_id);
   if (id === null) {
     return;
   }
@@ -3132,8 +3143,29 @@ function clear_todays_must_task(elem_id) {
   if (item === null) {
     return;
   }
+
+  item.is_todays_must = false;
+
+  update_list(false);
+}
+
+// 今日のタスク & 必須タスクを解除
+function clear_today_and_must_task(elem_id) {
+  pushHistory();
+
+  let id = get_selected_id(elem_id);
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
   
   item.is_todays_must = false;
+  item.is_today = 0;
+  item.is_first = false;  // 優先タスクフラグ解除
 
   update_list(false);
 }
@@ -3847,7 +3879,7 @@ function updateWeekDay() {
 
   const val = document.getElementById("popup_edit_date").value; // "YYYY-MM-DD" 形式
   if (!val) {
-    weekDayDiv.textContent = "";
+    weekDayDiv.textContent = "(ー)";
     return;
   }
   const d = new Date(val);

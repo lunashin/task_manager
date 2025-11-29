@@ -19,12 +19,12 @@ window.tasks = [
 // Schedule
 window.schedules = [
 // AUTO GENERATED >>>
-{ title:"会議1", isCC:false, start:"2025/08/30 8:00", end:"2025/08/30 9:00" },
-{ title:"会議11", isCC:false, start:"2025/08/30 8:00", end:"2025/08/30 9:00" },
-{ title:"会議2", isCC:false, start:"2025/09/01 9:00", end:"2025/09/01 10:00" },
-{ title:"会議3", isCC:false, start:"2024/12/22 22:00", end:"2024/12/22 22:25" },
-{ title:"会議3", isCC:false, start:"2024/12/22 10:00", end:"2024/12/22 13:15" },
-{ title:"会議4", isCC:false, start:"2024/12/22 12:00", end:"2024/12/22 18:00" },
+{ title:"会議1", isCC:false, location:"S302", start:"2025/11/29 8:00", end:"2025/11/29 9:00" },
+{ title:"会議11", isCC:false, location:"Teams会議", start:"2025/12/01 8:00", end:"2025/12/01 9:00" },
+{ title:"会議2", isCC:false, location:"Teams会議", start:"2025/09/01 9:00", end:"2025/09/01 10:00" },
+{ title:"会議3", isCC:false, location:"Teams会議", start:"2024/12/22 22:00", end:"2024/12/22 22:25" },
+{ title:"会議3", isCC:false, location:"Teams会議", start:"2024/12/22 10:00", end:"2024/12/22 13:15" },
+{ title:"会議4", isCC:false, location:"Teams会議", start:"2024/12/22 12:00", end:"2024/12/22 18:00" },
 // <<< AUTO GENERATED
 ];
 
