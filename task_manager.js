@@ -63,13 +63,15 @@ var g_lock_todays_task = true;
 
 // 編集ポップアップ表示状態
 var g_show_popup = false;
-var g_show_popup_list = '';
+var g_show_popup_list = null;
 
 // timeline Object
 var timeline = null;
 // 表示する日付範囲
 const past_days = 2;
 const post_days = 8;
+// 選択アイテム
+var g_timeline_selected_itemid = null;
 
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
@@ -1714,13 +1716,14 @@ function makeInternalGroup(name, period) {
 }
 
 /**
- * @summary 内部データアイテム要素作成
+ * @summary 内部データアイテム要素作成(ID指定)
  * @param タスク名
+ * @param ID
  * @returns dict
  */
-function makeInternalItem(name) {
+function makeInternalItem_ex(name, id) {
   let ret = {
-    id: genItemID(), 
+    id: id, 
     type: 'item', 
     name: name, 
     period: '',
@@ -1743,6 +1746,15 @@ function makeInternalItem(name) {
     created: get_today_str(true, true, true),
   };
   return ret;
+}
+
+/**
+ * @summary 内部データアイテム要素作成
+ * @param タスク名
+ * @returns dict
+ */
+function makeInternalItem(name) {
+  return makeInternalItem_ex(name, genItemID());
 }
 
 /**
@@ -2632,6 +2644,53 @@ function make_filter_buttons_ex() {
   }
 }
 
+/**
+ * @summary グループID一覧リスト作成
+ * @param select要素のID
+ * @param 未選択アイテムを追加するかどうか(true/false)
+ * @param 初期選択するグループのアイテムID
+ */
+function set_group_select_ex(elem_id, add_blank, select_group_id = -1) {
+  // グループ一覧作成
+  let elem_groups = document.getElementById(elem_id);
+  elem_groups.innerHTML = '';
+  if (add_blank) {
+    let elem_option = document.createElement("option");
+    elem_option.text = "---";
+    elem_option.dataset.id = -1;
+    elem_groups.appendChild(elem_option);
+  }
+  let ids = get_group_ids();
+  for (let i = 0; i < ids.length; i++) {
+    let elem_option = document.createElement("option");
+    elem_option.text = getInternal(ids[i]).name;
+    elem_option.dataset.id = ids[i];
+    // 所属グループを選択
+    elem_option.selected = (ids[i] == select_group_id);
+    elem_groups.appendChild(elem_option);
+  }
+}
+
+/**
+ * @summary グループID一覧リスト作成
+ * @param select要素のID
+ * @param 未選択アイテムを追加するかどうか(true/false)
+ * @param 初期選択するグループのアイテムID
+ */
+function set_group_select(elem_id, add_blank, selected_item_id= -1) {
+  // 所属グループ取得
+  let elem_groups = document.getElementById(elem_id);
+  elem_groups.innerHTML = '';
+  let select_group_id = -1;
+  let select_group = getInternalGroupFromItemID(selected_item_id);
+  if (select_group !== null) {
+    elem_groups.dataset.orgid = select_group.id;
+    select_group_id = select_group.id
+  }
+
+  // グループリスト作成
+  set_group_select_ex(elem_id, add_blank, select_group_id);
+}
 
 /**
   @summary  リストのoptionタグを生成
@@ -3735,34 +3794,33 @@ function show_edit_popup(elem_id) {
   let selected_ids = get_selected_ids(elem_id);
   if (selected_ids.length === 1) {
     // 1件の編集
-    show_edit_popup_single(elem_id, selected_ids[0]);
+    show_edit_popup_single(selected_ids[0], {parent_elem_id: elem_id});
   } else if (selected_ids.length > 1) {
     // 複数件の編集
     show_edit_popup_multi(elem_id, selected_ids);
   }
 }
 
+
 /**
- * @summary 編集ポップアップ表示
- * @param 要素ID
- * @param 編集対象ID(配列)
+ * @summary 編集ポップアップ表示(アイテム指定)
+ * @param アイテム or グループ情報
+ * @param 拡張情報 {parent_elem_id, top, left, group_id}
  */
-function show_edit_popup_single(elem_id, selected_id) {
+function show_edit_popup_single_ex(item_or_group, option) {
   if (g_show_popup) {
     return;
   }
 
   let elem = document.getElementById("popup_edit_base");
-  let item = getInternal(selected_id);
+  let item = item_or_group;
   if (item.type === "group") {
     // 表示
     // Tコピー除外
     document.getElementById("popup_edit_ignore_tcopy").checked = item.ignore_table_copy;
-    // document.getElementById("popup_edit_ignore_tcopy").style.display = "block";
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "block";
     // お気に入り
     document.getElementById("popup_edit_favorite").checked = item.favorite;
-    // document.getElementById("popup_edit_favorite").style.display = "block";
     document.getElementById("popup_edit_favorite_label").style.display = "block";
 
     // 非表示
@@ -3778,32 +3836,21 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_note").style.display = "none";
     document.getElementById("popup_edit_note_add_btn").style.display = "none";
     // 済み
-    // document.getElementById("popup_edit_done").style.display = "none";
     document.getElementById("popup_edit_done_label").style.display = "none";
     // 待ち
-    // document.getElementById("popup_edit_wait").style.display = "none";
     document.getElementById("popup_edit_wait_label").style.display = "none";
     // 優先
-    // document.getElementById("popup_edit_priority").style.display = "none";
     document.getElementById("popup_edit_priority_label").style.display = "none";
   }
 
   if (item.type === "item") {
-    // 所属グループ
-    let elem_groups = document.getElementById("popup_edit_group_list");
-    elem_groups.innerHTML = '';
-    let group_id = getInternalGroupFromItemID(selected_id).id;
-    elem_groups.dataset.orgid = group_id;
-    // グループ一覧作成
-    let ids = get_group_ids();
-    for (let i = 0; i < ids.length; i++) {
-      let elem_option = document.createElement("option");
-      elem_option.text = getInternal(ids[i]).name;
-      elem_option.dataset.id = ids[i];
-      // 所属グループを選択
-      elem_option.selected = (ids[i] == group_id);
-      elem_groups.appendChild(elem_option);
+    // // 所属グループ
+    if (option.group_id !== undefined) {
+      set_group_select_ex("popup_edit_group_list", false, option.group_id);
+    } else {
+      set_group_select("popup_edit_group_list", false, item.id);
     }
+
     document.getElementById("popup_edit_group_list").style.display = "block";
     // URL
     document.getElementById("popup_edit_url").value = item.url;
@@ -3821,21 +3868,16 @@ function show_edit_popup_single(elem_id, selected_id) {
     document.getElementById("popup_edit_note_add_btn").style.display = "block";
     // 済み
     document.getElementById("popup_edit_done").checked = (item.status === 'done');
-    // document.getElementById("popup_edit_done").style.display = "block";
     document.getElementById("popup_edit_done_label").style.display = "block";
     // 待ち
     document.getElementById("popup_edit_wait").checked = item.is_wait;
-    // document.getElementById("popup_edit_wait").style.display = "block";
     document.getElementById("popup_edit_wait_label").style.display = "block";
     // 優先
     document.getElementById("popup_edit_priority").checked = item.priority;
-    // document.getElementById("popup_edit_priority").style.display = "block";
     document.getElementById("popup_edit_priority_label").style.display = "block";
     // Tコピー除外 (非表示)
-    // document.getElementById("popup_edit_ignore_tcopy").style.display = "none";
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "none";
     // お気に入り (非表示)
-    // document.getElementById("popup_edit_favorite").style.display = "none";
     document.getElementById("popup_edit_favorite_label").style.display = "none";
   }
 
@@ -3849,15 +3891,20 @@ function show_edit_popup_single(elem_id, selected_id) {
   document.getElementById("popup_edit_created").value = item.created;
 
   // ID 
-  document.getElementById("popup_edit_id").value = selected_id;
-  document.getElementById("popup_edit_hidden_id").value = selected_id;
+  document.getElementById("popup_edit_id").value = item.id;
+  document.getElementById("popup_edit_hidden_id").value = item.id;
 
-  // ポップアップをリストの選択位置へ移動
-  let selected_elems = get_selected_option(elem_id);
-  if (selected_elems.length > 0) {
-    let rect = selected_elems[0].getBoundingClientRect();
-    elem.style.top = rect.top;
-    elem.style.left = rect.right;
+  // ポップアップの左上をリストの選択位置へ移動
+  if (option.parent_elem_id !== undefined) {
+    let selected_elems = get_selected_option(option.parent_elem_id);
+    if (selected_elems.length > 0) {
+      let rect = selected_elems[0].getBoundingClientRect();
+      elem.style.top = rect.top;
+      elem.style.left = rect.right;
+    }
+  } else if (option.top !== undefined && option.left !== undefined) {
+      elem.style.top = option.top;
+      elem.style.left = option.left;
   }
 
   // 表示
@@ -3866,7 +3913,15 @@ function show_edit_popup_single(elem_id, selected_id) {
   document.getElementById("popup_edit_text").focus();
 
   g_show_popup = true;
-  g_show_popup_list = elem_id;
+}
+
+/**
+ * @summary 編集ポップアップ表示
+ * @param 編集対象ID
+ * @param 親情報(ポップアップ位置に利用) {parent_elem_id, top, left}
+ */
+function show_edit_popup_single(selected_id, option) {
+  show_edit_popup_single_ex(getInternal(selected_id), option);
 }
 
 /**
@@ -4009,14 +4064,29 @@ function submit_edit_popup() {
 
   // 内部データ取得
   let item = getInternal(id_hidden);
+  if (item === null) {
+    // 新規作成
+    item = makeInternalItem_ex("", id_hidden);
+  }
 
   // timeline更新判定
   let update_timeline = (
-    item.name !== new_name || 
+    item.name.trim() !== new_name || 
     item.period !== new_period || 
     item.note !== new_note || 
     item.is_wait !== new_wait ||
     item.priority !== new_priority ||
+    (new_done && item.status !== 'done') ||
+    (!new_done && item.status !== 'yet')
+  )
+
+  // 最終更新日更新判定
+  let update_update_date = (
+    item.name !== new_name || 
+    new_url !== item.url ||
+    new_mail !== item.mail ||
+    item.note !== new_note || 
+    item.is_wait !== new_wait ||
     (new_done && item.status !== 'done') ||
     (!new_done && item.status !== 'yet')
   )
@@ -4067,8 +4137,12 @@ function submit_edit_popup() {
   if (id_hidden !== id_edit) {
     item.id = id_edit;
   }
-  // 最終更新日更新
-  item.last_update = get_today_str(true, true, true);
+
+  // 最終更新日更新判定
+  if (update_update_date) {
+    // 最終更新日更新
+    item.last_update = get_today_str(true, true, true);
+  }
 
   // ポップアップ消去
   close_edit_popup();
@@ -4123,10 +4197,12 @@ function close_edit_popup() {
   elem.style.display = "none";
 
   // フォーカスをリストへ移動
-  document.getElementById(g_show_popup_list).focus();
+  if (g_show_popup_list !== null) {
+    document.getElementById(g_show_popup_list).focus();
+  }
 
   g_show_popup = false;
-  g_show_popup_list = '';
+  g_show_popup_list = null;
 }
 
 /**
@@ -4137,10 +4213,12 @@ function close_edit_multi_popup() {
   elem.style.display = "none";
 
   // フォーカスをリストへ移動
-  document.getElementById(g_show_popup_list).focus();
+  if (g_show_popup_list !== null) {
+   document.getElementById(g_show_popup_list).focus();
+  }
 
   g_show_popup = false;
-  g_show_popup_list = '';
+  g_show_popup_list = null;
 }
 
 
@@ -4262,9 +4340,9 @@ function show_timeline(mode, showNested)
   const container = document.getElementById('visualization');
 
   // make group/item
-  let is_one_group = (g_stock_filter_id === 0);
-  groups = groups.concat(make_timeline_groups(is_one_group));
-  items = items.concat(make_timeline_items(is_one_group));
+  // let is_one_group = (g_stock_filter_id === 0);
+  groups = groups.concat(make_timeline_groups(false));
+  items = items.concat(make_timeline_items(false));
 
   let today = new Date(Date.now()); // 今日
   let today_str= today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate();
@@ -4295,6 +4373,21 @@ function show_timeline(mode, showNested)
     height: timelineHeight,     // 縦幅 (minHeightと合わせて指定すると日付軸が固定になる)
     minHeight: timelineHeight,  // 最大縦幅
     // onInitialDrawComplete: onTimelineShowComplete,
+    editable: {
+      add: false,           // ダブルクリックでアイテム追加
+      updateTime: true,     // 水平方向のアイテム移動
+      updateGroup: false,   // 他のグループへのアイテム移動
+      remove: false,        // deleteボタンによるアイテム削除
+      overrideItems: false  // item.editableの上書きの許可
+    },
+    onMove: function (target, callback) { // アイテム移動後のコールバック
+      console.log(target.id, target.group, target.start);
+      let item = getInternal(target.id);
+      if (item !== null) {
+        item.period = get_date_str(target.start, true, false, true, true);
+      }
+      callback(target);
+    }
   };
 
   // Create a Timeline
@@ -4302,6 +4395,10 @@ function show_timeline(mode, showNested)
     // timeline.destroy();
     timeline.setData( {groups: groups, items: items });
     timeline.redraw();
+    // 更新前に選択していたアイテムを再選択
+    if (g_timeline_selected_itemid !== null) {
+      timeline.setSelection(g_timeline_selected_itemid);
+    }
   }
   else {
     timeline = new vis.Timeline(container, items, groups, options);
@@ -4320,8 +4417,25 @@ function show_timeline(mode, showNested)
       // クリックしたアイテムをリスト中で選択
       if (properties.items.length > 0) {
         set_select(elem_id_list_stock, properties.items[0], true, true);
+        // 選択アイテムを記憶
+        g_timeline_selected_itemid = properties.items[0]
       } else {
         // set_select(elem_id_list_stock, -1, false, false); // 選択解除
+        // 選択アイテムクリア
+        g_timeline_selected_itemid = null;
+      }
+    });
+    // ダブルクリックイベント登録
+    timeline.on('doubleClick', function (properties) {
+      console.log("timeline dblclick" , properties.item);
+      if (properties.item === null) {
+        // 空欄をクリック. アイテム作成
+        let item = makeInternalItem_ex("", genItemID());
+        item.period = get_date_str(properties.time, true, false, true, true);
+        show_edit_popup_single_ex(item, {top: properties.event.clientY, left: properties.event.clientX, group_id: properties.group});
+      } else {
+        // アイテム編集
+        show_edit_popup_single(properties.item, {top: properties.event.clientY, left: properties.event.clientX});
       }
     });
   }
@@ -4982,6 +5096,9 @@ update_check_todays_lock();
 // フィルターボタン生成
 // make_filter_buttons();
 make_filter_buttons_ex();
+
+// 検索用グループリスト作成
+set_group_select("stock_list_group_list", true);
 
 // 出社/在宅状況の表示
 read_work_schedule();

@@ -5,10 +5,10 @@ body {
 }
 
 /* Select */
-select.task_list {
+/* select.task_list {
     width: 37vw;
     height: 700px;
-}
+} */
 select.h-half {
     width: 20vw;
     height: 300px;

@@ -26,7 +26,7 @@
         /* --------- Task List --------*/
         select.task_list {
           width: 37vw;
-          height: 700px;
+          height: 550px;
         }
         select.h-half-w {
           width: 37vw;
@@ -320,7 +320,13 @@
         <!-- フィルタボタン表示エリア -->
         <div id="set_filter_condition_div"></div>
       </div>
-      <input type="text" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
+      <div class="flex-box-vCenter">
+        <span>検索</span>
+        <input type="text" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
+        &nbsp;
+        <span>グループ選択</span>
+        <select id="stock_list_group_list" class="popup_size_fit" size="1"></select>
+      </div>
       <select id="stock_list" class="stock_list task_list" tabindex="10" multiple></select>
     </div>
     &nbsp;&nbsp;&nbsp;
@@ -335,7 +341,7 @@
         <!-- <input type="checkbox" id="lock_todays_task"> -->
         <!-- <label for="lock_todays_task">🔒ロック</label> -->
         <br>
-        <select id="todays_must_list" class="todays_must_list h-half-w2" tabindex="20" multiple></select>
+        <select id="todays_must_list" class="todays_must_list h-half-w2" tabindex="25" multiple></select>
       </div>
 
       &nbsp;&nbsp;&nbsp;
@@ -415,49 +421,47 @@
 
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-    <!-- Edit / Button -->
+    <!-- Button -->
     <div>
-      <span class="flex-box">
-        <div class="border">
-          <button id="remove_item" class="button-large" >💥削除(d)</button>
-          <button id="undo" class="button-large">↩️1つ戻す<br>(Ctrl+z)</button>
-        </div>
-        &nbsp;
-        &nbsp;
-        <button id="scroll_lock" class="button-large">スクロール<br>ロック(l)</button>
-        &nbsp;
-        &nbsp;
-        <button id="copy_generate_password" class="button-mid">パスワード生成</button>
-      </span>
-
-      <br>
-
       <span class="flex-box">
         <div class="border">
           <button id="import_mail_flag" class="button-large" >📩フラグメール取込み</button>
           <button id="import_todays_meeting" class="button-large" >💺今日の会議を取込み</button>
           <button id="import_tomorrows_meeting" class="button-large" >💺明日の会議を取込み</button>
         </div>
-      </span>
 
-      <br>
-      <br>
+        &nbsp;&nbsp;
 
-      <span class="flex-box">
         <div class="border2">
           <button id="save" class="button-large">保存</button>
           <button id="load" class="button-large">読込み</button>
         </div>
+        
+      </span>
+
+      <br>
+      
+      <span class="flex-box">
+        <div class="border">
+          <button id="remove_item" class="button-large" >💥削除(d)</button>
+          <button id="undo" class="button-large">↩️1つ戻す<br>(Ctrl+z)</button>
+        </div>
         &nbsp;
+        <button id="scroll_lock" class="button-large">スクロール<br>ロック(l)</button>
         &nbsp;
+        <button id="copy_generate_password" class="button-mid">パスワード生成</button>
+      </span>
+      <br>
+
+      <span class="flex-box">
         <div class="border">
           <button id="copy_now_json" class="button-large">JSONをコピー</button>
           <button id="download_now_json" class="button-large">JSONダウンロード</button>
         </div>
         &nbsp;
         &nbsp;
-
       </span>
+      
     </div>
 
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
