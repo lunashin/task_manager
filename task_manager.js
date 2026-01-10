@@ -78,10 +78,10 @@ const g_meeting_group_name = '会議';
 
 // ファイル名
 // const g_mail_flag = 'timeline_mail_flag.js.txt';
-const g_meeting_script = 'timeline_tasks.js';
+// const g_meeting_script = 'timeline_tasks.js';
 // const g_work_schedule_file = 'timeline_work_schedule.js';
 const g_mail_flag = '../timeline_mail_flag.js.txt';
-// const g_meeting_script = '../export/timeline_schedule.js';
+const g_meeting_script = '../export/timeline_schedule.js';
 const g_work_schedule_file = '../export/timeline_work_status.js'
 
 
@@ -1096,7 +1096,8 @@ function get_meeting_text(schedules, target_d)
   let ret = [];
   for (let i = 0; i < meetings.length; i++) {
     let title = meetings[i].title;
-    let location = meetings[i].location.replaceAll('Teams会議', '');
+    let location = meetings[i].location.replaceAll('Microsoft Teams 会議', '');
+    location = location.replaceAll('; [MMC Okazaki]', '');
     if (location) {location = '💺' +location};
     let start_time = meetings[i].start.split(" ")[1];
     let end_time = meetings[i].end.split(" ")[1];
@@ -3814,6 +3815,7 @@ function show_edit_popup_single_ex(item_or_group, option) {
 
   let elem = document.getElementById("popup_edit_base");
   let item = item_or_group;
+
   if (item.type === "group") {
     // 表示
     // Tコピー除外
@@ -3893,6 +3895,12 @@ function show_edit_popup_single_ex(item_or_group, option) {
   // ID 
   document.getElementById("popup_edit_id").value = item.id;
   document.getElementById("popup_edit_hidden_id").value = item.id;
+
+  // 親エレメントID(submit後のフォーカス移動用)
+  document.getElementById("popup_edit_hidden_parent_elem_id").value = "";
+  if (option.parent_elem_id !== undefined) {
+    document.getElementById("popup_edit_hidden_parent_elem_id").value = option.parent_elem_id;
+  }
 
   // ポップアップの左上をリストの選択位置へ移動
   if (option.parent_elem_id !== undefined) {
@@ -4053,6 +4061,7 @@ function submit_edit_popup() {
   let new_ignore_table_copy = document.getElementById("popup_edit_ignore_tcopy").checked;
   let new_favorite = document.getElementById("popup_edit_favorite").checked;
   let id_hidden_str = document.getElementById("popup_edit_hidden_id").value;
+  let parent_elem_id = document.getElementById("popup_edit_hidden_parent_elem_id").value;
   let id_edit_str = document.getElementById("popup_edit_id").value;
   let id_hidden = parseInt(id_hidden_str);
   let id_edit = parseInt(id_edit_str);
@@ -4149,8 +4158,10 @@ function submit_edit_popup() {
   // リスト更新 / TODO:期限変更判断追加
   update_list(update_timeline);
 
-  // リストへフォーカス移動
-  // document.getElementById(elem_id_list_stock).focus();
+  // ポップアップ起動元リストへフォーカス移動
+  if (parent_elem_id !== "") {
+    document.getElementById(parent_elem_id).focus();
+  }
 }
 
 /**
@@ -4435,7 +4446,8 @@ function show_timeline(mode, showNested)
         show_edit_popup_single_ex(item, {top: properties.event.clientY, left: properties.event.clientX, group_id: properties.group});
       } else {
         // アイテム編集
-        show_edit_popup_single(properties.item, {top: properties.event.clientY, left: properties.event.clientX});
+        // show_edit_popup_single(properties.item, {top: properties.event.clientY, left: properties.event.clientX});
+        show_edit_popup_single(properties.item, {top: properties.event.center.y+20, left: properties.event.center.x});
       }
     });
   }

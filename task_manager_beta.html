@@ -438,6 +438,16 @@
         </div>
         
       </span>
+      <br>
+
+      <span class="flex-box">
+        <div class="border">
+          <button id="copy_now_json" class="button-large">JSONをコピー</button>
+          <button id="download_now_json" class="button-large">JSONダウンロード</button>
+        </div>
+        &nbsp;
+        &nbsp;
+      </span>
 
       <br>
       
@@ -450,16 +460,6 @@
         <button id="scroll_lock" class="button-large">スクロール<br>ロック(l)</button>
         &nbsp;
         <button id="copy_generate_password" class="button-mid">パスワード生成</button>
-      </span>
-      <br>
-
-      <span class="flex-box">
-        <div class="border">
-          <button id="copy_now_json" class="button-large">JSONをコピー</button>
-          <button id="download_now_json" class="button-large">JSONダウンロード</button>
-        </div>
-        &nbsp;
-        &nbsp;
       </span>
       
     </div>
@@ -539,6 +539,7 @@
       <input id="popup_edit_created" type="text" disabled >
       <input id="popup_edit_id" class="short-width" type="text" name="id">
       <input type="hidden" id="popup_edit_hidden_id" name="id" >
+      <input type="hidden" id="popup_edit_hidden_parent_elem_id" name="parent_elem_id" >
       <div>
         <input type="submit" class="button-small" value="OK" >
         <input type="button" id="popup_edit_cancel_btn" class="button-small" value="Cancel">
