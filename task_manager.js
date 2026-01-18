@@ -2823,7 +2823,7 @@ function make_option(title, item, class_list, is_group_top, show_last_update) {
   // インデント
   if (item.type === 'item') {
     let indent_count = max_icon_num - [...before_icon].length;    // max 4 indent
-    elem.style.textIndent = indent_count + 'rem';
+    elem.style.textIndent = indent_count + 'em';
   }
 
   // イベント
