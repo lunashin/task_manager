@@ -30,11 +30,15 @@
         }
         select.h-half-w {
           width: 37vw;
-          height: 400px;
+          height: 300px;
         }
         select.h-half-w2 {
           width: 37vw;
-          height: 200px;
+          height: 150px;
+        }
+        select.h-half-w3 {
+          width: 37vw;
+          height: 100px;
         }
         select.h-half {
           width: 20vw;
@@ -303,7 +307,7 @@
 <body>
 
   <!-- Timeline -->
-  <div class="timeline_area">
+  <div id="timeline_area" class="timeline_area">
     <div id="visualization"></div>
   </div>
   <br>
@@ -331,8 +335,16 @@
     </div>
     &nbsp;&nbsp;&nbsp;
 
-    <!-- Todays Must List -->
     <div>
+      <!-- EveryDay List -->
+      <div>
+        <div id="label_everyday_task" class="list-title">毎日のタスク</div>
+        <select id="everyday_task_list" class="everyday_task_list h-half-w3" tabindex="25" multiple></select>
+      </div>
+
+      &nbsp;&nbsp;&nbsp;
+
+      <!-- Todays Must List -->
       <div>
         <div id="label_todays_must_task" class="list-title">今日の必須タスク</div>
         <!-- <button id="copy_todays_must_list" class="button-mid">コピー</button> -->
@@ -340,7 +352,6 @@
         <!-- <label for="toggle_show_done">済み表示切替</label> -->
         <!-- <input type="checkbox" id="lock_todays_task"> -->
         <!-- <label for="lock_todays_task">🔒ロック</label> -->
-        <br>
         <select id="todays_must_list" class="todays_must_list h-half-w2" tabindex="25" multiple></select>
       </div>
 
@@ -349,8 +360,8 @@
       <!-- Todays List -->
       <div>
         <div id="label_todays_task" class="list-title">今日やりたいタスク</div>
-        <button id="copy_todays_list" class="button-mid">コピー</button>
-        <button id="todays_expires_to_todays_list" class="button-mid">登録(本日期限)</button>
+        <!-- <button id="copy_todays_list" class="button-mid">コピー</button> -->
+        <!-- <button id="todays_expires_to_todays_list" class="button-mid">登録(本日期限)</button> -->
         <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
         <input type="checkbox" id="toggle_show_done">
         <label for="toggle_show_done">済み表示切替</label>
@@ -363,8 +374,8 @@
 
     &nbsp;&nbsp;&nbsp;
 
-    <!-- Done List -->
     <div>
+      <!-- Done List -->
       <div>
         <div class="list-title">今日の処理済み</div>
         <div class="flex-box">
@@ -375,12 +386,12 @@
         </div>
         <select id="done_list" class="done_list h-half" tabindex="30" multiple></select>
       </div>
+      <br>
 
+      <!-- Priority List -->
       <div>
-        <div class="list-title">明日のタスク</div>
-        <button id="release_tomorrow" class="button-mid">今日へ移動</button>
-        <br>
-        <select id="tomorrow_list" class="tomorrow_list h-half" tabindex="40" multiple></select>
+        <div class="list-title">タスク優先順位 (カッコ内は重要度スコア)</div>
+        <select id="priority_list" class="h-half" tabindex="40" multiple></select>
       </div>
     </div>
   </div>
@@ -528,6 +539,8 @@
         <label class="checkbox_ex" id="popup_edit_done_label" for="popup_edit_done">済み</label>
         <input class="checkbox_ex" id="popup_edit_wait" type="checkbox" >
         <label class="checkbox_ex" id="popup_edit_wait_label" for="popup_edit_wait">待ち</label>
+        <input class="checkbox_ex" id="popup_edit_everyday" type="checkbox" >
+        <label class="checkbox_ex" id="popup_edit_everyday_label" for="popup_edit_everyday">毎日</label>
         <input class="checkbox_ex" id="popup_edit_priority" type="checkbox" >
         <label class="checkbox_ex" id="popup_edit_priority_label" for="popup_edit_priority">重要</label>
         <input class="checkbox_ex" id="popup_edit_ignore_tcopy" type="checkbox" >

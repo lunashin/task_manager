@@ -10,10 +10,12 @@
 
 // Element ID
 const elem_id_list_stock = 'stock_list';
+const elem_id_list_everyday = 'everyday_task_list';
 const elem_id_list_today_must = 'todays_must_list';
 const elem_id_list_today = 'todays_list';
 const elem_id_list_done = 'done_list';
-const elem_id_list_tomorrow = 'tomorrow_list';
+const elem_id_list_priority = 'priority_list';
+// const elem_id_list_tomorrow = 'tomorrow_list';
 
 
 // key code
@@ -106,8 +108,8 @@ document.getElementById("copy_stock_list").addEventListener("click", copy_all_ta
 document.getElementById("stock_list_filter_text").addEventListener("input", change_filter_text);
 
 // todays list
-document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
-document.getElementById("todays_expires_to_todays_list").addEventListener("click", move_today_item_todays_expires);
+// document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
+// document.getElementById("todays_expires_to_todays_list").addEventListener("click", move_today_item_todays_expires);
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
@@ -121,7 +123,7 @@ document.getElementById("copy_updates_list").addEventListener("click", copy_toda
 document.getElementById("release_todays_done").addEventListener("click", release_todays_done);
 
 // tomorrow list
-document.getElementById("release_tomorrow").addEventListener("click", release_tomorrow_item);
+// document.getElementById("release_tomorrow").addEventListener("click", release_tomorrow_item);
 
 
 // other
@@ -152,10 +154,12 @@ document.getElementById("popup_edit_multi_cancel_btn").addEventListener("click",
 // Key event
 document.addEventListener("keydown", keyhandler_body);
 document.getElementById(elem_id_list_stock).addEventListener("keydown", keyhandler_stock_list);
+document.getElementById(elem_id_list_everyday).addEventListener("keydown", keyhandler_everyday_list);
 document.getElementById(elem_id_list_today_must).addEventListener("keydown", keyhandler_todays_must_list);
 document.getElementById(elem_id_list_today).addEventListener("keydown", keyhandler_todays_list);
 document.getElementById(elem_id_list_done).addEventListener("keydown", keyhandler_done_list);
-document.getElementById(elem_id_list_tomorrow).addEventListener("keydown", keyhandler_tomorroy_list);
+document.getElementById(elem_id_list_priority).addEventListener("keydown", keyhandler_priority_list);
+// document.getElementById(elem_id_list_tomorrow).addEventListener("keydown", keyhandler_tomorroy_list);
 document.getElementById("popup_edit_base").addEventListener("keydown", keyhandler_edit_popup);
 document.getElementById("popup_edit_multi_base").addEventListener("keydown", keyhandler_edit_popup_multi);
 
@@ -167,7 +171,8 @@ document.getElementById(elem_id_list_stock).addEventListener("contextmenu", cont
 document.getElementById(elem_id_list_today_must).addEventListener("contextmenu", contextmenu_handler_list);
 document.getElementById(elem_id_list_today).addEventListener("contextmenu", contextmenu_handler_list);
 document.getElementById(elem_id_list_done).addEventListener("contextmenu", contextmenu_handler_list);
-document.getElementById(elem_id_list_tomorrow).addEventListener("contextmenu", contextmenu_handler_list);
+document.getElementById(elem_id_list_priority).addEventListener("contextmenu", contextmenu_handler_list);
+// document.getElementById(elem_id_list_tomorrow).addEventListener("contextmenu", contextmenu_handler_list);
 
 
 // Popup
@@ -293,11 +298,105 @@ function keyhandler_body(event) {
 }
 
 /**
+ * @summary 各リスト 共通キーイベント処理
+ * @param イベント情報
+ * @returns キーに対応する処理をしたかどうか. true:処理した / false:処理しない
+ */
+function keyhandler_list_common(event, elem_id, ignore_keys=null) {
+  let is_processed = false;
+
+  if (ignore_keys !== null && ignore_keys.includes(event.keyCode)) {
+    return false;;
+  }
+
+  switch (event.keyCode){
+    case key_c:           // c
+      if (event.shiftKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name_for_mailquery(elem_id);
+        is_processed = true;
+        break;
+      }
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name(elem_id);
+        is_processed = true;
+        break;
+      }
+      break;
+    case key_d:           // d
+      event.preventDefault(); // 既定の動作をキャンセル
+      remove_selected_item(elem_id);
+      is_processed = true;
+      break;
+    case key_s:           // s
+      if (event.shiftKey) {
+        // ALLリストの選択アイテムを、今日のリストと同期
+        event.preventDefault(); // 既定の動作をキャンセル
+        let id = get_select_id(elem_id);
+        if (id !== null) {
+          set_list_filter(elem_id_list_stock, 0);
+          set_select(elem_id_list_stock, id, true, true);
+          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+        }
+        is_processed = true;
+        break;
+      }
+      break;
+    case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        is_processed = true;
+        break;
+      }
+      event.preventDefault(); // 既定の動作をキャンセル
+      toggle_wait(elem_id);
+      is_processed = true;
+      break;
+    case key_space:       // space
+      event.preventDefault(); // 既定の動作をキャンセル
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        is_processed = true;
+        break;
+      }
+      // 編集ポップアップ
+      if (g_show_popup) {
+        close_edit_popup();
+      } else {
+        show_edit_popup(elem_id);
+      }
+      is_processed = true;
+      break;
+    case key_enter:     // Enter
+      event.preventDefault(); // 既定の動作をキャンセル
+      // 編集ポップアップ
+      if (g_show_popup) {
+        close_edit_popup();
+      } else {
+        show_edit_popup(elem_id);
+      }
+      is_processed = true;
+      break;
+  }
+
+  return is_processed;
+}
+
+/**
  * @summary ALLリスト キーイベント処理
  * @param イベント情報
  */
 function keyhandler_stock_list(event) {
   const elem_id = elem_id_list_stock;
+
+  // 共通処理
+  if (keyhandler_list_common(event, elem_id, [key_s])) {
+    return;
+  }
 
   switch (event.keyCode){
     case key_arrow_up:    // ↑
@@ -332,22 +431,6 @@ function keyhandler_stock_list(event) {
       update_list(false);
       set_select(elem_id, add_id, false, false);
       break;
-    case key_c:           // c
-      if (event.shiftKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name_for_mailquery(elem_id);
-        break;
-      }
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name(elem_id);
-        break;
-      }
-      break;
-    case key_d:           // d
-      event.preventDefault(); // 既定の動作をキャンセル
-      remove_selected_item(elem_id);
-      break;
     case key_f:           // f
       if (event.ctrlKey) {
         event.preventDefault();
@@ -379,43 +462,23 @@ function keyhandler_stock_list(event) {
         break;
       }
       break;
-    case key_z:           // z
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        // 元に戻す
-        undo_item()
-        break;
-      }
-      event.preventDefault(); // 既定の動作をキャンセル
-      toggle_wait(elem_id);
-      break;
-    case key_space:       // space
-      if (event.shiftKey) {
-        // 設定されたURLを開く
-        open_select_items_url(elem_id);
-        break;
-      }
-
-      // 編集ポップアップ
-      if (g_show_popup) {
-        close_edit_popup();
-      } else {
-        show_edit_popup(elem_id);
-      }
-      break;
-    case key_enter:     // Enter
-      event.preventDefault(); // 既定の動作をキャンセル
-      // 編集ポップアップ
-      if (g_show_popup) {
-        close_edit_popup();
-      } else {
-        show_edit_popup(elem_id);
-      }
-      break;
     case key_esc:       // ESC
       event.preventDefault(); // 既定の動作をキャンセル
       clear_filter_text();
       break;
+  }
+}
+
+/**
+ * @summary 毎日のリスト キーイベント処理
+ * @param イベント情報
+ */
+function keyhandler_everyday_list(event) {
+  const elem_id = elem_id_list_everyday;
+
+  // 共通処理
+  if (keyhandler_list_common(event, elem_id)) {
+    return;
   }
 }
 
@@ -425,6 +488,11 @@ function keyhandler_stock_list(event) {
  */
 function keyhandler_todays_must_list(event) {
   const elem_id = elem_id_list_today_must;
+
+    // 共通処理
+  if (keyhandler_list_common(event, elem_id)) {
+    return;
+  }
 
   switch (event.keyCode){
     case key_arrow_down:  // ↓
@@ -442,55 +510,6 @@ function keyhandler_todays_must_list(event) {
       pushHistory();
       clear_today_and_must_task(elem_id);
       break;
-    case key_d:           // d
-      event.preventDefault(); // 既定の動作をキャンセル
-      remove_selected_item(elem_id);
-      break;
-    case key_s:           // s
-      if (event.shiftKey) {
-        // ALLリストの選択アイテムを、今日のリストと同期
-        event.preventDefault(); // 既定の動作をキャンセル
-        let id = get_select_id(elem_id);
-        if (id !== null) {
-          set_list_filter(elem_id_list_stock, 0);
-          set_select(elem_id_list_stock, id, true, true);
-          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
-        }
-        break;
-      }
-      break;
-    case key_z:           // z
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        // 元に戻す
-        undo_item()
-        break;
-      }
-      event.preventDefault(); // 既定の動作をキャンセル
-      toggle_wait(elem_id);
-      break;
-    case key_space:       // space
-      if (event.shiftKey) {
-        // 設定されたURLを開く
-        open_select_items_url(elem_id);
-        break;
-      }
-      // 編集ポップアップ
-      if (g_show_popup) {
-        close_edit_popup();
-      } else {
-        show_edit_popup(elem_id);
-      }
-      break;
-    case key_enter:     // Enter
-      event.preventDefault(); // 既定の動作をキャンセル
-      // 編集ポップアップ
-      if (g_show_popup) {
-        close_edit_popup();
-      } else {
-        show_edit_popup(elem_id);
-      }
-      break;
   }
 }
 
@@ -500,6 +519,11 @@ function keyhandler_todays_must_list(event) {
  */
 function keyhandler_todays_list(event) {
   const elem_id = elem_id_list_today;
+
+  // 共通処理
+  if (keyhandler_list_common(event, elem_id)) {
+    return;
+  }
 
   switch (event.keyCode){
     case key_arrow_up:    // ↑
@@ -555,68 +579,6 @@ function keyhandler_todays_list(event) {
       // 非タスク化
       toggle_non_task(elem_id);
       break
-    case key_c:           // c
-      if (event.shiftKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name_for_mailquery(elem_id);
-        break;
-      }
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name(elem_id);
-        break;
-      }
-      break;
-    case key_d:           // d
-      event.preventDefault(); // 既定の動作をキャンセル
-      remove_selected_item(elem_id);
-      break;
-    case key_s:           // s
-      if (event.shiftKey) {
-        // ALLリストの選択アイテムを、今日のリストと同期
-        event.preventDefault(); // 既定の動作をキャンセル
-        let id = get_select_id(elem_id);
-        if (id !== null) {
-          set_list_filter(elem_id_list_stock, 0);
-          set_select(elem_id_list_stock, id, true, true);
-          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
-        }
-        break;
-      }
-      break;
-    case key_z:           // z
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        // 元に戻す
-        undo_item()
-        break;
-      }
-      event.preventDefault(); // 既定の動作をキャンセル
-      toggle_wait(elem_id);
-      break;
-    case key_space:       // space
-      if (event.shiftKey) {
-        // 設定されたURLを開く
-        open_select_items_url(elem_id);
-        break;
-      }
-
-      // 編集ポップアップ
-      if (g_show_popup) {
-        close_edit_popup();
-      } else {
-        show_edit_popup(elem_id);
-      }
-      break;
-    case key_enter:     // Enter
-      event.preventDefault(); // 既定の動作をキャンセル
-      // 編集ポップアップ
-      if (g_show_popup) {
-        close_edit_popup();
-      } else {
-        show_edit_popup(elem_id);
-      }
-      break;
   }
 }
 
@@ -627,50 +589,28 @@ function keyhandler_todays_list(event) {
 function keyhandler_done_list(event) {
   const elem_id = elem_id_list_done;
 
+  // 共通処理
+  if (keyhandler_list_common(event, elem_id)) {
+    return;
+  }
+
   switch (event.keyCode){
     case key_arrow_left:       // ←
       return_item();   
       break;
-    case key_c:           // c
-      if (event.shiftKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name_for_mailquery(elem_id);
-        break;
-      }
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name(elem_id);
-        break;
-      }
-      break;
-    case key_s:           // s
-      if (event.shiftKey) {
-        // ALLリストの選択アイテムを、本リストと同期
-        event.preventDefault(); // 既定の動作をキャンセル
-        let id = get_select_id(elem_id);
-        if (id !== null) {
-          set_list_filter(elem_id_list_stock, 0); // フィルタ解除
-          set_select(elem_id_list_stock, id, true, true);
-          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
-        }
-        break;
-      }
-      break;
-    case key_z:           // z
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        // 元に戻す
-        undo_item()
-        break;
-      }
-      break;
-    case key_space:       // space
-      if (event.shiftKey) {
-        // 設定されたURLを開く
-        open_select_items_url(elem_id);
-        break;
-      }
-      break;
+  }
+}
+
+/**
+* @summary 優先順位順のタスクリスト キーイベント処理
+* @param イベント情報
+*/
+function keyhandler_priority_list(event) {
+  const elem_id = elem_id_list_priority;
+
+  // 共通処理
+  if (keyhandler_list_common(event, elem_id)) {
+    return;
   }
 }
 
@@ -681,49 +621,14 @@ function keyhandler_done_list(event) {
 function keyhandler_tomorroy_list(event) {
   const elem_id = elem_id_list_tomorrow;
  
+  // 共通処理
+  if (keyhandler_list_common(event, elem_id)) {
+    return;
+  }
+
   switch (event.keyCode){
     case key_arrow_left:  // ←
       set_tomorrow_item(elem_id , false);
-      break;
-    case key_c:           // c
-      if (event.shiftKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name_for_mailquery(elem_id);
-        break;
-      }
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        copy_selected_item_name(elem_id);
-        break;
-      }
-      break;
-    case key_s:           // s
-      if (event.shiftKey) {
-        // ALLリストの選択アイテムを、本リストと同期
-        event.preventDefault(); // 既定の動作をキャンセル
-        let id = get_select_id(elem_id);
-        if (id !== null) {
-          set_list_filter(elem_id_list_stock, 0); // フィルタ解除
-          set_select(elem_id_list_stock, id, true, true);
-          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
-        }
-        break;
-      }
-      break;
-    case key_z:           // z
-      if (event.ctrlKey) {
-        event.preventDefault(); // 既定の動作をキャンセル
-        // 元に戻す
-        undo_item()
-        break;
-      }
-      break;
-    case key_space:       // space
-      if (event.shiftKey) {
-        // 設定されたURLを開く
-        open_select_items_url(elem_id);
-        break;
-      }
       break;
   }
 }
@@ -878,10 +783,13 @@ function regist_from_textarea() {
  */
 function update_list(update_timeline) {
   update_stock_list(g_stock_filter);
+  update_everyday_list();
   update_todays_must_list();
   update_todays_list();
   update_done_list();
-  update_tomorrow_list();
+  // update_tomorrow_list();
+  update_priority_list();
+
   if (update_timeline) {
     show_timeline();
   }
@@ -1922,6 +1830,10 @@ function adjust_attr_internal_data() {
       if (item.is_today === false) {
         item.is_today = 0;
       }
+      // is_everyday
+      if (item.is_everyday === undefined) {
+        item.is_everyday = false;
+      }
       // is_todays_must
       if (item.is_todays_must === undefined) {
         item.is_todays_must = false;
@@ -2272,7 +2184,7 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
       if (func_is_show(item) === true) {
         // フィルタ条件(大文字/小文字区別しない)
         if (item.name.toLowerCase().indexOf(filter_item.toLowerCase()) !== -1) {
-          append_elems.push(make_option(item, func_get_classes(item), false, func_show_lastupdate(item)));
+          append_elems.push(make_option(item.name, item, func_get_classes(item), false, func_show_lastupdate(item)));
         }
       }
     }
@@ -2296,7 +2208,7 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
         }
       }
       // グループ用エレメント追加
-      select.appendChild(make_option(group_top, classes, true, false));
+      select.appendChild(make_option(group_top.name, group_top, classes, true, false));
   
       // アイテム用エレメント追加
       for (let k = 0; k < append_elems.length; k++) {
@@ -2388,10 +2300,59 @@ function update_stock_list(filter) {
 }
 
 /**
+ * 毎日のリストを更新
+ */
+function update_everyday_list() {
+  update_list_common(
+    getInternalRawTasksData(), elem_id_list_everyday, null, '',
+    function(item) {
+      // 表示条件
+      return item.is_everyday;
+    },
+    function(item) {
+      // クラスリスト
+      let classes = ["group_level1"];
+      if (item.status === 'done') {
+        classes.push('done');
+      }
+      if (item.is_first === true) {
+        classes.push('first');
+      }
+      if (item.is_today >= 2) {
+        classes.push('later');
+      }
+      if (item.is_wait === true) {
+        classes.push('wait');
+      }
+      if (item.is_non_task === true) {
+        classes.push('non_task');
+      }
+      if (item.is_doing === true) {
+        classes.push('now');
+      }
+      if (item.url !== '') {
+        classes.push('has_url');
+      }
+      return classes;
+    },
+    function(item) {
+      // 更新日表示判定
+      if (item.is_wait === true) {
+        return true;
+      }
+      return false;
+    },
+    function() {
+      // アイテムが無いグループを表示するかどうか
+      return false;
+    }
+  );
+}
+
+/**
  * 今日のMustリストを更新
  */
-function update_todays_must_list()
-{
+function update_todays_must_list() {
   update_list_common(
     getInternalRawTasksData(), elem_id_list_today_must, null, '',
     function(item) {
@@ -2542,34 +2503,146 @@ function update_done_list() {
 /**
 * 明日のみリストを更新
 */
-function update_tomorrow_list() {
-  update_list_common(
-    getInternalRawTasksData(), elem_id_list_tomorrow, null, '',
-    function(item) {
-      // 表示条件
-      return (item.is_tomorrow);
-    },
-    function(item) {
-      // クラスリスト
+// function update_tomorrow_list() {
+//   update_list_common(
+//     getInternalRawTasksData(), elem_id_list_tomorrow, null, '',
+//     function(item) {
+//       // 表示条件
+//       return (item.is_tomorrow);
+//     },
+//     function(item) {
+//       // クラスリスト
+//       let classes = ["group_level1"];
+//       if (item.is_wait === true) {
+//         classes.push('wait');
+//       }
+//       if (item.url !== '') {
+//         classes.push('has_url');
+//       }
+//       return classes;
+//     },
+//     function(item) {
+//       // 更新日表示判定
+//       return false;
+//     },
+//     function() {
+//       // アイテムが無いグループを表示するかどうか
+//       return false;
+//     }
+//   );
+// }
+
+/**
+ * 重要度順のタスクリスト表示
+ */
+function update_priority_list() {
+  let list_data = getInternalRawTasksData();
+  let select = document.getElementById(elem_id_list_priority);
+  select.innerHTML = '';
+
+  // アイテムの要素一覧を作成
+  let elems = [];
+  let keys = get_internal_keys(null, null);
+  for (let i = 0 ; i < keys.length; i++) {
+    // サブタスクを確認
+    let items = list_data[keys[i]].sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      let item = items[j];
+
+      // 未処理以外は除外
+      if (item.status !== 'yet') {
+        continue;
+      }
+
+      // 重要度スコア計算
+      let score = calc_priority_score(item);
+      // リストへ追加
+      if (score <= 0) {
+        continue;
+      }
+
+      // classes
       let classes = ["group_level1"];
+      if (item.status === 'done') {
+        classes.push('done');
+      }
+      if (item.is_first === true) {
+        classes.push('first');
+      }
+      if (item.is_today >= 2) {
+        classes.push('later');
+      }
       if (item.is_wait === true) {
         classes.push('wait');
+      }
+      if (item.is_non_task === true) {
+        classes.push('non_task');
+      }
+      if (item.is_doing === true) {
+        classes.push('now');
       }
       if (item.url !== '') {
         classes.push('has_url');
       }
-      return classes;
-    },
-    function(item) {
-      // 更新日表示判定
-      return false;
-    },
-    function() {
-      // アイテムが無いグループを表示するかどうか
-      return false;
+      elems.push({score: score, element: make_option('(' + score + ") " + item.name, item, classes, false, false)});
     }
-  );
+  }
+
+  // score順にソート
+  elems.sort(compareFn_priority_score);
+
+  // エレメント追加
+  for (let k = 0; k < elems.length; k++) {
+    select.appendChild(elems[k].element);
+  }
 }
+
+/**
+* @summary 重要度データをスコアが高い順に順にソート 比較関数
+* @param データ1
+* @param データ2
+* @returns 結果(0:変更なし / <0:aをbの前に並べる / >0:aをbの後に並べる )
+*/
+function compareFn_priority_score(data1, data2) {
+  let score1 = data1.score;
+  let score2 = data2.score;
+ 
+  if (score1 > score2) {
+   return -1;
+  } else if (score1 < score2) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+ * 重要度スコア計算
+ * @param アイテムデータ
+ * @returns 重要度スコア
+ */
+function calc_priority_score(item) {
+  let score = 0;
+  // 重要
+  if (item.priority === true) {
+    score += 15;
+  }
+  // 期限
+  if (item.period !== '') {
+    let remain_days = get_days_from_today(item.period);
+    if (remain_days > 0) {
+      // 過去はmaxスコア
+      score += 10;
+    } else  {
+      let add_score = (10 + remain_days)
+      if (add_score > 0) {
+        score += add_score;
+      }
+    }
+    console.log(score, item.name, item.priority, item.period, remain_days);
+  }
+  return score;
+}
+
 
 /**
  * 今日の済みタスク表示チェックを更新
@@ -2695,18 +2768,19 @@ function set_group_select(elem_id, add_blank, selected_item_id= -1) {
 
 /**
   @summary  リストのoptionタグを生成
-  @param    dict
+  @param    表示文字列
+  @param    アイテムデータ
   @param    クラスリスト
   @param    グループかどうか
   @param    最終更新日を表示するかどうか
   @return   Element
  */
-function make_option(item, class_list, is_group_top, show_last_update) {
+function make_option(title, item, class_list, is_group_top, show_last_update) {
   const max_icon_num = 4; // icon数
   let elem = document.createElement("option");
 
   // text
-  let disp_text = item.name;
+  let disp_text = title;
   if (disp_text === '') {
     disp_text = '-';
   }
@@ -3669,7 +3743,7 @@ function copy_generate_password() {
  * @summary 全てのタスクをエクセルへ貼り付け可能なBLOB形式でコピー
  */
 function copy_all_task_blob() {
-  let html = get_html_table(true);
+  let html = get_html_table(true, true);
   // console.log(html);
   // document.getElementById('table_test').innerHTML = html; // test
   const item = new ClipboardItem({
@@ -3685,7 +3759,7 @@ function copy_all_task_blob() {
  * @param 非タスクの扱い(true:含めない / false:含める)
  * @returns HTMLテーブル
  */
-function get_html_table(ignre_non_task) {
+function get_html_table(ignre_non_task, ignre_done_task) {
   let html = '';
   let keys = get_internal_keys(null, 'string');
 
@@ -3739,6 +3813,10 @@ function get_html_table(ignre_non_task) {
       
       // 非タスクはスキップ
       if (ignre_non_task === true && item.is_non_task === true) {
+        continue;
+      }
+      // 済みタスクをスキップするかどうか
+      if (ignre_done_task === true && item.status === 'done') {
         continue;
       }
 
@@ -3841,6 +3919,8 @@ function show_edit_popup_single_ex(item_or_group, option) {
     document.getElementById("popup_edit_done_label").style.display = "none";
     // 待ち
     document.getElementById("popup_edit_wait_label").style.display = "none";
+    // 毎日
+    document.getElementById("popup_edit_everyday_label").style.display = "none";
     // 優先
     document.getElementById("popup_edit_priority_label").style.display = "none";
   }
@@ -3874,6 +3954,9 @@ function show_edit_popup_single_ex(item_or_group, option) {
     // 待ち
     document.getElementById("popup_edit_wait").checked = item.is_wait;
     document.getElementById("popup_edit_wait_label").style.display = "block";
+    // 毎日
+    document.getElementById("popup_edit_everyday").checked = item.is_everyday;
+    document.getElementById("popup_edit_everyday_label").style.display = "block";
     // 優先
     document.getElementById("popup_edit_priority").checked = item.priority;
     document.getElementById("popup_edit_priority_label").style.display = "block";
@@ -3902,21 +3985,34 @@ function show_edit_popup_single_ex(item_or_group, option) {
     document.getElementById("popup_edit_hidden_parent_elem_id").value = option.parent_elem_id;
   }
 
+  // 表示(非表示状態だと↓のclientHeightが取れない為、ここで表示)
+  elem.style.display = "block";
+
   // ポップアップの左上をリストの選択位置へ移動
+  let top, left = 0;
   if (option.parent_elem_id !== undefined) {
     let selected_elems = get_selected_option(option.parent_elem_id);
     if (selected_elems.length > 0) {
       let rect = selected_elems[0].getBoundingClientRect();
-      elem.style.top = rect.top;
-      elem.style.left = rect.right;
+      top = rect.top;
+      left = rect.right;
     }
   } else if (option.top !== undefined && option.left !== undefined) {
-      elem.style.top = option.top;
-      elem.style.left = option.left;
+      top = option.top;
+      left = option.left;
   }
+  // 表示位置調整
+  let top_most_bottom = window.innerHeight - document.getElementById('popup_edit_base').clientHeight;
+  if (top > top_most_bottom) {
+    top = top_most_bottom;
+  }
+  let left_most_left = window.innerWidth - document.getElementById('popup_edit_base').clientWidth;
+  if (left > left_most_left) {
+    left = left_most_left;
+  }
+  elem.style.top = top;
+  elem.style.left = left;
 
-  // 表示
-  elem.style.display = "block";
   // フォーカス移動
   document.getElementById("popup_edit_text").focus();
 
@@ -4057,6 +4153,7 @@ function submit_edit_popup() {
   let new_note = document.getElementById("popup_edit_note").value;
   let new_done = document.getElementById("popup_edit_done").checked;
   let new_wait = document.getElementById("popup_edit_wait").checked;
+  let new_everyday = document.getElementById("popup_edit_everyday").checked;
   let new_priority = document.getElementById("popup_edit_priority").checked;
   let new_ignore_table_copy = document.getElementById("popup_edit_ignore_tcopy").checked;
   let new_favorite = document.getElementById("popup_edit_favorite").checked;
@@ -4096,6 +4193,7 @@ function submit_edit_popup() {
     new_mail !== item.mail ||
     item.note !== new_note || 
     item.is_wait !== new_wait ||
+    item.is_everyday !== new_everyday ||
     (new_done && item.status !== 'done') ||
     (!new_done && item.status !== 'yet')
   )
@@ -4119,6 +4217,7 @@ function submit_edit_popup() {
     item.mail = new_mail;
     item.note = new_note;
     item.is_wait = new_wait;
+    item.is_everyday = new_everyday;
     item.priority = new_priority;
     if (new_done) {
       item.status = 'done';
@@ -4207,13 +4306,19 @@ function close_edit_popup() {
   let elem = document.getElementById("popup_edit_base");
   elem.style.display = "none";
 
-  // フォーカスをリストへ移動
-  if (g_show_popup_list !== null) {
-    document.getElementById(g_show_popup_list).focus();
+  // // フォーカスをリストへ移動
+  // if (g_show_popup_list !== null) {
+  //   document.getElementById(g_show_popup_list).focus();
+  // }
+
+  // ポップアップ起動元リストへフォーカス移動
+  let parent_elem_id = document.getElementById("popup_edit_hidden_parent_elem_id").value;
+  if (parent_elem_id !== "") {
+    document.getElementById(parent_elem_id).focus();
   }
 
   g_show_popup = false;
-  g_show_popup_list = null;
+  // g_show_popup_list = null;
 }
 
 /**
@@ -4403,6 +4508,9 @@ function show_timeline(mode, showNested)
 
   // Create a Timeline
   if (timeline !== null) {
+    let elem = document.getElementById('visualization');
+    console.log("(visualization) elem.scrollTop:", elem.scrollTop);
+
     // timeline.destroy();
     timeline.setData( {groups: groups, items: items });
     timeline.redraw();
@@ -4907,7 +5015,7 @@ function get_days(target1, target2, exclude_weekend) {
 
   // 週末考慮なしならそのまま返す
   if (!exclude_weekend) {
-    return Math.floor(diff_days);
+    return Math.floor(diff_days) * dist;
   }
 
   // 比較対象日が週末なら営業日まで進める
