@@ -168,6 +168,7 @@ document.getElementById(elem_id_list_stock).addEventListener("wheel", wheelhandl
 
 // Right Click
 document.getElementById(elem_id_list_stock).addEventListener("contextmenu", contextmenu_handler_list);
+document.getElementById(elem_id_list_everyday).addEventListener("contextmenu", contextmenu_handler_list);
 document.getElementById(elem_id_list_today_must).addEventListener("contextmenu", contextmenu_handler_list);
 document.getElementById(elem_id_list_today).addEventListener("contextmenu", contextmenu_handler_list);
 document.getElementById(elem_id_list_done).addEventListener("contextmenu", contextmenu_handler_list);
@@ -241,9 +242,12 @@ document.getElementById("popup_edit_note_add_btn").addEventListener("click", fun
 // メモ欄(Enterで編集完了)
 document.getElementById("popup_edit_note").addEventListener("keydown", function(event){
   switch (event.keyCode){
-    case key_enter:     // Enter
-      event.preventDefault();
-      submit_edit_popup();
+    case key_enter:     // Enter(修飾キーなし)
+      if (!event.altKey && !event.shiftKey && !event.ctrlKey) {
+        event.preventDefault();
+        submit_edit_popup();
+        break;
+      }
       break;
   }
 });
@@ -2357,8 +2361,8 @@ function update_todays_must_list() {
     getInternalRawTasksData(), elem_id_list_today_must, null, '',
     function(item) {
       // 表示条件
-      if (item.is_tomorrow) {
-        // 明日のタスク
+      if (item.is_tomorrow || item.is_everyday) {
+        // 明日のタスク or 毎日のタスクは表示しない
         return false;
       }
       if (!g_is_show_todays_done) {
@@ -2415,8 +2419,8 @@ function update_todays_list() {
     getInternalRawTasksData(), elem_id_list_today, null, '',
     function(item) {
       // 表示条件
-      if (item.is_tomorrow) {
-        // 明日のタスク
+      if (item.is_tomorrow || item.is_everyday) {
+        // 明日のタスク or 毎日のタスクは表示しない
         return false;
       }
       if (!g_is_show_todays_done) {
@@ -2547,6 +2551,7 @@ function update_priority_list() {
     // サブタスクを確認
     let items = list_data[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
+      let group  = list_data[keys[i]];
       let item = items[j];
 
       // 未処理以外は除外
@@ -2556,7 +2561,8 @@ function update_priority_list() {
 
       // 重要度スコア計算
       let score = calc_priority_score(item);
-      // リストへ追加
+
+      // スコアが0以下は追加しない
       if (score <= 0) {
         continue;
       }
@@ -2584,7 +2590,10 @@ function update_priority_list() {
       if (item.url !== '') {
         classes.push('has_url');
       }
-      elems.push({score: score, element: make_option('(' + score + ") " + item.name, item, classes, false, false)});
+
+      // 表示するグループ名作成
+      let group_name = ' 〰️ ' + group.name.substring(0,10) + '...';
+      elems.push({score: score, element: make_option('(' + score + ") " + item.name + group_name, item, classes, false, false)});
     }
   }
 
@@ -2638,7 +2647,7 @@ function calc_priority_score(item) {
         score += add_score;
       }
     }
-    console.log(score, item.name, item.priority, item.period, remain_days);
+    // console.log(score, item.name, item.priority, item.period, remain_days);
   }
   return score;
 }
@@ -4509,7 +4518,7 @@ function show_timeline(mode, showNested)
   // Create a Timeline
   if (timeline !== null) {
     let elem = document.getElementById('visualization');
-    console.log("(visualization) elem.scrollTop:", elem.scrollTop);
+    // console.log("(visualization) elem.scrollTop:", elem.scrollTop);
 
     // timeline.destroy();
     timeline.setData( {groups: groups, items: items });
@@ -4546,7 +4555,7 @@ function show_timeline(mode, showNested)
     });
     // ダブルクリックイベント登録
     timeline.on('doubleClick', function (properties) {
-      console.log("timeline dblclick" , properties.item);
+      // console.log("timeline dblclick" , properties.item);
       if (properties.item === null) {
         // 空欄をクリック. アイテム作成
         let item = makeInternalItem_ex("", genItemID());
@@ -4790,6 +4799,9 @@ function get_app_uri_scheme(url, app_type) {
   }
 
   // アプリ指定
+  if (app_type === 'web') {
+    return '';
+  }
   if (app_type === 'excel') {
     return 'ms-excel:ofe|u|';
   }
