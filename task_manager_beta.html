@@ -326,7 +326,8 @@
       </div>
       <div class="flex-box-vCenter">
         <span>検索</span>
-        <input type="text" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
+        <input list="stock_list_filter_select_items" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
+        <datalist id="stock_list_filter_select_items"></datalist>
       </div>
       <select id="stock_list" class="stock_list task_list" tabindex="10" multiple></select>
     </div>

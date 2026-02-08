@@ -106,6 +106,7 @@ document.getElementById("btn_input_json").addEventListener("click", regist_from_
 // stock list
 document.getElementById("copy_stock_list").addEventListener("click", copy_all_task_blob);
 document.getElementById("stock_list_filter_text").addEventListener("input", change_filter_text);
+document.getElementById("stock_list_filter_text").addEventListener("keydown", keyhandler_stock_list_filter_text);
 
 // todays list
 // document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
@@ -321,6 +322,19 @@ function keyhandler_body(event) {
     case key_l:    // L
       // 画面スクロールロック切り替え
       toggle_scroll_lock();
+      break;
+  }
+}
+
+/**
+ * @summary 全リスト フィルタテキスト入力欄
+ * @param イベント情報
+ */
+function keyhandler_stock_list_filter_text(event) {
+  switch (event.keyCode) {
+    case key_esc:       // ESC
+      event.preventDefault(); // 既定の動作をキャンセル
+      clear_filter_text();
       break;
   }
 }
@@ -2699,26 +2713,26 @@ function update_check_todays_lock() {
 /**
  * フィルターボタン生成
  */
-function make_filter_buttons() {
-  let elem_div = document.getElementById('set_filter_condition_div');
+// function make_filter_buttons() {
+//   let elem_div = document.getElementById('set_filter_condition_div');
   
-  // ボタン生成
-  // <button class="set_filter_condition set_filter_condition_on" value="">全て</button>
-  for (let i = 0; i < g_filters.length; i++) {
-    let elem_button = document.createElement("button");
-    elem_button.classList.add('set_filter_condition');
-    elem_button.value = g_filters[i];
-    elem_button.dataset.id = i;
-    if (g_filters[i] === '') {
-      elem_button.textContent = '全て';
-      elem_button.classList.add('set_filter_condition_on');
-    } else {
-      elem_button.textContent = g_filters[i];
-    }
-    elem_button.addEventListener("click", click_set_list_filter);
-    elem_div.appendChild(elem_button);
-  }
-}
+//   // ボタン生成
+//   // <button class="set_filter_condition set_filter_condition_on" value="">全て</button>
+//   for (let i = 0; i < g_filters.length; i++) {
+//     let elem_button = document.createElement("button");
+//     elem_button.classList.add('set_filter_condition');
+//     elem_button.value = g_filters[i];
+//     elem_button.dataset.id = i;
+//     if (g_filters[i] === '') {
+//       elem_button.textContent = '全て';
+//       elem_button.classList.add('set_filter_condition_on');
+//     } else {
+//       elem_button.textContent = g_filters[i];
+//     }
+//     elem_button.addEventListener("click", click_set_list_filter);
+//     elem_div.appendChild(elem_button);
+//   }
+// }
 
 /**
  * フィルターボタン生成
@@ -2802,6 +2816,18 @@ function set_group_select(elem_id, add_blank, selected_item_id= -1) {
 
   // グループリスト作成
   set_group_select_ex(elem_id, add_blank, select_group_id);
+}
+
+/**
+ * @summary 全リストの検索テキスト選択肢作成
+ */
+function set_stocklist_filter_text_items() {
+  let elem = document.getElementById("stock_list_filter_select_items");
+  for (let i = 0; i < g_StockListFilterTexts.length; i++) {
+    let option = document.createElement("option");
+    option.value = g_StockListFilterTexts[i];
+    elem.appendChild(option);
+  }
 }
 
 /**
@@ -5266,6 +5292,9 @@ make_filter_buttons_ex();
 
 // 検索用グループリスト作成
 // set_group_select("stock_list_group_list", true);
+
+// 全リストの検索選択肢を設定
+set_stocklist_filter_text_items();
 
 // 出社/在宅状況の表示
 read_work_schedule();
