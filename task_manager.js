@@ -68,7 +68,7 @@ var g_show_popup = false;
 var g_show_popup_list = null;
 
 // timeline Object
-var timeline = null;
+var g_timeline = null;
 // 表示する日付範囲
 const past_days = 2;
 const post_days = 8;
@@ -93,7 +93,7 @@ const g_work_schedule_file = '../export/timeline_work_status.js'
 //---------------------------------------
 // Click Event
 document.getElementById(elem_id_list_stock).addEventListener("click", click_handler_stock_list);
-document.getElementById(elem_id_list_stock).addEventListener("dblclick", move_today_item);
+document.getElementById(elem_id_list_stock).addEventListener("dblclick", dblclick_handler_stock_list);
 document.getElementById(elem_id_list_today).addEventListener("dblclick", done_item);
 document.getElementById(elem_id_list_today).addEventListener("click", click_handler_todays_list);
 document.getElementById(elem_id_list_done).addEventListener("dblclick", return_item);
@@ -276,6 +276,30 @@ function click_handler_stock_list(event) {
 }
 
 /**
+ * @summary Allリスト ダブルクリックイベント
+ */
+function dblclick_handler_stock_list(event) {
+  if (event.target.dataset.id === "") {
+    // 未選択
+    return;
+  }
+
+  let item = getInternal(parseInt(event.target.dataset.id));
+  if (item === null) {
+    return;
+  }
+  if (item.type === 'item') {
+    // 編集ポップアップを表示
+    show_edit_popup(elem_id_list_stock);
+  } else if (item.type === 'group') {
+    // グループ名を完全一致でフィルタ
+    g_stock_filter = {group_name: '^' + RegExp.escape(item.name) + '$', item_name: ''};
+    update_stock_list(g_stock_filter);
+    show_timeline();
+  }
+}
+
+/**
  * @summary 今日のリスト クリックイベント
  */
 function click_handler_todays_list(event) {
@@ -448,10 +472,14 @@ function keyhandler_stock_list(event) {
       break
     case key_s:           // s
       if (event.shiftKey) {
-        // ALLリストの選択アイテムを、今日/済み/明日のリスト内を探して選択
+        // アイテム選択を同期
         event.preventDefault(); // 既定の動作をキャンセル
         let id = get_select_id(elem_id);
         if (id !== null) {
+          // タイムライン上のアイテムを選択
+          g_timeline.setSelection(id);
+
+          // ALLリストの選択アイテムを、今日/済み/明日のリスト内を探して選択
           let is_sel = set_select(elem_id_list_today, id, true, true);
           if (!is_sel) {
             is_sel = set_select(elem_id_list_today_must, id, true, true);
@@ -1204,7 +1232,7 @@ function setInternalGroup(key, group_data) {
 
 /**
  * @summary 内部データのキーリストを返す
- * @param フィルタ情報(グループに対して適用)
+ * @param フィルタ情報(グループに対して適用) (null | { group_name:[グループ名(正規表現)], is_group_favorite:[true|false] })
  * @param ソート種類 (null:なし, 'string':文字列順, 'period':期限の早い順)
  * @return キー一覧
  */
@@ -1224,7 +1252,8 @@ function get_internal_keys(filter, sort_type) {
     }
     // グループ名フィルタ一致確認
     if (filter !== null && filter.group_name !== '') {
-      if (new RegExp(filter.group_name.toLowerCase()).test(group.name.toLowerCase())) {
+      // 大文字/小文字区別なし
+      if (new RegExp(filter.group_name, 'i').test(group.name)) {
         ary.push({ key: keys[i], name: group.name, period: group.period });
       }
     } else {
@@ -3050,12 +3079,18 @@ function move_today_item() {
   // リストから選択アイテムを取得
   let id = get_select_id(elem_id_list_stock);
   if (id === null) {
-    // グループを選択している
+    // 未選択
     return;
   }
 
   // idから内部データの配列を取得し、ステータスを変更
   let item = getInternal(id);
+
+  if(item.type === 'group') {
+    // グループの場合は何もしない
+    return;
+  }
+
   if (item.is_today >= 1) {
     // すでに今日のタスクの場合は何もしない
     return;
@@ -4516,23 +4551,23 @@ function show_timeline(mode, showNested)
   };
 
   // Create a Timeline
-  if (timeline !== null) {
+  if (g_timeline !== null) {
     let elem = document.getElementById('visualization');
     // console.log("(visualization) elem.scrollTop:", elem.scrollTop);
 
-    // timeline.destroy();
-    timeline.setData( {groups: groups, items: items });
-    timeline.redraw();
+    // g_timeline.destroy();
+    g_timeline.setData( {groups: groups, items: items });
+    g_timeline.redraw();
     // 更新前に選択していたアイテムを再選択
     if (g_timeline_selected_itemid !== null) {
-      timeline.setSelection(g_timeline_selected_itemid);
+      g_timeline.setSelection(g_timeline_selected_itemid);
     }
   }
   else {
-    timeline = new vis.Timeline(container, items, groups, options);
+    g_timeline = new vis.Timeline(container, items, groups, options);
 
     // クリックイベント登録
-    timeline.on('select', function (properties) {
+    g_timeline.on('select', function (properties) {
       // 2回イベント発生するため、抑制 (クリックすると press, tap の2回呼ばれる)
       console.log(properties.event.type);
       if (properties.event.type !== 'tap') {
@@ -4554,7 +4589,7 @@ function show_timeline(mode, showNested)
       }
     });
     // ダブルクリックイベント登録
-    timeline.on('doubleClick', function (properties) {
+    g_timeline.on('doubleClick', function (properties) {
       // console.log("timeline dblclick" , properties.item);
       if (properties.item === null) {
         // 空欄をクリック. アイテム作成
@@ -5230,7 +5265,7 @@ update_check_todays_lock();
 make_filter_buttons_ex();
 
 // 検索用グループリスト作成
-set_group_select("stock_list_group_list", true);
+// set_group_select("stock_list_group_list", true);
 
 // 出社/在宅状況の表示
 read_work_schedule();
