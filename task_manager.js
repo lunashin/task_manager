@@ -223,6 +223,45 @@ document.getElementById("popup_button_date_clear").addEventListener("click", fun
 document.getElementById("popup_edit_date").addEventListener("change", updateWeekDay);
 document.getElementById("popup_edit_date").addEventListener("input", updateWeekDay);
 
+// 期限(終了)（今日にセットするボタン）
+document.getElementById("popup_button_date_end_set_today").addEventListener("click", function(){
+  document.getElementById("popup_edit_date_end").value = get_today_str(true, false, true).replaceAll('/','-');
+});
+// 期限(終了)（+1日するボタン）
+document.getElementById("popup_button_date_end_inc").addEventListener("click", function(){
+  let date_str = document.getElementById("popup_edit_date_end").value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
+  }
+  let ret = addDays_s(new Date(date_str), 1, true);
+  document.getElementById("popup_edit_date_end").value = ret.replaceAll('/','-');
+});
+// 期限(終了)（+1Wするボタン）
+document.getElementById("popup_button_date_end_inc1w").addEventListener("click", function(){
+  let date_str = document.getElementById("popup_edit_date_end").value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
+  }
+  let ret = addDays_s(new Date(date_str), 7, true);
+  document.getElementById("popup_edit_date_end").value = ret.replaceAll('/','-');
+});
+// 期限(終了)（+1Mするボタン）
+document.getElementById("popup_button_date_end_inc1m").addEventListener("click", function(){
+  let date_str = document.getElementById("popup_edit_date_end").value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
+  }
+  let ret = addMonths_s(new Date(date_str), 1, true);
+  document.getElementById("popup_edit_date_end").value = ret.replaceAll('/','-');
+});
+// 期限(終了)（Clearボタン）
+document.getElementById("popup_button_date_end_clear").addEventListener("click", function(){
+  document.getElementById("popup_edit_date_end").value = '';
+});
+// 期限変更イベント(曜日を表示)
+document.getElementById("popup_edit_date_end").addEventListener("change", updateWeekDay);
+document.getElementById("popup_edit_date_end").addEventListener("input", updateWeekDay);
+
 
 // メモ追加ボタン
 document.getElementById("popup_edit_note_add_btn").addEventListener("click", function(){
@@ -1892,6 +1931,10 @@ function adjust_attr_internal_data() {
       // period
       if (item.period === undefined) {
         item.period = '';
+      }
+      // period End
+      if (item.period_end === undefined) {
+        item.period_end = '';
       }
       // created
       if (item.created === undefined) {
@@ -4030,6 +4073,9 @@ function show_edit_popup_single_ex(item_or_group, option) {
     // 優先
     document.getElementById("popup_edit_priority").checked = item.priority;
     document.getElementById("popup_edit_priority_label").style.display = "block";
+    // 期限(終了)
+    document.getElementById("popup_edit_date_end").value = item.period_end.replaceAll('/','-');
+
     // Tコピー除外 (非表示)
     document.getElementById("popup_edit_ignore_tcopy_label").style.display = "none";
     // お気に入り (非表示)
@@ -4042,7 +4088,7 @@ function show_edit_popup_single_ex(item_or_group, option) {
   // 期限
   document.getElementById("popup_edit_date").value = item.period.replaceAll('/','-');
 
-  // 期限
+  // 作成日
   document.getElementById("popup_edit_created").value = item.created;
 
   // ID 
@@ -4217,6 +4263,7 @@ function show_edit_popup_multi(elem_id, selected_ids) {
 function submit_edit_popup() {
   let new_name = document.getElementById("popup_edit_text").value;
   let new_period = document.getElementById("popup_edit_date").value;
+  let new_period_end = document.getElementById("popup_edit_date_end").value;
   let new_url = document.getElementById("popup_edit_url").value;
   let new_url_app_type = document.getElementById("popup_edit_form").elements['url_app_type'].value;
   let new_mail = document.getElementById("popup_edit_mail").value;
@@ -4234,6 +4281,7 @@ function submit_edit_popup() {
   let id_edit = parseInt(id_edit_str);
 
   new_period = new_period.replaceAll('-', '/');
+  new_period_end = new_period_end.replaceAll('-', '/');
   new_name = new_name.trim();
 
   pushHistory();
@@ -4249,6 +4297,7 @@ function submit_edit_popup() {
   let update_timeline = (
     item.name.trim() !== new_name || 
     item.period !== new_period || 
+    item.period_end !== new_period_end ||
     item.note !== new_note || 
     item.is_wait !== new_wait ||
     item.priority !== new_priority ||
@@ -4271,6 +4320,7 @@ function submit_edit_popup() {
   // アイテム更新
   item.name = new_name;
   item.period = new_period;
+  item.period_end = new_period_end;
 
   if (item.type === 'group') {
     // Tコピー除外
