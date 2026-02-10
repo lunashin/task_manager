@@ -1722,6 +1722,7 @@ function makeInternalItem_ex(name, id) {
     type: 'item', 
     name: name, 
     period: '',
+    period_end: '',
     url: '',
     url_app_type: 'auto',
     // is_open_app: false,
@@ -3618,7 +3619,7 @@ function open_select_items_url(elem_id) {
     return;
   }
   if (item.url !== '' ) {
-    let url = get_app_uri_scheme(item.url, item.url_app_type) + item.url;
+    let url = get_app_url(item.url, item.url_app_type);
     open_url(url);
   }
 }
@@ -4885,8 +4886,22 @@ function load_script(filename, fn) {
  * @param URL
  */
 function open_url(url) {
-  console.log('open url: ' + url);
+  // console.log('open url: ' + url);
   window.open(url, '_blank');
+}
+
+/**
+ * @summary URL取得(オプションによりMSアプリ起動のURIスキームを考慮)
+ * @param URL
+ * @param アプリ種類(auto, excel, powerpoint, word)
+ * @returns URL
+ */
+function get_app_url(url, app_type) {
+  let uri_scheme = get_app_uri_scheme(url, app_type);
+  if (uri_scheme === 'msteams://') {
+    return url.replace('https://', uri_scheme);
+  }
+  return uri_scheme + url;
 }
 
 /**
@@ -4906,6 +4921,9 @@ function get_app_uri_scheme(url, app_type) {
     }
     if (new RegExp('\.docx[\?|&]').test(url)) {
       return 'ms-word:ofe|u|';
+    }
+    if (new RegExp('\.teams\.microsoft\.com\.').test(url)) {
+      return 'msteams://';
     }
   }
 
