@@ -4559,7 +4559,14 @@ function make_timeline_items(is_one_group)
       if (!is_one_group) {
         timeline_group_id = group.id;
       }
-      ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
+      if (item.period === item.period_end || item.period_end === '') {
+        // 開始日のみ
+        ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
+      } else {
+        // 終了日あり
+        let period_end = item.period_end + ' 12:00';
+        ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, end: period_end, type: 'range', className: className } );
+      }
     }
   }
   return ret;
@@ -4622,6 +4629,9 @@ function show_timeline(mode, showNested)
       let item = getInternal(target.id);
       if (item !== null) {
         item.period = get_date_str(target.start, true, false, true, true);
+        if (target.end !== undefined) {
+          item.period_end = get_date_str(target.end, true, false, true, true);
+        }
       }
       callback(target);
     }
