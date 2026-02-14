@@ -157,7 +157,11 @@
         /* today */
         .vis-grid.vis-today {background: rgb(146, 239, 255);}
 
-        /* timeline item style */
+        /* item(range) */
+        .vis-item { background-color: #cbf8cf; }
+        .vis-item { border-color: #1e7626; }
+
+        /* item style */
         .timeline_item_group { font-size: 110%; font-weight: bold; }      /* グループ名 */ 
         .timeline_item_item { font-size: 80%; color:blue }              /* アイテム名 */
         .timeline_item_item .vis-item-content > div { color: black; }   /* アイテムの上に表示するグループ名 */
@@ -444,6 +448,8 @@
         <div class="border2">
           <button id="save" class="button-large">保存</button>
           <button id="load" class="button-large">読込み</button>
+          <input class="checkbox_ex" id="auto_save" type="checkbox">
+          <label class="checkbox_ex" id="auto_save_label" for="auto_save">自動保存</label>
         </div>
       </span>
 
