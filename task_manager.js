@@ -4572,21 +4572,8 @@ function make_timeline_items(is_one_group)
     //   continue;
     // }
 
-    // グループデータを追加
-    if (group.period !== undefined && group.period !== '') {
-      let name = keys[i];
-      if (group.name !== undefined) {
-        name = group.name;
-      }
-      let period = group.period + ' 12:00';
-      let period_disp = new Date(group.period).getMonth()+1 + '/' + new Date(group.period).getDate();
-      // Timeline Group ID
-      let timeline_group_id = group_id_default;
-      if (!is_one_group) {
-        timeline_group_id = group.id;
-      }
-      ret.push( { group: timeline_group_id, id: group.id, content: name, title: period_disp + ' ' + name, start: period, type: 'point', className: 'timeline_item_group' } );
-    }
+    let date_head = '';   // 最も早い日時
+    let date_tail = '';   // 最も遅い日時
 
     // アイテムデータを追加
     for (let j = 0; j < group.sub_tasks.length; j++) {
@@ -4627,11 +4614,12 @@ function make_timeline_items(is_one_group)
       if (item.is_wait) {
         name += get_after_icons(item);
       }
-      // Timeline Group ID
+      // グループID
       let timeline_group_id = group_id_default;
       if (!is_one_group) {
         timeline_group_id = group.id;
       }
+      // 日時
       if (item.period === item.period_end || item.period_end === '') {
         // 開始日のみ
         ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
@@ -4640,7 +4628,48 @@ function make_timeline_items(is_one_group)
         let period_end = item.period_end + ' 12:00';
         ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, end: period_end, type: 'range', className: className } );
       }
+
+      // 最初と最後の日付を確保
+      if (date_head === '') {
+        date_head = item.period;
+      } else {
+        if (new Date(item.period) < new Date(date_head)) {
+          date_head = item.period;
+        }
+        // 終了日
+        if (date_tail === '') {
+          date_tail = item.period_end !== '' ? item.period_end : item.period;
+        } else {
+          let temp_date_tail = item.period_end !== '' ? item.period_end : item.period;
+          if (new Date(temp_date_tail) > new Date(date_tail)) {
+            date_tail = temp_date_tail;
+          }
+        }
+      }
     }
+    // console.log("date_head, date_tail");
+    // console.log(date_head, date_tail);
+
+    // グループデータを追加(ガントチャートの親っぽいオブジェクト)
+    if (date_head !== '' && date_tail !== '' && date_head !== date_tail) {
+      // 表示テキスト
+      let name = keys[i];
+      if (group.name !== undefined) {
+        name = group.name;
+      }
+      // 開始日/終了日
+      let start = date_head + ' 11:50';   // 最上部に表示する為、最速の日時にする
+      let end = date_tail + ' 12:00';
+      // マウスオーバー時に表示するテキスト
+      let period_disp = `${new Date(date_head).getMonth()+1}/${new Date(date_head).getDate()}〜${new Date(date_tail).getMonth()+1}/${new Date(date_tail).getDate()} ${name}`;
+      // グループID
+      let timeline_group_id = group_id_default;
+      if (!is_one_group) {
+        timeline_group_id = group.id;
+      }
+      ret.push( { group: timeline_group_id, id: group.id, content: name, title: period_disp, start: start, end: end, type: 'range', className: 'timeline_item_group', editable: false } );
+    }
+
   }
   return ret;
 }
