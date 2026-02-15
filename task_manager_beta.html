@@ -526,24 +526,24 @@
       </div>
 
       <div class="flex-box-vCenter">
-        <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" >
+        <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" data-weekday_elem="popup_edit_week_day" >
         <div id="popup_edit_week_day"></div>
-        <input id="popup_button_set_today" type="button" value="今日" >
-        <input id="popup_button_date_inc" type="button" value="+1d" >
-        <input id="popup_button_date_inc1w" type="button" value="+1w" >
-        <input id="popup_button_date_inc1m" type="button" value="+1M" >
+        <input id="popup_button_set_today" type="button" value="今日" data-target="popup_edit_date" >
+        <input id="popup_button_date_inc" type="button" value="+1d" data-inc_date="1" data-target="popup_edit_date" >
+        <input id="popup_button_date_inc1w" type="button" value="+1w" data-inc_date="7" data-target="popup_edit_date" >
+        <input id="popup_button_date_inc1m" type="button" value="+1M" data-target="popup_edit_date" >
         &nbsp;&nbsp;
-        <input id="popup_button_date_clear" type="button" value=" C " >
+        <input id="popup_button_date_clear" type="button" value=" C " data-target="popup_edit_date" >
       </div>
       <div class="flex-box-vCenter">
-        <input id="popup_edit_date_end" type="date" name="period_end" value="2018-07-22" min="2023-11-01" max="2030-12-31" >
+        <input id="popup_edit_date_end" type="date" name="period_end" value="2018-07-22" min="2023-11-01" max="2030-12-31" data-weekday_elem="popup_edit_date_end_week_day" >
         <div id="popup_edit_date_end_week_day"></div>
-        <input id="popup_button_date_end_set_today" type="button" value="今日" >
-        <input id="popup_button_date_end_inc" type="button" value="+1d" >
-        <input id="popup_button_date_end_inc1w" type="button" value="+1w" >
-        <input id="popup_button_date_end_inc1m" type="button" value="+1M" >
+        <input id="popup_button_date_end_set_today" type="button" value="今日" data-target="popup_edit_date_end" >
+        <input id="popup_button_date_end_inc" type="button" value="+1d" data-inc_date="1" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
+        <input id="popup_button_date_end_inc1w" type="button" value="+1w" data-inc_date="7" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
+        <input id="popup_button_date_end_inc1m" type="button" value="+1M" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
         &nbsp;&nbsp;
-        <input id="popup_button_date_end_clear" type="button" value=" C " >
+        <input id="popup_button_date_end_clear" type="button" value=" C " data-target="popup_edit_date_end" >
       </div>
 
       <div class="flex-box">

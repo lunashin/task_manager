@@ -80,6 +80,8 @@ const past_days = 2;
 const post_days = 8;
 // 選択アイテム
 var g_timeline_selected_itemid = null;
+// タイムライン表示更新 遅延実行時間(タイムライン上での変更操作による)
+const REFRESH_TIMELINE_DELAY = 100;
 
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
@@ -191,83 +193,27 @@ document.getElementById("popup_button_copy_url").addEventListener("click", funct
   navigator.clipboard.writeText(url);
   copy_animation2(this);
 });
-// 期限（今日にセットするボタン）
-document.getElementById("popup_button_set_today").addEventListener("click", function(){
-  document.getElementById("popup_edit_date").value = get_today_str(true, false, true).replaceAll('/','-');
-});
-// 期限（+1日するボタン）
-document.getElementById("popup_button_date_inc").addEventListener("click", function(){
-  let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
-  if (date_str === '') {
-    date_str = get_today_str(true, false, true).replaceAll('/','-');
-  }
-  let ret = addDays_s(new Date(date_str), 1, true);
-  document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
-});
-// 期限（+1Wするボタン）
-document.getElementById("popup_button_date_inc1w").addEventListener("click", function(){
-  let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
-  if (date_str === '') {
-    date_str = get_today_str(true, false, true).replaceAll('/','-');
-  }
-  let ret = addDays_s(new Date(date_str), 7, true);
-  document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
-});
-// 期限（+1Mするボタン）
-document.getElementById("popup_button_date_inc1m").addEventListener("click", function(){
-  let date_str = document.getElementById("popup_edit_date").value.replaceAll('-','/');
-  if (date_str === '') {
-    date_str = get_today_str(true, false, true).replaceAll('/','-');
-  }
-  let ret = addMonths_s(new Date(date_str), 1, true);
-  document.getElementById("popup_edit_date").value = ret.replaceAll('/','-');
-});
-// 期限（Clearボタン）
-document.getElementById("popup_button_date_clear").addEventListener("click", function(){
-  document.getElementById("popup_edit_date").value = '';
-});
-// 期限変更イベント(曜日を表示)
-document.getElementById("popup_edit_date").addEventListener("change", updateWeekDay);
-document.getElementById("popup_edit_date").addEventListener("input", updateWeekDay);
 
-// 期限(終了)（今日にセットするボタン）
-document.getElementById("popup_button_date_end_set_today").addEventListener("click", function(){
-  document.getElementById("popup_edit_date_end").value = get_today_str(true, false, true).replaceAll('/','-');
-});
-// 期限(終了)（+1日するボタン）
-document.getElementById("popup_button_date_end_inc").addEventListener("click", function(){
-  let date_str = document.getElementById("popup_edit_date_end").value.replaceAll('-','/');
-  if (date_str === '') {
-    date_str = get_today_str(true, false, true).replaceAll('/','-');
-  }
-  let ret = addDays_s(new Date(date_str), 1, true);
-  document.getElementById("popup_edit_date_end").value = ret.replaceAll('/','-');
-});
-// 期限(終了)（+1Wするボタン）
-document.getElementById("popup_button_date_end_inc1w").addEventListener("click", function(){
-  let date_str = document.getElementById("popup_edit_date_end").value.replaceAll('-','/');
-  if (date_str === '') {
-    date_str = get_today_str(true, false, true).replaceAll('/','-');
-  }
-  let ret = addDays_s(new Date(date_str), 7, true);
-  document.getElementById("popup_edit_date_end").value = ret.replaceAll('/','-');
-});
-// 期限(終了)（+1Mするボタン）
-document.getElementById("popup_button_date_end_inc1m").addEventListener("click", function(){
-  let date_str = document.getElementById("popup_edit_date_end").value.replaceAll('-','/');
-  if (date_str === '') {
-    date_str = get_today_str(true, false, true).replaceAll('/','-');
-  }
-  let ret = addMonths_s(new Date(date_str), 1, true);
-  document.getElementById("popup_edit_date_end").value = ret.replaceAll('/','-');
-});
-// 期限(終了)（Clearボタン）
-document.getElementById("popup_button_date_end_clear").addEventListener("click", function(){
-  document.getElementById("popup_edit_date_end").value = '';
-});
+// 期限（今日にセットするボタン）
+document.getElementById("popup_button_set_today").addEventListener("click", click_handler_period_today);
+document.getElementById("popup_button_date_end_set_today").addEventListener("click", click_handler_period_today);
+// 期限（+1日するボタン）
+document.getElementById("popup_button_date_inc").addEventListener("click", click_handler_period_inc_xxx_day);
+document.getElementById("popup_button_date_end_inc").addEventListener("click", click_handler_period_inc_xxx_day);
+// 期限（+1Wするボタン）
+document.getElementById("popup_button_date_inc1w").addEventListener("click", click_handler_period_inc_xxx_day);
+document.getElementById("popup_button_date_end_inc1w").addEventListener("click", click_handler_period_inc_xxx_day);
+// 期限（+1Mするボタン）
+document.getElementById("popup_button_date_inc1m").addEventListener("click", click_handler_period_inc_1m);
+document.getElementById("popup_button_date_end_inc1m").addEventListener("click", click_handler_period_inc_1m);
+// 期限（Clearボタン）
+document.getElementById("popup_button_date_clear").addEventListener("click", click_handler_period_clear);
+document.getElementById("popup_button_date_end_clear").addEventListener("click", click_handler_period_clear);
 // 期限変更イベント(曜日を表示)
-document.getElementById("popup_edit_date_end").addEventListener("change", updateWeekDay);
-document.getElementById("popup_edit_date_end").addEventListener("input", updateWeekDay);
+document.getElementById("popup_edit_date").addEventListener("change", change_handler_period_refresh_weekday);
+document.getElementById("popup_edit_date").addEventListener("input", change_handler_period_refresh_weekday);
+document.getElementById("popup_edit_date_end").addEventListener("change", change_handler_period_refresh_weekday);
+document.getElementById("popup_edit_date_end").addEventListener("input", change_handler_period_refresh_weekday);
 
 
 // メモ追加ボタン
@@ -851,6 +797,80 @@ function clear_filter_text() {
   elem.dispatchEvent(inputEvent);
 }
 
+/**
+ * 編集ポップアップ内の期限設定ボタン（今日にセットするボタン）
+ */
+function click_handler_period_today(event) {
+  let target_elem_id = event.target.dataset.target;
+  document.getElementById(target_elem_id).value = get_today_str(true, false, true).replaceAll('/','-');
+}
+
+/**
+ * 編集ポップアップ内の期限設定ボタン（+1日/+1wするボタン）
+ */
+function click_handler_period_inc_xxx_day(event) {
+  let target_elem_id = event.target.dataset.target;
+  let target_elem = document.getElementById(target_elem_id);
+
+  let date_str = target_elem.value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
+    // 基準となる日時を取得(data-from_target タグ)
+    if (event.target.dataset.from_target !== undefined) {
+      let date_temp = document.getElementById(event.target.dataset.from_target).value.replaceAll('-','/');
+      if (date_temp !== '') {
+        date_str = date_temp;
+      }
+    }
+  }
+  // data-inc_date タグから加算する日数を取得し、加算
+  let ret = addDays_s(new Date(date_str), parseInt(event.target.dataset.inc_date), true);
+  target_elem.value = ret.replaceAll('/','-');
+}
+
+/**
+ * 編集ポップアップ内の期限設定ボタン（+1mするボタン）
+ */
+function click_handler_period_inc_1m(event) {
+  let target_elem_id = event.target.dataset.target;
+  let target_elem = document.getElementById(target_elem_id);
+
+  let date_str = target_elem.value.replaceAll('-','/');
+  if (date_str === '') {
+    date_str = get_today_str(true, false, true).replaceAll('/','-');
+    // 基準となる日時を取得(data-from_target タグ)
+    if (event.target.dataset.from_target !== undefined) {
+      let date_temp = document.getElementById(event.target.dataset.from_target).value.replaceAll('-','/');
+      if (date_temp !== '') {
+        date_str = date_temp;
+      }
+    }
+  }
+  // 日数加算
+  let ret = addMonths_s(new Date(date_str), 1, true);
+  target_elem.value = ret.replaceAll('/','-');
+}
+
+/**
+ * 編集ポップアップ内の期限設定ボタン（Clearボタン）
+ */
+function click_handler_period_clear(event) {
+  let target_elem_id = event.target.dataset.target;
+  document.getElementById(target_elem_id).value = '';
+}
+
+/**
+ * 編集ポップアップ内の期限変更イベント(曜日を更新)
+ */
+function change_handler_period_refresh_weekday(event) {
+  change_handler_period_refresh_weekday_for_hook(event.target);
+}
+function change_handler_period_refresh_weekday_for_hook(elem) {
+  let weekday_elem_id = elem.dataset.weekday_elem;
+  const val = elem.value; // "YYYY-MM-DD" 形式
+  let weekday_str = getWeekDayStr(val);
+  document.getElementById(weekday_elem_id).textContent = weekday_str;
+}
 
 
 
@@ -4233,27 +4253,31 @@ function show_edit_popup_single(selected_id, option) {
 }
 
 /**
- * @summary ポップアップ内 期限の曜日を更新
+ * @summary 日付文字列から曜日を取得
+ * @param 日付文字列(YYYY-MM-DD)
  */
-function updateWeekDay() {
+function getWeekDayStr(date_str) {
   // 曜日リスト（日曜始まり）
   const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-  const weekDayDiv = document.getElementById("popup_edit_week_day");
-
-  const val = document.getElementById("popup_edit_date").value; // "YYYY-MM-DD" 形式
-  if (!val) {
-    weekDayDiv.textContent = "(ー)";
-    return;
+  if (!date_str) {
+    return "(ー)";
   }
-  const d = new Date(val);
+  const d = new Date(date_str);
   const w = weekdays[d.getDay()];
-  weekDayDiv.textContent = `(${w})`;
+  return `(${w})`;
 }
 
 /**
  * @summary ポップアップの期限をjsで変更した場合のイベントフック
  */
-(function hookValueSetterOnce(el) {
+(function (el) {
+  hookValueSetterOnce(el);
+})(document.getElementById("popup_edit_date"));
+(function (el) {
+  hookValueSetterOnce(el);
+})(document.getElementById("popup_edit_date_end"));
+
+function hookValueSetterOnce(el) {
   try {
     const proto = Object.getPrototypeOf(el);
     const desc  = Object.getOwnPropertyDescriptor(proto, "value");
@@ -4262,13 +4286,12 @@ function updateWeekDay() {
         configurable: true,
         enumerable:   desc.enumerable,
         get()  { return desc.get.call(el); },
-        set(v) { desc.set.call(el, v); updateWeekDay(); }
+        set(v) { desc.set.call(el, v); change_handler_period_refresh_weekday_for_hook(el); }
       });
     }
   } catch (e) {
   }
-})(document.getElementById("popup_edit_date"));
-
+}
 
 /**
  * @summary 編集ポップアップ表示(複数用)
@@ -4425,13 +4448,13 @@ function submit_edit_popup() {
     let elem_groups = document.getElementById("popup_edit_group_list");
     let elem_sel_group_option = get_selected_element('popup_edit_group_list');
     if (elem_sel_group_option.dataset.id !== elem_groups.dataset.orgid) {
-        // グループ変更があれば移動
-        // 複製
-        let item_copy = JSON.parse(JSON.stringify(item));
-        // 削除
-        removeIntarnalData(item.id);
-        // 追加
-        addIntarnalDatasToGroup(parseInt(elem_sel_group_option.dataset.id), [item_copy], false);
+      // グループ変更があれば移動
+      // 複製
+      let item_copy = JSON.parse(JSON.stringify(item));
+      // 削除
+      removeIntarnalData(item.id);
+      // 追加
+      addIntarnalDatasToGroup(parseInt(elem_sel_group_option.dataset.id), [item_copy], false);
     }
   }
 
@@ -4568,9 +4591,6 @@ function make_timeline_items(is_one_group)
   let keys = get_internal_keys(g_stock_filter, null);
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
-    // if (group.period === undefined || group.period === '') {
-    //   continue;
-    // }
 
     let date_head = '';   // 最も早い日時
     let date_tail = '';   // 最も遅い日時
@@ -4629,21 +4649,22 @@ function make_timeline_items(is_one_group)
         ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, end: period_end, type: 'range', className: className } );
       }
 
-      // 最初と最後の日付を確保
+      // グループ内の最初と最後の日付を確保
+      // 最初の日付
       if (date_head === '') {
         date_head = item.period;
       } else {
         if (new Date(item.period) < new Date(date_head)) {
           date_head = item.period;
         }
-        // 終了日
-        if (date_tail === '') {
-          date_tail = item.period_end !== '' ? item.period_end : item.period;
-        } else {
-          let temp_date_tail = item.period_end !== '' ? item.period_end : item.period;
-          if (new Date(temp_date_tail) > new Date(date_tail)) {
-            date_tail = temp_date_tail;
-          }
+      }
+      // 最後の日付
+      if (date_tail === '') {
+        date_tail = item.period_end !== '' ? item.period_end : item.period;
+      } else {
+        let temp_date_tail = item.period_end !== '' ? item.period_end : item.period;
+        if (new Date(temp_date_tail) > new Date(date_tail)) {
+          date_tail = temp_date_tail;
         }
       }
     }
@@ -4669,7 +4690,6 @@ function make_timeline_items(is_one_group)
       }
       ret.push( { group: timeline_group_id, id: group.id, content: name, title: period_disp, start: start, end: end, type: 'range', className: 'timeline_item_group', editable: false } );
     }
-
   }
   return ret;
 }
@@ -4738,6 +4758,11 @@ function show_timeline(mode = 'all')
         }
       }
       callback(target);
+
+      // タイムライン更新(遅延更新)
+      setTimeout(() => {
+        show_timeline('item');
+      }, REFRESH_TIMELINE_DELAY);
     }
   };
 
