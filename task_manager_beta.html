@@ -110,11 +110,36 @@
         input.short-width { width: 50; }
 
         /* ----------- pupup ---------- */
-        .popup_edit { display: none; background-color: aquamarine; width: 320px; height: 270px; position: absolute; top:100px; left: 40px; }
+        .popup_edit { 
+          /* display: none; */
+          visibility:hidden;
+          opacity: 0;
+          background-color: aquamarine;
+          width: 340px;
+          height: 310px;
+          border-radius: 10px;
+          position: absolute;
+          top:100px;
+          left: 40px;
+          z-index: 2000;
+          transition-duration: 200ms;
+          transition-property: opacity;
+        }
         .popup_size_fit { width: 220px; }
         .button-small { width: 80; height: 30; font-size: 130%; }
         .popup_edit_note_button {height: 50px;}
 
+        /* 暗幕 */
+        .popup_bg_cover{
+          display: none;
+          position: fixed;
+          background: rgba(0, 0, 0, .3); /* 半透明の黒色 */
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          z-index: 1000; /* 要素をコンテンツより前面に（要調整） */
+        }
 
         /* ----------- pupup items note (mousehover) ---------- */
         .popup_items_note { 
@@ -592,6 +617,8 @@
   <!-- Popup -->
   <div id="popup_items_note" class="popup_items_note"></div>
 
+  <!-- ポップアップ表示時の暗幕 -->
+  <div id="popup_bg_cover" class="popup_bg_cover"></div>
   
   <!-- Copy Notifycation -->
   <div id="popup_copy_base" class="popup_copy">

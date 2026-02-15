@@ -4210,7 +4210,7 @@ function show_edit_popup_single_ex(item_or_group, option) {
   }
 
   // 表示(非表示状態だと↓のclientHeightが取れない為、ここで表示)
-  elem.style.display = "block";
+  // elem.style.display = "block";
 
   // ポップアップの左上をリストの選択位置へ移動
   let top, left = 0;
@@ -4236,6 +4236,11 @@ function show_edit_popup_single_ex(item_or_group, option) {
   }
   elem.style.top = top;
   elem.style.left = left;
+
+  // 表示
+  document.getElementById("popup_bg_cover").style.display = 'block';
+  elem.style.visibility = "visible";
+  elem.style.opacity= "1";
 
   // フォーカス移動
   document.getElementById("popup_edit_text").focus();
@@ -4360,7 +4365,11 @@ function show_edit_popup_multi(elem_id, selected_ids) {
   }
 
   // 表示
-  elem.style.display = "block";
+  // elem.style.display = "block";
+  document.getElementById("popup_bg_cover").style.display = 'block';
+  elem.style.visibility = "visible";
+  elem.style.opacity= "1";
+
   // フォーカス移動
   document.getElementById("popup_edit_multi_done").focus();
 
@@ -4521,7 +4530,10 @@ function submit_edit_multi_popup() {
  */
 function close_edit_popup() {
   let elem = document.getElementById("popup_edit_base");
-  elem.style.display = "none";
+  // elem.style.display = "none";
+  elem.style.visibility = "hidden";
+  elem.style.opacity= "0";
+  document.getElementById("popup_bg_cover").style.display = 'none';
 
   // // フォーカスをリストへ移動
   // if (g_show_popup_list !== null) {
@@ -4543,7 +4555,10 @@ function close_edit_popup() {
  */
 function close_edit_multi_popup() {
   let elem = document.getElementById("popup_edit_multi_base");
-  elem.style.display = "none";
+  // elem.style.display = "none";
+  elem.style.visibility = "hidden";
+  elem.style.opacity= "0";
+  document.getElementById("popup_bg_cover").style.display = 'none';
 
   // フォーカスをリストへ移動
   if (g_show_popup_list !== null) {
