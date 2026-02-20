@@ -40,6 +40,7 @@ const g_filtersEx = [
   { name: '💤待ち', word: '', is_wait: true },
   { name: '🔴優先', word: '', priority: true },
   { name: '❤️', word: '', is_group_favorite: true },
+  { name: '今日', word: '', is_today: true },
 ];
 
 // 全リスト 検索文字列の選択肢

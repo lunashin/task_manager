@@ -54,7 +54,7 @@ var g_last_id = 0;
 
 // 全リストのフィルタ
 // {name: '[文字列]', has_url: [true|false], has_mail: [true|false], has_note: [true|false], is_wait: [true|false], priority:[true|false] };
-var g_stock_filter = {group_name: '', item_name: '' , has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false, is_group_favorite: false};
+var g_stock_filter = {group_name: '', item_name: '' , is_today: false, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false, is_group_favorite: false};
 var g_stock_filter_id = 0;
 
 // 編集履歴
@@ -777,7 +777,7 @@ function change_filter_text(event) {
   console.log(event.target.value);
 
   // フィルタ条件変更
-  g_stock_filter = {group_name: '', item_name: event.target.value, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
+  g_stock_filter = {group_name: '', item_name: event.target.value, is_today: false, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
   update_stock_list(g_stock_filter);
   show_timeline('all');
 }
@@ -964,7 +964,7 @@ function set_list_filter(elem_id, filter_id) {
  */
 function make_filter_info(filter_id) {
   let filter = g_filtersEx[filter_id];
-  return {group_name: filter.word, item_name: '', has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority, is_group_favorite: filter.is_group_favorite };
+  return {group_name: filter.word, item_name: '', is_today: filter.is_today, has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority, is_group_favorite: filter.is_group_favorite };
 }
 
 /**
@@ -2380,12 +2380,41 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
 }
 
 /**
+ * @summary 日付範囲内に本日が含まれているかどうか
+ * @param 開始日(String)
+ * @param 終了日(String)
+ * @returns true:含まれる / false:含まれない
+ */
+function is_date_range_include_today(start, end='') {
+  if (start === '') {
+    // イレギュラーケース
+    return false;
+  } else if (end !== '') {
+    // 今日が開始日と終了日の間にある
+    let today = get_today_str(true, false, true);
+    let diff1 = get_days(new Date(start), new Date(today), false);
+    let diff2 = get_days(new Date(today), new Date(end), false);
+    if (diff1 >= 0 && diff2 >= 0) {
+      return true;
+    }
+  } else if (start === get_today_str(true, false, true)) {
+    // 終了日の指定なしなら、開始日が今日か確認
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * @summary 全タスクのアイテム表示判定
  * @param item
  * @param フィルタ(dict) { group_name:[グループ名フィルタ], item_name:[アイテム名フィルタ],  has_url:[true|false], has_mail:[true|false], has_note:[true|false], is_wait:[true|false], priority:[true|false], is_group_favorite:[true|false] }
  */
 function is_show_item_stock_list(item, filter) {
   // 表示条件
+  if (filter.is_today && !is_date_range_include_today(item.period, item.period_end)) {
+    return false;
+  }
   if (filter.has_url && item.url === '') {
     return false;
   }
@@ -2448,7 +2477,7 @@ function update_stock_list(filter) {
     },
     function() {
       // アイテムが無いグループを表示するかどうか
-      if (filter.item_name !== '' || filter.has_url || filter.has_mail || filter.has_note || filter.is_wait || filter.priority || filter.is_group_favorite) {
+      if (filter.item_name !== '' || filter.is_today || filter.has_url || filter.has_mail || filter.has_note || filter.is_wait || filter.priority || filter.is_group_favorite) {
         // 特殊条件の場合は非表示
         return false;
       }
@@ -4773,6 +4802,9 @@ function show_timeline(mode = 'all')
         }
       }
       callback(target);
+
+      // リスト更新
+      refresh_screen('item');
 
       // タイムライン更新(遅延更新)
       setTimeout(() => {
