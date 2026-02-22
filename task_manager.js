@@ -4964,13 +4964,24 @@ function show_remote_status() {
 //localStorageへ値を保存
 function saveStorage(name, val)
 {
-  localStorage.setItem(name, val);
+  try {
+    localStorage.setItem(name, val);
+  } catch (e) {
+    alert("データの保存に失敗しました。容量の上限に達した可能性があります。");
+    console.log(e);
+  }
 }
 
 //localStorageから値を取得
 function loadStorage(name)
 {
-  return localStorage.getItem(name);
+  try {
+    return localStorage.getItem(name);
+  } catch (e) {
+    alert("データの取得に失敗しました。");
+    console.log(e);
+  }
+  return null;
 }
 
 // コピーアニメーション
