@@ -747,15 +747,26 @@ function contextmenu_handler_list(event) {
  * @summary リスト要素 mouseover
  */
 function mouseover_handler_option(event) {
+  let elem = document.getElementById('popup_items_note');
   if (event.shiftKey) {
-    let note = getInternal(parseInt(event.target.dataset.id)).note
+    // メモ内容をプレビュー
+    let note = getInternal(parseInt(event.target.dataset.id)).note;
     if (note !== undefined && note !== '') {
-      let elem = document.getElementById('popup_items_note');
       elem.style.display = 'block';
       elem.innerHTML = note.replaceAll('\n', '<br>');
       elem.style.top = event.clientY;
       elem.style.left = event.clientX + 20;
       // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
+    }
+  } else if (event.ctrlKey) {
+    // HTMLメールプレビュー
+    let mail_content = getInternal(parseInt(event.target.dataset.id)).mail_content;
+    if (mail_content !== undefined && mail_content !== '') {
+      elem.style.display = 'block';
+      elem.innerHTML = mail_content;
+      let pos = adjust_element_position('popup_items_note', event.clientY, event.clientX + 20);
+      elem.style.top = pos.top;
+      elem.style.left = pos.left;
     }
   }
 }
@@ -1039,6 +1050,12 @@ function read_mail_flag() {
           if (period !== null) {
             item.period = period; // 期限
           }
+          // content
+          if (window.mail_flag[i].content !== undefined) {
+            item.mail_is_html = window.mail_flag[i].is_html_content;
+            item.mail_content = window.mail_flag[i].content;
+          }
+
           group.sub_tasks.push(item);
           // 最後のIDを記憶
           mail_id_last = mail_flag[i].messageid;
@@ -1767,6 +1784,8 @@ function makeInternalItem_ex(name, id) {
     // is_open_app: false,
     status: 'yet', 
     mail: '',
+    mail_content: '',
+    mail_is_html: false,
     note: '',
     is_today: 0,  // 0:明日以降 / 1:今日 / 2:今日の追加分 
     is_todays_must: false,
@@ -2019,6 +2038,14 @@ function adjust_attr_internal_data() {
       // mail
       if (item.mail === undefined) {
         item.mail = '';
+      }
+      // mail content
+      if (item.mail_content === undefined) {
+        item.mail_content = '';
+      }
+      // mail content isHtml
+      if (item.mail_is_html === undefined) {
+        item.mail_is_html = false;
       }
       // note
       if (item.note === undefined) {
@@ -4255,16 +4282,9 @@ function show_edit_popup_single_ex(item_or_group, option) {
       left = option.left;
   }
   // 表示位置調整
-  let top_most_bottom = window.innerHeight - document.getElementById('popup_edit_base').clientHeight;
-  if (top > top_most_bottom) {
-    top = top_most_bottom;
-  }
-  let left_most_left = window.innerWidth - document.getElementById('popup_edit_base').clientWidth;
-  if (left > left_most_left) {
-    left = left_most_left;
-  }
-  elem.style.top = top;
-  elem.style.left = left;
+  let pos = adjust_element_position('popup_edit_base', top, left);
+  elem.style.top = pos.top;
+  elem.style.left = pos.left;
 
   // 表示
   document.getElementById("popup_bg_cover").style.display = 'block';
@@ -4285,6 +4305,26 @@ function show_edit_popup_single_ex(item_or_group, option) {
 function show_edit_popup_single(selected_id, option) {
   show_edit_popup_single_ex(getInternal(selected_id), option);
 }
+
+/**
+ * ポップアップなどの表示位置を調整(画面外に出ないように調整)
+ */
+function adjust_element_position(elem_id, top, left) {
+  let ret_top = top;
+  let ret_left = left;
+
+  let top_most_bottom = window.innerHeight - document.getElementById(elem_id).clientHeight;
+  if (ret_top > top_most_bottom) {
+    ret_top = top_most_bottom;
+  }
+  let left_most_left = window.innerWidth - document.getElementById(elem_id).clientWidth;
+  if (ret_left > left_most_left) {
+    ret_left = left_most_left;
+  }
+
+  return {top: ret_top, left: ret_left};
+}
+
 
 /**
  * @summary 日付文字列から曜日を取得
