@@ -371,6 +371,7 @@ function keyhandler_list_common(event, elem_id, ignore_keys=null) {
         event.preventDefault(); // 既定の動作をキャンセル
         let id = get_select_id(elem_id);
         if (id !== null) {
+          g_timeline.setSelection(id);  // タイムライン上のアイテムを選択
           set_list_filter(elem_id_list_stock, 0);
           set_select(elem_id_list_stock, id, true, true);
           document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
