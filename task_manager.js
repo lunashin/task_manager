@@ -762,11 +762,18 @@ function mouseover_handler_option(event) {
     // HTMLメールプレビュー
     let mail_content = getInternal(parseInt(event.target.dataset.id)).mail_content;
     if (mail_content !== undefined && mail_content !== '') {
-      elem.style.display = 'block';
       elem.innerHTML = mail_content;
+      // imgタグのsrcがhttp(s)スキームでない場合は削除
+      let tags = elem.getElementsByTagName('img');
+      for (let i = tags.length - 1; i >= 0; i--) {
+        if (!new RegExp('^https?:\/\/', 'i').test(tags[i].src)) {
+          tags[i].remove();
+        }
+      }
       let pos = adjust_element_position('popup_items_note', event.clientY, event.clientX + 20);
       elem.style.top = pos.top;
       elem.style.left = pos.left;
+      elem.style.display = 'block';
     }
   }
 }
@@ -785,7 +792,7 @@ function mouseleave_handler_option(event) {
  * @summary フィルタ文字列変更
  */
 function change_filter_text(event) {
-  console.log(event.target.value);
+  // console.log(event.target.value);
 
   // フィルタ条件変更
   g_stock_filter = {group_name: '', item_name: event.target.value, is_today: false, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
