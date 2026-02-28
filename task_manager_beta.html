@@ -141,8 +141,8 @@
           z-index: 1000; /* 要素をコンテンツより前面に（要調整） */
         }
 
-        /* ----------- pupup items note (mousehover) ---------- */
-        .popup_items_note { 
+        /* ----------- pupup note/mail preview (mousehover) ---------- */
+        .popup_note_mail_preview { 
           display: none;
           font-weight: bold;
           background-color: rgb(235, 235, 235); 
@@ -152,6 +152,8 @@
           border-radius: 10px; 
           border-width: 1px;
           position: absolute;
+          overflow-y: scroll;
+          z-index: 3000;
         }
 
         /* ----------- Copy pupup ---------- */
@@ -614,8 +616,8 @@
     </form>
   </div>
 
-  <!-- Popup -->
-  <div id="popup_items_note" class="popup_items_note"></div>
+  <!-- Memo/Mail Preview Popup -->
+  <div id="popup_note_mail_preview" class="popup_note_mail_preview"></div>
 
   <!-- ポップアップ表示時の暗幕 -->
   <div id="popup_bg_cover" class="popup_bg_cover"></div>

@@ -66,6 +66,12 @@ var g_is_show_todays_done = false;
 // 今日のタスク ロック状態
 var g_lock_todays_task = true;
 
+// メモ/HTMLプレビュー
+// 消去タイマーID
+var g_note_preview_hidden_timer = null;
+// 消去タイマー時間
+const NOTE_PREVIEW_HIDDEN_DELAY = 100;
+
 // 自動保存タイマーID
 var g_autosave_timer = null;
 
@@ -150,6 +156,10 @@ document.getElementById("import_mail_flag").addEventListener("click", read_mail_
 document.getElementById("import_todays_meeting").addEventListener("click", read_todays_meeting);
 document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
 document.getElementById("read_member_status").addEventListener("click", read_work_schedule);
+
+// Note/Mail Preview
+document.getElementById('popup_note_mail_preview').addEventListener("mouseover", mouseover_handler_note_preview);
+document.getElementById('popup_note_mail_preview').addEventListener("mouseleave", mouseleave_handler_note_preview);
 
 // Popup
 document.getElementById("popup_edit_form").addEventListener("submit", submit_edit_popup);
@@ -748,21 +758,65 @@ function contextmenu_handler_list(event) {
  * @summary リスト要素 mouseover
  */
 function mouseover_handler_option(event) {
-  let elem = document.getElementById('popup_items_note');
+  show_note_preview(event);
+}
+
+/**
+ * @summary リスト要素 mouseleave
+ */
+function mouseleave_handler_option(event) {
+  // 遅延でメモプレビューを非表示
+  g_note_preview_hidden_timer = setTimeout(() => {
+    close_note_preview(event);
+    g_note_preview_hidden_timer = null;
+  }, NOTE_PREVIEW_HIDDEN_DELAY);
+}
+
+/**
+ * @summary メモ/メールプレビュー枠 mouseover
+ */
+function mouseover_handler_note_preview(event) {
+  // プレビュー消去をキャンセル
+  if (g_note_preview_hidden_timer !== null) {
+    clearTimeout(g_note_preview_hidden_timer);
+    g_note_preview_hidden_timer = null;
+  }
+}
+
+/**
+ * @summary メモ/メールプレビュー枠 mouseleave
+ */
+function mouseleave_handler_note_preview(event) {
+  close_note_preview(event);
+}
+
+/**
+ * メモ/メールプレビュー表示
+ * @param event
+ */
+function show_note_preview(event) {
+  let elem = document.getElementById('popup_note_mail_preview');
   if (event.shiftKey) {
     // メモ内容をプレビュー
     let note = getInternal(parseInt(event.target.dataset.id)).note;
     if (note !== undefined && note !== '') {
-      elem.style.display = 'block';
+      elem.dataset.type = 'note';
       elem.innerHTML = note.replaceAll('\n', '<br>');
       elem.style.top = event.clientY;
       elem.style.left = event.clientX + 20;
+      elem.style.height = '';
+      elem.style.display = 'block';
       // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
     }
   } else if (event.ctrlKey) {
     // HTMLメールプレビュー
+    // 表示中なら何もしない(カーソル追従もしない)
+    if (elem.style.display === 'block' && elem.dataset.type === 'mail_preview') {
+      return;
+    }
     let mail_content = getInternal(parseInt(event.target.dataset.id)).mail_content;
     if (mail_content !== undefined && mail_content !== '') {
+      elem.dataset.type = 'mail_preview';
       elem.innerHTML = mail_content;
       // imgタグのsrcがhttp(s)スキームでない場合は削除
       let tags = elem.getElementsByTagName('img');
@@ -771,21 +825,28 @@ function mouseover_handler_option(event) {
           tags[i].remove();
         }
       }
-      let pos = adjust_element_position('popup_items_note', event.clientY, event.clientX + 20);
+      elem.style.display = 'block'; // ここで一旦表示
+      let pos = adjust_element_position('popup_note_mail_preview', event.clientY, event.clientX + 20);
       elem.style.top = pos.top;
       elem.style.left = pos.left;
-      elem.style.display = 'block';
+      // 高さが画面高さ以上の場合は画面高さに合わせる
+      if (document.getElementById('popup_note_mail_preview').clientHeight > window.innerHeight) {
+        elem.style.height = window.innerHeight;
+      }
     }
   }
 }
 
 /**
- * @summary リスト要素 mouseleave
+ * メモ/メールプレビュー非表示
+ * @param event
  */
-function mouseleave_handler_option(event) {
-  let elem = document.getElementById('popup_items_note');
+function close_note_preview(event) {
+  let elem = document.getElementById('popup_note_mail_preview');
   elem.style.display = 'none';
   elem.innerHTML = '';
+  elem.style.height = '';
+  elem.dataset.type = '';
   // console.log( event.target.dataset.id +' : ' + 'mouse leave');
 }
 
@@ -4324,6 +4385,9 @@ function adjust_element_position(elem_id, top, left) {
   let top_most_bottom = window.innerHeight - document.getElementById(elem_id).clientHeight;
   if (ret_top > top_most_bottom) {
     ret_top = top_most_bottom;
+  }
+  if (ret_top <= 0) {
+    ret_top = 0;
   }
   let left_most_left = window.innerWidth - document.getElementById(elem_id).clientWidth;
   if (ret_left > left_most_left) {
