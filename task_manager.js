@@ -3024,19 +3024,31 @@ function set_group_select_ex(elem_id, add_blank, select_group_id = -1) {
   let elem_groups = document.getElementById(elem_id);
   elem_groups.innerHTML = '';
   if (add_blank) {
+    // プランク追加
     let elem_option = document.createElement("option");
     elem_option.text = "---";
     elem_option.dataset.id = -1;
     elem_groups.appendChild(elem_option);
+    elem_groups.appendChild(document.createElement("hr"));  // セパレータ
   }
+
+  let prev_name = "";
   let ids = get_group_ids();
   for (let i = 0; i < ids.length; i++) {
+    let group_name = getInternal(ids[i]).name;
+
+    // 「:」以前が一致しないアイテムが来たらセパレータを挿入
+    if (prev_name !== '' && prev_name.split(':')[0].trim() !== group_name.split(':')[0].trim()) {
+      elem_groups.appendChild(document.createElement("hr"));
+    }
+
     let elem_option = document.createElement("option");
-    elem_option.text = getInternal(ids[i]).name;
+    elem_option.text = group_name;
     elem_option.dataset.id = ids[i];
     // 所属グループを選択
     elem_option.selected = (ids[i] == select_group_id);
     elem_groups.appendChild(elem_option);
+    prev_name = elem_option.text;
   }
 }
 
