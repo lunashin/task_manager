@@ -57,9 +57,12 @@ var g_last_id = 0;
 var g_stock_filter = {group_name: '', item_name: '' , is_today: false, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false, is_group_favorite: false};
 var g_stock_filter_id = 0;
 
-// 編集履歴
+// 編集履歴(Undo対応)
 var g_list_history = [];
 const g_list_history_num = 20;
+
+// 変更履歴の記録
+const g_modify_history_num = 50;  // 最大保持数
 
 // 今日の済みタスク表示フラグ (true:表示する / false:表示しない)
 var g_is_show_todays_done = false;
@@ -2005,6 +2008,59 @@ function popHistory() {
 }
 
 /**
+ * @summary 更新履歴を登録
+ * @param アイテム(更新前)
+ * @param アイテム(更新後)
+ */
+function registerModifyHistory(item_before, item_after) {
+  // 差分があるキーを取得
+  let diff_keys = diffValueKeys(item_before, item_after, ["last_update"]);
+  if (diff_keys.length <= 0) {
+    return;
+  }
+
+  // 履歴登録
+  // {"id":1, "type": ["create"|"modify"], "attributes": [], "note":"", "datetime": "2026/02/22 10:30:11" },
+  let modify_history_dest = get_modify_history();
+  let dict = {
+    id: item_before.id,
+    type: "modify",
+    attributes: diff_keys,
+    note: "",
+    datetime: get_today_str(true, true, true)
+  }
+  modify_history_dest.push(dict);
+
+  // 最大保持件数を超えていたら古いデータを削除
+  if (modify_history_dest.length > g_modify_history_num) {
+    modify_history_dest = modify_history_dest.splice(0,1);
+  }
+}
+
+/**
+ * @summary アイテム間で異なる属性名を取得
+ * @param アイテム(更新前)
+ * @param アイテム(更新後)
+ * @param 無視するキー(配列)
+ */
+function diffValueKeys(item1, item2, ignoreKeys) {
+  const keys = Object.keys(item1);
+  const diffs = [];
+
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    if(ignoreKeys.includes(k)) {
+      continue;
+    }
+    if (!Object.is(item1[k], item2[k])) {
+      diffs.push(k);
+    }
+  }
+  return diffs;
+}
+
+
+/**
  * @summary データ互換性維持のための調整 / 内部データの不足している属性補完
  */
 function adjust_attr_internal_data() {
@@ -2400,6 +2456,17 @@ function get_auto_save_status() {
 function set_auto_save_status(auto_save) {
   g_list_data.config.auto_save = auto_save;
   scheduleAutosave();
+}
+
+/**
+ * @summary 変更履歴格納先を取得
+ * @returns 変更履歴格納先(配列)
+ */
+function get_modify_history() {
+  if (g_list_data.config.modify_history === undefined) {
+    g_list_data.config.modify_history = [];
+  }
+  return g_list_data.config.modify_history;
 }
 
 
@@ -4579,6 +4646,9 @@ function submit_edit_popup() {
     (!new_done && item.status !== 'yet')
   )
 
+  // アイテムバックアップ（更新履歴取得用）
+  let item_bak = JSON.parse(JSON.stringify(item));
+
   // アイテム更新
   item.name = new_name;
   item.period = new_period;
@@ -4631,6 +4701,9 @@ function submit_edit_popup() {
     // 最終更新日更新
     item.last_update = get_today_str(true, true, true);
   }
+
+  // 更新履歴登録
+  registerModifyHistory(item_bak, item);
 
   // ポップアップ消去
   close_edit_popup();
