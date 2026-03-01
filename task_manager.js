@@ -3298,6 +3298,7 @@ function set_select(elem_id, id, is_scroll, is_focus) {
     }
     if(options[i].dataset.id == id) {
       options[i].selected = true;
+      document.getElementById(elem_id).selectedIndex = i;   // アクティブ行の変更
       // selected_top = options[i].offsetTop;  // 要素位置(スクロールの為に取得)
       selected_top = elem_group.offsetTop;  // 要素位置(スクロールの為に取得)
     } else {
