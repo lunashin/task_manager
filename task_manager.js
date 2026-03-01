@@ -2108,6 +2108,10 @@ function adjust_attr_internal_data() {
       if (item.is_today === false) {
         item.is_today = 0;
       }
+      // is_first
+      if (item.is_first === undefined) {
+        item.is_first = false;
+      }
       // is_everyday
       if (item.is_everyday === undefined) {
         item.is_everyday = false;
