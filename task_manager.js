@@ -4818,7 +4818,15 @@ function make_timeline_groups(is_one_group) {
     let keys = get_internal_keys(g_stock_filter, 'string');
     for (let i = 0 ; i < keys.length; i++) {
       let group = getInternalGroup(keys[i]);
-      groups.push( {id: group.id, content: group.name, title: group.name } );
+      // アイテムデータを追加
+      for (let j = 0; j < group.sub_tasks.length; j++) {
+        let item = group.sub_tasks[j];
+        // 期限設定があれば追加
+        if (item.period !== undefined && item.period !== '') {
+          groups.push( {id: group.id, content: group.name, title: group.name } );
+          break;
+        }
+      }
     }
   }
   return groups;
