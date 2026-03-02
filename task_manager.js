@@ -814,9 +814,9 @@ function show_note_preview(event) {
   } else if (event.ctrlKey) {
     // HTMLメールプレビュー
     // 表示中なら何もしない(カーソル追従もしない)
-    if (elem.style.display === 'block' && elem.dataset.type === 'mail_preview') {
-      return;
-    }
+    // if (elem.style.display === 'block' && elem.dataset.type === 'mail_preview') {
+    //   return;
+    // }
     let mail_content = getInternal(parseInt(event.target.dataset.id)).mail_content;
     if (mail_content !== undefined && mail_content !== '') {
       elem.dataset.type = 'mail_preview';
