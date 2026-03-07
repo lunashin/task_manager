@@ -52,10 +52,15 @@ const g_initial_group_id = 10000;
 var g_last_group_id = g_initial_group_id;
 var g_last_id = 0;
 
+// リストのソート順(string | period)
+const g_list_sort = 'string'
+
 // 全リストのフィルタ
 // {name: '[文字列]', has_url: [true|false], has_mail: [true|false], has_note: [true|false], is_wait: [true|false], priority:[true|false] };
 var g_stock_filter = {group_name: '', item_name: '' , is_today: false, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false, is_group_favorite: false};
 var g_stock_filter_id = 0;
+// フィルタ変更時にカーソル位置記憶する
+const enable_filter_cursor_pos = true;
 
 // 編集履歴(Undo対応)
 var g_list_history = [];
@@ -128,6 +133,9 @@ document.getElementById("stock_list_filter_text").addEventListener("keydown", ke
 // todays list
 // document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
 // document.getElementById("todays_expires_to_todays_list").addEventListener("click", move_today_item_todays_expires);
+
+// todays must list
+document.getElementById("copy_todays_must_list").addEventListener("click", copy_todays_must_list);
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
@@ -1011,6 +1019,8 @@ function click_set_list_filter() {
 
 /**
  * @summary フィルタ設定
+ * @param リストの要素ID
+ * @param フィルタID
  */
 function set_list_filter(elem_id, filter_id) {
   // 同じフィルタなら何もしない
@@ -1018,11 +1028,23 @@ function set_list_filter(elem_id, filter_id) {
     return;
   }
 
+  // 元フィルタのカーソル位置を記憶
+  let sel_itemid = get_select_id(elem_id_list_stock);
+  if (sel_itemid !== null) {
+    set_filter_cursor_pos(g_stock_filter_id, sel_itemid);
+  }
+
   g_stock_filter_id = filter_id;
   // let filter = g_filtersEx[g_stock_filter_id];
   // g_stock_filter = {group_name: filter.word, item_name: '', has_url: filter.has_url, has_mail: filter.has_mail, has_note: filter.has_note, is_wait: filter.is_wait, priority: filter.priority, is_group_favorite: filter.is_group_favorite };
   g_stock_filter = make_filter_info(g_stock_filter_id);
   update_stock_list(g_stock_filter);
+
+  // 前回のカーソル位置を復元
+  sel_itemid = get_filter_cursor_pos(g_stock_filter_id);
+  if (sel_itemid !== null) {
+    set_select(elem_id_list_stock, sel_itemid, true, true);
+  }
 
   // ボタン選択状態変更
   let c = document.querySelectorAll(".set_filter_condition");
@@ -2267,115 +2289,155 @@ function get_all_text() {
 
 /**
  * @summary 今日のタスクをテキストで取得
- * @param true:処理済みのみ / false:未処理も含める
- * @param モード(0:全て / 1:処理済みのみ / 2:処理済みを除く)
- * @returns テキスト
+ * @param モード(0:全て / 1:処理済みのみ / 2:処理済みを除く / 3:MUSTのみ / 4:MUSTの処理済みを除く)
+ * @returns アイテム一覧(配列)
  */
 function get_todays_list_text(mode) {
+  let items = get_todays_items(mode);
+  return get_copy_text(items);
+}
+
+/**
+ * @summary 今日のタスクをテキストで取得
+ * @param モード(0:全て / 1:処理済みのみ / 2:処理済みを除く / 3:MUSTのみ / 4:MUSTの処理済みを除く)
+ * @returns アイテム一覧(配列)
+ */
+function get_todays_items(mode) {
   let copy_text = '';
 
   // 対象となるタスクリストを作成
   // let keys = Object.keys(g_list_data);
   let keys = get_internal_keys(null, 'string');
   
+  let ary = [];
   for (let i = 0 ; i < keys.length; i++) {
-    let ary = [];
     let items = getInternalGroup(keys[i]).sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
-      if (items[j].is_today > 0) {
-        if (mode === 1) {
-          if (items[j].status === 'done') {
-            ary.push(items[j].name);
-          }
-        } else if (mode === 2) {
-          if (items[j].status !== 'done') {
-            ary.push(items[j].name);
-          }
-        } else {
-          ary.push(items[j].name);
+      let item = items[j];
+      if (item.is_today > 0) {
+        switch(mode) {
+          case 1: // 処理済みのみ
+            if (item.status === 'done') {
+              ary.push(item);
+            }
+            break;
+          case 2: // 処理済みを除く
+            if (item.status !== 'done') {
+              ary.push(item);
+            }
+            break;
+          case 3: // MUSTのみ
+            if (item.is_todays_must === true) {
+              ary.push(item);
+            }
+            break;
+          case 4: // MUSTの処理済みを除く
+            if (item.is_todays_must === true && item.status !== 'done') {
+              ary.push(item);
+            }
+            break;
+          default:
+            ary.push(item);
+            break;
         }
       }
     }
-
-    // テキストを整形
-    if (ary.length > 0) {
-      copy_text += "●" + getInternalGroup(keys[i]).name;
-      copy_text += '\n';
-      for (let j = 0 ; j < ary.length; j++) {
-        copy_text += '  ' + ary[j];
-        copy_text += '\n';
-      }
-      // copy_text += '\n';
-    }
   }
+  return ary;
+}
 
-  return copy_text;
+/**
+ * @summary 本日更新されたタスクをテキストで取得
+ * @param 非タスクを無視するか (true:無視 / false:含める)
+ * @returns テキスト
+ */
+function get_todays_updates_text(ignore_non_task) {
+  let items = get_todays_updates_items(ignore_non_task);
+  return get_copy_text(items);
 }
 
 /**
  * @summary 本日更新されたタスクをテキストで取得
  * @returns テキスト
  */
-function get_todays_updates_text(ignre_non_task) {
+function get_todays_updates_items(ignore_non_task) {
   let copy_text = '';
 
   // 対象となるタスクリストを作成
   let keys = get_internal_keys(null, 'string');
   
+  let ary = [];
   for (let i = 0 ; i < keys.length; i++) {
-    let ary = [];
     let items = getInternalGroup(keys[i]).sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
       let item = items[j];
       // 非タスクはスキップ
-      if (ignre_non_task === true && item.is_non_task === true) {
+      if (ignore_non_task === true && item.is_non_task === true) {
         continue;
       }
       if (item.last_update.includes(get_today_str(true, false, true))) {
-        ary.push(item.name);
-      }
-    }
-
-    // テキストを整形
-    if (ary.length > 0) {
-      copy_text += "●" + getInternalGroup(keys[i]).name;
-      copy_text += '\n';
-      for (let j = 0 ; j < ary.length; j++) {
-        copy_text += '  ' + ary[j];
-        copy_text += '\n';
+        ary.push(item);
       }
     }
   }
 
-  return copy_text;
+  return ary;
 }
 
-// 済みリストをテキストで取得
+/**
+ * @summary 済みリストをテキストで取得
+ * @returns テキスト
+ */
 function get_done_list_text() {
-  let copy_text = '';
+  let items = get_done_items();
+  return get_copy_text(items);
+}
 
-  // let keys = Object.keys(g_list_data);
+/**
+ * @summary 済みアイテム一覧を取得
+ * @returns アイテム一覧(配列)
+ */
+function get_done_items() {
   let keys = get_internal_keys(null, null);
 
+  let ary = [];
   for (let i = 0 ; i < keys.length; i++) {
-    let ary = [];
     let items = getInternalGroup(keys[i]).sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
       if (items[j].is_today > 0 && items[j].status === 'done') {
-        ary.push(items[j].name);
+        ary.push(items[j]);
       }
-    }
-    if (ary.length > 0) {
-      copy_text += "●" + getInternalGroup(keys[i]).name;
-      copy_text += '\n';
-      for (let j = 0 ; j < ary.length; j++) {
-        copy_text += ary[j];
-        copy_text += '\n';
-      }
-      copy_text += '\n';
     }
   }
-  return copy_text;
+  return ary;
+}
+
+/**
+ * @summary コピーテキストを取得
+ * @param アイテム一覧(配列)
+ * @returns テキスト
+ */
+function get_copy_text(items) {
+  if (items.length <= 0) {
+    return '';
+  }
+
+  // テキストを整形
+  let text = '';
+  let group_id_prev = -1;
+  for (let i = 0 ; i < items.length; i++) {
+    let group = getInternalGroupFromItemID(items[i].id);
+    if (group.id !== group_id_prev) {
+      text += "●" + group.name;
+      text += '\n';
+    }
+    text += '  ' + items[i].name;
+    text += '\n';
+    group_id_prev = group.id;
+  }
+  // copy_text += '\n';
+
+  return text;
 }
 
 // g_last_group_id / g_last_id を更新
@@ -2473,6 +2535,37 @@ function get_modify_history() {
   return g_list_data.config.modify_history;
 }
 
+/**
+ * @summary フィルタ毎の選択アイテムID取得
+ * @param フィルタID
+ * @param アイテムID
+ */
+function set_filter_cursor_pos(filter_id, itemid) {
+  if(!enable_filter_cursor_pos) {
+    return;
+  }
+  if (g_list_data.config.filter_cursor_pos === undefined) {
+    g_list_data.config.filter_cursor_pos = {};
+  }
+  g_list_data.config.filter_cursor_pos[filter_id] = itemid;
+  scheduleAutosave();
+}
+
+/**
+ * @summary フィルタ毎の選択アイテムID取得
+ * @return アイテムID
+ */
+function get_filter_cursor_pos(filter_id) {
+  if(!enable_filter_cursor_pos) {
+    return null;
+  }
+  if (g_list_data.config.filter_cursor_pos === undefined) {
+    g_list_data.config.filter_cursor_pos = {};
+    return null;
+  }
+  return g_list_data.config.filter_cursor_pos[filter_id];
+}
+
 
 
 
@@ -2498,7 +2591,7 @@ function update_list_common(list_data, elem_id, filter_group, filter_item, func_
   let select = document.getElementById(elem_id);
   select.innerHTML = '';
 
-  let keys = get_internal_keys(filter_group, 'period');
+  let keys = get_internal_keys(filter_group, g_list_sort);
   for (let i = 0 ; i < keys.length; i++) {
     // アイテムの要素一覧を作成
     let append_elems = [];
@@ -4078,6 +4171,18 @@ function copy_todays_list() {
   let mode = 2;
   if (g_is_show_todays_done) {
     mode = 0;
+  }
+  let copy_text = get_todays_list_text(mode);
+  navigator.clipboard.writeText(copy_text);
+
+  copy_animation2(this);
+}
+
+// 今日のmustタスクリストをクリップボードにコピー
+function copy_todays_must_list() {
+  let mode = 4;
+  if (g_is_show_todays_done) {
+    mode = 3;
   }
   let copy_text = get_todays_list_text(mode);
   navigator.clipboard.writeText(copy_text);

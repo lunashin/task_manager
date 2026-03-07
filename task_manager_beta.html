@@ -70,7 +70,8 @@
         /* Button */
         button.button-large { width: 120; height: 50; font-size: 150%; }
         button.button-mid { width: 100; height: 50; font-size: 150%; }
-        button.set_filter_condition { height: 50; }
+        button.button-small { width: 100; height: 30; font-size: 150%; }
+        button.set_filter_condition { height: 40; }
         button.set_filter_condition_on { background-color: #FFCCFF; }
         button:hover { background-color: rgb(168, 168, 168); }
 
@@ -350,7 +351,7 @@
     <div>
       <div class="list-title">全タスク</div>
       <div class="flex-box">
-        <button id="copy_stock_list" class="button-mid">Talbeコピー</button>
+        <button id="copy_stock_list" class="button-small">Talbeコピー</button>
         &nbsp;
         <!-- フィルタボタン表示エリア -->
         <div id="set_filter_condition_div"></div>
@@ -376,7 +377,7 @@
       <!-- Todays Must List -->
       <div>
         <div id="label_todays_must_task" class="list-title">今日の必須タスク</div>
-        <!-- <button id="copy_todays_must_list" class="button-mid">コピー</button> -->
+        <button id="copy_todays_must_list" class="button-small">コピー</button>
         <!-- <input type="checkbox" id="toggle_show_done"> -->
         <!-- <label for="toggle_show_done">済み表示切替</label> -->
         <!-- <input type="checkbox" id="lock_todays_task"> -->
@@ -391,7 +392,7 @@
         <div id="label_todays_task" class="list-title">今日やりたいタスク</div>
         <!-- <button id="copy_todays_list" class="button-mid">コピー</button> -->
         <!-- <button id="todays_expires_to_todays_list" class="button-mid">登録(本日期限)</button> -->
-        <button id="release_todays_add_task" class="button-mid">追加状態 解除</button>
+        <button id="release_todays_add_task" class="button-small">追加状態 解除</button>
         <input type="checkbox" id="toggle_show_done">
         <label for="toggle_show_done">済み表示切替</label>
         <input type="checkbox" id="lock_todays_task">
@@ -408,10 +409,10 @@
       <div>
         <div class="list-title">今日の処理済み</div>
         <div class="flex-box">
-          <button id="copy_done_list" class="button-mid">コピー</button>
-          <button id="copy_updates_list" class="button-mid">本日更新を<br>コピー</button>
+          <button id="copy_done_list" class="button-small">コピー</button>
+          <button id="copy_updates_list" class="button-small">本日更新コピー</button>
           &nbsp;
-          <button id="release_todays_done" class="button-mid">今日を解除</button>
+          <button id="release_todays_done" class="button-small">今日を解除</button>
         </div>
         <select id="done_list" class="done_list h-half" tabindex="30" multiple></select>
       </div>
