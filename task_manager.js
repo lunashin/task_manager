@@ -78,7 +78,7 @@ var g_lock_todays_task = true;
 // 消去タイマーID
 var g_note_preview_hidden_timer = null;
 // 消去タイマー時間
-const NOTE_PREVIEW_HIDDEN_DELAY = 100;
+const NOTE_PREVIEW_HIDDEN_DELAY = 0;
 
 // 自動保存タイマーID
 var g_autosave_timer = null;
@@ -393,7 +393,7 @@ function keyhandler_list_common(event, elem_id, ignore_keys=null) {
         let id = get_select_id(elem_id);
         if (id !== null) {
           g_timeline.setSelection(id);  // タイムライン上のアイテムを選択
-          set_list_filter(elem_id_list_stock, 0);
+          clear_list_filter(elem_id_list_stock);
           set_select(elem_id_list_stock, id, true, true);
           document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
         }
@@ -458,6 +458,11 @@ function keyhandler_stock_list(event) {
 
   switch (event.keyCode){
     case key_arrow_up:    // ↑
+      // 前のグループを選択
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        break;
+      }
       if (event.altKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         swap_selected_item(elem_id, true);
@@ -465,6 +470,11 @@ function keyhandler_stock_list(event) {
       }
       break;
     case key_arrow_down:  // ↓
+      if (event.ctrlKey) {
+        // 次のグループを選択
+        event.preventDefault(); // 既定の動作をキャンセル
+        break;
+      }
       if (event.altKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         swap_selected_item(elem_id, false);
@@ -528,6 +538,7 @@ function keyhandler_stock_list(event) {
     case key_esc:       // ESC
       event.preventDefault(); // 既定の動作をキャンセル
       clear_filter_text();
+      clear_list_filter(elem_id_list_stock);  // フィルタクリア
       break;
   }
 }
@@ -867,6 +878,9 @@ function close_note_preview(event) {
 function change_filter_text(event) {
   // console.log(event.target.value);
 
+  // フィルタクリア
+  clear_list_filter(elem_id_list_stock);
+
   // フィルタ条件変更
   g_stock_filter = {group_name: '', item_name: event.target.value, is_today: false, has_url: false, has_mail: false, has_note: false, is_wait: false, priority: false};
   update_stock_list(g_stock_filter);
@@ -1043,7 +1057,7 @@ function set_list_filter(elem_id, filter_id) {
   // 前回のカーソル位置を復元
   sel_itemid = get_filter_cursor_pos(g_stock_filter_id);
   if (sel_itemid !== null) {
-    set_select(elem_id_list_stock, sel_itemid, true, true);
+    set_select(elem_id_list_stock, sel_itemid, true, false);
   }
 
   // ボタン選択状態変更
@@ -1060,6 +1074,14 @@ function set_list_filter(elem_id, filter_id) {
 
   // タイムライン更新
   show_timeline('all');
+}
+
+/**
+ * @summary フィルタクリア
+ * @param リストの要素ID
+ */
+function clear_list_filter(elem_id) {
+  set_list_filter(elem_id, 0);
 }
 
 /**
