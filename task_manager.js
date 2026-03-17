@@ -69,6 +69,8 @@ const g_list_history_num = 20;
 // 変更履歴の記録
 const g_modify_history_num = 50;  // 最大保持数
 
+// 全リストの済みタスク表示フラグ (true:表示する / false:表示しない)
+var g_is_show_stock_done = true;
 // 今日の済みタスク表示フラグ (true:表示する / false:表示しない)
 var g_is_show_todays_done = false;
 // 今日のタスク ロック状態
@@ -129,6 +131,7 @@ document.getElementById("btn_input_json").addEventListener("click", regist_from_
 document.getElementById("copy_stock_list").addEventListener("click", copy_all_task_blob);
 document.getElementById("stock_list_filter_text").addEventListener("input", change_filter_text);
 document.getElementById("stock_list_filter_text").addEventListener("keydown", keyhandler_stock_list_filter_text);
+document.getElementById("stock_list_done_hidden").addEventListener("click", toggle_show_stock_done);
 
 // todays list
 // document.getElementById("copy_todays_list").addEventListener("click", copy_todays_list);
@@ -2693,6 +2696,11 @@ function is_date_range_include_today(start, end='') {
  * @param フィルタ(dict) { group_name:[グループ名フィルタ], item_name:[アイテム名フィルタ],  has_url:[true|false], has_mail:[true|false], has_note:[true|false], is_wait:[true|false], priority:[true|false], is_group_favorite:[true|false] }
  */
 function is_show_item_stock_list(item, filter) {
+  // 済みタスク表示OFF
+  if (!g_is_show_stock_done && item.status !== 'yet') {
+    return false;
+  }
+
   // 表示条件
   if (filter.is_today && !is_date_range_include_today(item.period, item.period_end)) {
     return false;
@@ -3814,6 +3822,14 @@ function clear_today_and_must_task(elem_id) {
   item.is_first = false;  // 優先タスクフラグ解除
 
   refresh_screen('item');
+}
+
+/**
+ * 全リストの済みアイテム表示/非表示を切り替え
+ */
+function toggle_show_stock_done() {
+  g_is_show_stock_done = !g_is_show_stock_done;
+  update_stock_list(g_stock_filter);
 }
 
 /**
