@@ -171,6 +171,11 @@ document.getElementById("import_todays_meeting").addEventListener("click", read_
 document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
 document.getElementById("read_member_status").addEventListener("click", read_work_schedule);
 
+// Buttons Div
+document.getElementById('buttons_hover_area').addEventListener("mouseover", mouseover_handler_buttons_div);
+// Address List Div
+document.getElementById('address_list_hover_area').addEventListener("mouseover", mouseover_handler_address_list_div);
+
 // Note/Mail Preview
 document.getElementById('popup_note_mail_preview').addEventListener("mouseover", mouseover_handler_note_preview);
 document.getElementById('popup_note_mail_preview').addEventListener("mouseleave", mouseleave_handler_note_preview);
@@ -799,6 +804,70 @@ function mouseleave_handler_option(event) {
     close_note_preview(event);
     g_note_preview_hidden_timer = null;
   }, NOTE_PREVIEW_HIDDEN_DELAY);
+}
+
+/**
+ * @summary ボタン類(div) mouseover
+ */
+function mouseover_handler_buttons_div(event) {
+  let elem_address_list = document.getElementById('button_area_div');
+
+  // 一旦表示
+  elem_address_list.style.visibility = 'visible';
+  elem_address_list.style.opacity = 1;
+  elem_address_list.style.top = event.clientY - 100;
+  elem_address_list.style.left = event.clientX - 100;
+
+  // 位置調整
+  let pos = adjust_element_position('button_area_div', event.clientY-100, event.clientX-100);
+  elem_address_list.style.top = pos.top;
+  elem_address_list.style.left = pos.left;
+
+  // イベント登録
+  elem_address_list.addEventListener('mouseleave', mouseleave_handler_buttons);
+}
+
+/**
+ * @summary ボタン類(Popup) mouseleave
+ */
+function mouseleave_handler_buttons(event) {
+  // 非表示
+  event.target.style.visibility = 'hidden';
+  event.target.style.opacity = 0;
+  // イベント削除
+  event.target.removeEventListener('mouseleave', mouseleave_handler_buttons);
+}
+
+/**
+ * @summary アドレス帳(div) mouseover
+ */
+function mouseover_handler_address_list_div(event) {
+  let elem_address_list = document.getElementById('address_list_area');
+
+  // 一旦表示
+  elem_address_list.style.visibility = 'visible';
+  elem_address_list.style.opacity = 1;
+  elem_address_list.style.top = event.clientY - 100;
+  elem_address_list.style.left = event.clientX - 100;
+
+  // 位置調整
+  let pos = adjust_element_position('address_list_area', event.clientY-100, event.clientX-100);
+  elem_address_list.style.top = pos.top;
+  elem_address_list.style.left = pos.left;
+
+  // イベント登録
+  elem_address_list.addEventListener('mouseleave', mouseleave_handler_address_list);
+}
+
+/**
+ * @summary アドレス帳(Popup) mouseleave
+ */
+function mouseleave_handler_address_list(event) {
+  // 非表示
+  event.target.style.visibility = 'hidden';
+  event.target.style.opacity = 0;
+  // イベント削除
+  event.target.removeEventListener('mouseleave', mouseleave_handler_address_list);
 }
 
 /**
@@ -4608,22 +4677,42 @@ function show_edit_popup_single(selected_id, option) {
 }
 
 /**
- * ポップアップなどの表示位置を調整(画面外に出ないように調整)
+ * @summary ポップアップなどの表示位置を調整(画面外に出ないように調整)
+ * @param 要素ID
+ * @param 現在のTop
+ * @param 現在のLeft 
+ * @param 最小Top (nullは指定なし)
+ * @param 最小Left (nullは指定なし)
+ * @returns 補正後の位置 { top:x, left:x }
  */
-function adjust_element_position(elem_id, top, left) {
+function adjust_element_position(elem_id, top, left, minTop=null, minLeft=null) {
   let ret_top = top;
   let ret_left = left;
 
+  // 全体が見えるようにTOPを調整
   let top_most_bottom = window.innerHeight - document.getElementById(elem_id).clientHeight;
   if (ret_top > top_most_bottom) {
     ret_top = top_most_bottom;
   }
+  // 画面上部を飛び出している場合は、画面上部に合わせる。
   if (ret_top <= 0) {
     ret_top = 0;
   }
+  if (minTop !== null) {
+    if (ret_top > minTop) { 
+      ret_top = minTop;
+    }
+  }
+
+  // 全体が見えるようにLEFTを調整
   let left_most_left = window.innerWidth - document.getElementById(elem_id).clientWidth;
   if (ret_left > left_most_left) {
     ret_left = left_most_left;
+  }
+  if (minLeft !== null) {
+    if (ret_left > minLeft) { 
+      ret_left = minLeft;
+    }
   }
 
   return {top: ret_top, left: ret_left};
