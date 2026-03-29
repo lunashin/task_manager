@@ -485,7 +485,11 @@ function keyhandler_stock_list(event) {
       }
       break;
     case key_arrow_right: // →
-      move_today_item();
+      if(event.ctrlKey) {
+        set_todays_must_task(elem_id);  // 今日のMUSTタスクへ
+      } else {
+        move_today_item();  // 今日のタスクへ
+      }
       break;
     case key_a:           // a
       // 空白タスクを選択行の下へ追加
@@ -3777,9 +3781,10 @@ function set_todays_must_task(elem_id) {
     return;
   }
   
-  if (item.is_today !== 0) {
-    item.is_todays_must = true;
+  if (item.is_today === 0) {
+    item.is_today = 1;
   }
+  item.is_todays_must = true;
 
   refresh_screen('item');
 }
