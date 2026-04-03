@@ -1989,6 +1989,7 @@ function makeInternalItem_ex(name, id) {
     priority: false,
     is_trashed: false,
     last_update: '',
+    last_progress_updated: '',
     created: get_today_str(true, true, true),
   };
   return ret;
@@ -2256,6 +2257,10 @@ function adjust_attr_internal_data() {
       if (item.created === undefined) {
         item.created = '';
       }
+      // last_progress_updated
+      if (item.last_progress_updated === undefined) {
+        item.last_progress_updated = '';
+      }
       // URL
       if (item.url === undefined) {
         item.url = '';
@@ -2473,7 +2478,7 @@ function get_todays_updates_items(ignore_non_task) {
       if (ignore_non_task === true && item.is_non_task === true) {
         continue;
       }
-      if (item.last_update.includes(get_today_str(true, false, true))) {
+      if (item.last_progress_updated.includes(get_today_str(true, false, true))) {
         ary.push(item);
       }
     }
@@ -3793,6 +3798,7 @@ function toggle_wait(elem_id) {
   
   item.is_wait = !item.is_wait;
   item.last_update = get_today_str(true, true, true);
+  item.last_progress_updated = get_today_str(true, true, true);
 
   refresh_screen('item');
 }
@@ -3954,6 +3960,7 @@ function done_item(elem_id) {
   item.status = 'done';
   item.is_first = false;  // 優先タスクフラグ解除
   item.last_update = get_today_str(true, true, true);
+  item.last_progress_updated = get_today_str(true, true, true);
 
   // リストへ反映
   refresh_screen('item');
@@ -4875,15 +4882,11 @@ function submit_edit_popup() {
     item = makeInternalItem_ex("", id_hidden);
   }
 
-  // 最終更新日更新判定
-  let update_update_date = (
-    item.name !== new_name || 
-    new_url !== item.url ||
-    new_mail !== item.mail ||
+  // 進捗があったかどうか
+  let is_progress = (
     item.note !== new_note || 
     item.is_wait !== new_wait ||
-    item.is_everyday !== new_everyday ||
-    (new_done && item.status !== 'done') ||
+    (new_done && item.status !== 'done') || 
     (!new_done && item.status !== 'yet')
   )
 
@@ -4937,10 +4940,12 @@ function submit_edit_popup() {
     item.id = id_edit;
   }
 
-  // 最終更新日更新判定
-  if (update_update_date) {
-    // 最終更新日更新
-    item.last_update = get_today_str(true, true, true);
+  // 最終更新日更新
+  item.last_update = get_today_str(true, true, true);
+
+  // 進捗更新
+  if (is_progress) {
+    item.last_progress_updated = get_today_str(true, true, true);
   }
 
   // 更新履歴登録
