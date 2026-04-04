@@ -125,7 +125,8 @@ document.getElementById(elem_id_list_done).addEventListener("dblclick", return_i
 // Click Event
 // regist
 document.getElementById("btn_input_reflect").addEventListener("click", regist_from_textarea);
-document.getElementById("btn_input_json").addEventListener("click", regist_from_json);
+document.getElementById("btn_input_json").addEventListener("click", click_handler_regist_from_json);
+document.getElementById("btn_input_json_file").addEventListener("change", change_handler_regist_from_jsonfile);
 
 // stock list
 document.getElementById("copy_stock_list").addEventListener("click", copy_all_task_blob);
@@ -1443,21 +1444,59 @@ function compare_schedule_fn(data1, data2) {
 //---------------------------------------
 
 /**
- * @summary JSONをリストへ反映
+ * @summary JSON読み込みボタンイベントハンドラ
  */
-function regist_from_json() {
+function click_handler_regist_from_json() {
   let json_input = document.getElementById("input_json_area").value;
-  let json_obj = JSON.parse(json_input);
-  if (json_obj === null) {
-    return;
+  let res = regist_from_json(json_input);
+  if (res) {
+    // エディットボックスをクリア
+    document.getElementById("input_json_area").value = '';
+  } else {
+    alert('JSONの読み込みに失敗しました。\nJSONが壊れているかテキストが空の可能性があります。');
   }
+}
+
+/**
+ * @summary JSONテキストをパースして内部リストへ反映・画面更新
+ * @param JSONテキスト
+ * @returns 反映成否(true:成功 / false:失敗)
+ */
+function regist_from_json(json_text) {
+  if (json_text === '') {
+    return false;
+  }
+  let json_obj = JSON.parse(json_text);
+  if (json_obj === null) {
+    return false;
+  }
+  // 内部データを更新
   g_list_data = json_obj;
 
   // 内部データをリストへ反映
   refresh_screen('all');
 
-  // エディットボックスをクリア
-  document.getElementById("input_json_area").value = '';
+  return true;
+}
+
+/**
+ * @summary JSONファイル選択後イベントハンドラ
+ */
+function change_handler_regist_from_jsonfile(event) {
+  const curFiles = event.target.files;
+  if (curFiles.length === 0) {
+    return;
+  }
+  let reader = new FileReader();
+  reader.onload = onLoadJsonFromFile;
+  reader.readAsText(curFiles[0]);
+}
+
+/**
+ * @summary JSONファイル読み込みハンドラ
+ */
+function onLoadJsonFromFile(event) {
+  regist_from_json(event.target.result);
 }
 
 /**
