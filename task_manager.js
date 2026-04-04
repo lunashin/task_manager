@@ -1470,6 +1470,10 @@ function regist_from_json(json_text) {
   if (json_obj === null) {
     return false;
   }
+
+  // 履歴保存
+  pushHistory(true);
+
   // 内部データを更新
   g_list_data = json_obj;
 
