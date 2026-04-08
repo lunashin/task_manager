@@ -1883,6 +1883,22 @@ function addIntarnalDatasToGroup(group_id, items, is_ignore_same_name) {
 }
 
 /**
+ * @summary アイテムを指定グループへ移動
+ * @param グループID
+ * @param アイテム
+ * @param 同名のタスクがあった場合スキップするかどうか
+ */
+function moveIntarnalDataToGroup(group_id, item, is_ignore_same_name) {
+  // 複製
+  let item_copy = JSON.parse(JSON.stringify(item));
+  // 削除
+  removeIntarnalData(item.id, false);
+  // 追加
+  addIntarnalDatasToGroup(group_id, [item_copy], is_ignore_same_name);
+}
+
+
+/**
  * @summary アイテムを指定グループへ追加(複数アイテム)
  * @param グループID
  * @param タスク名リスト
@@ -2078,10 +2094,11 @@ function removeIntarnalData(id, is_remove_empty_group) {
   for (let i = 0 ; i < keys.length; i++) {
     let group = getInternalGroup(keys[i]);
 
-    // group削除
     if (group.id === id) {
+      // group削除
       delete g_list_data.tasks[keys[i]];
     } else {
+      // item削除
       let items = group.sub_tasks;
       for (let j = 0 ; j < items.length; j++) {
         if (items[j].id === id) {
@@ -3332,7 +3349,7 @@ function make_filter_buttons_ex() {
  * @summary グループID一覧リスト作成
  * @param select要素のID
  * @param 未選択アイテムを追加するかどうか(true/false)
- * @param 初期選択するグループのアイテムID
+ * @param 初期選択するグループのアイテムID(-1:ブランクを選択)
  */
 function set_group_select_ex(elem_id, add_blank, select_group_id = -1) {
   // グループ一覧作成
@@ -4820,15 +4837,26 @@ function show_edit_popup_multi(elem_id, selected_ids) {
     return;
   }
 
+  // itemのみを対象とする
+  let target_ids = [];
+  for (let i = 0; i < selected_ids.length; i++) {
+    let item = getInternal(selected_ids[i]);
+    if (item.type === 'item') {
+      target_ids.push(selected_ids[i]);
+   }
+  }
+
   // コントロール状態取得
   let is_wait = undefined;
   let status = undefined;
-  for (let i = 0; i < selected_ids.length; i++) {
-    let item = getInternal(selected_ids[i]);
+  let group_id = undefined;
+  for (let i = 0; i < target_ids.length; i++) {
+    let item = getInternal(target_ids[i]);
     if (item.type === 'group') {
       continue;
     }
 
+    // is_wait 共通確認
     if (is_wait !== null) {
       if (is_wait === undefined) {
         is_wait = item.is_wait;
@@ -4836,11 +4864,21 @@ function show_edit_popup_multi(elem_id, selected_ids) {
         is_wait = null;
       }
     }
+    // status 共通確認
     if (status !== null) {
       if (status === undefined) {
         status = item.status;
       } else if (status !== item.status) {
         status = null;
+      }
+    }
+    // group.id 共通確認
+    let group = getInternalGroupFromItemID(item.id)
+    if (group !== null) {
+      if (group_id === undefined) {
+        group_id = group.id;
+      } else if (group_id !== group.id) {
+        group_id = null;
       }
     }
   }
@@ -4863,9 +4901,15 @@ function show_edit_popup_multi(elem_id, selected_ids) {
   }
   document.getElementById("popup_edit_multi_done").style.display = "block";
   document.getElementById("popup_edit_multi_done_label").style.display = "block";
+  // グループ
+  if (group_id === null) {
+    set_group_select_ex("popup_edit_multi_group_list", true, -1);
+  } else {
+    set_group_select_ex("popup_edit_multi_group_list", false, group_id);
+  }
 
   // ID 
-  document.getElementById("popup_edit_multi_hidden_id").value = selected_ids.join(',');
+  document.getElementById("popup_edit_multi_hidden_id").value = target_ids.join(',');
 
   // ポップアップをリストの選択位置へ移動
   let elem = document.getElementById("popup_edit_multi_base");
@@ -5009,12 +5053,14 @@ function submit_edit_popup() {
  * @summary アイテム編集完了(Multi)
  */
 function submit_edit_multi_popup() {
+  let elem_group = document.getElementById("popup_edit_multi_group_list");
   let elem_done = document.getElementById("popup_edit_multi_done");
   let elem_wait = document.getElementById("popup_edit_multi_wait");
   let ids_str = document.getElementById("popup_edit_multi_hidden_id").value;
 
   pushHistory();
 
+  // 各アイテムIDに対して変更処理
   let ids = ids_str.split(',');
   for (let i = 0; i < ids.length; i++) {
     let id = parseInt(ids[i]);
@@ -5031,6 +5077,12 @@ function submit_edit_multi_popup() {
     // 待ち状態
     if(!elem_wait.indeterminate) {
       item.is_wait = elem_wait.checked;
+    }
+    // グループ
+    let elem_sel_group_option = get_selected_element('popup_edit_multi_group_list');
+    if (elem_sel_group_option.dataset.id !== -1 && elem_sel_group_option.dataset.id !== elem_group.dataset.orgid) {
+      // グループ移動
+      moveIntarnalDataToGroup(parseInt(elem_sel_group_option.dataset.id), item, false);
     }
   }
 
