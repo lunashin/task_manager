@@ -102,6 +102,9 @@ const REFRESH_TIMELINE_DELAY = 100;
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
 
+// URL一覧ポップアップ表示対象のグループID(TODO: 画面上から設定, configへ保存したい)
+const g_groupid_url_list_popup = 0;
+
 // ファイル名
 // const g_mail_flag = 'timeline_mail_flag.js.txt';
 // const g_meeting_script = 'timeline_tasks.js';
@@ -172,6 +175,8 @@ document.getElementById("import_todays_meeting").addEventListener("click", read_
 document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
 document.getElementById("read_member_status").addEventListener("click", read_work_schedule);
 
+// URL List Div
+document.getElementById('url_list_hover_area').addEventListener("mouseover", mouseover_handler_url_list_div);
 // Buttons Div
 document.getElementById('buttons_hover_area').addEventListener("mouseover", mouseover_handler_buttons_div);
 // Address List Div
@@ -807,6 +812,28 @@ function mouseleave_handler_option(event) {
   }, NOTE_PREVIEW_HIDDEN_DELAY);
 }
 
+/**
+ * @summary URL一覧(div) mouseover
+ */
+function mouseover_handler_url_list_div(event) {
+  // URL一覧ポップアップ初期化(非表示のまま)
+  make_popup_url_list()
+
+  // 一旦表示
+  let elem = document.getElementById('popup_url_list_div');
+  elem.style.visibility = 'visible';
+  elem.style.opacity = 1;
+  elem.style.top = event.clientY - 100;
+  elem.style.left = event.clientX - 100;
+
+  // 位置調整
+  let pos = adjust_element_position('popup_url_list_div', event.clientY-100, event.clientX-100);
+  elem.style.top = pos.top;
+  elem.style.left = pos.left;
+
+  // イベント登録
+  elem.addEventListener('mouseleave', mouseleave_handler_buttons);
+}
 /**
  * @summary ボタン類(div) mouseover
  */
@@ -3403,6 +3430,46 @@ function set_group_select(elem_id, add_blank, selected_item_id= -1) {
 
   // グループリスト作成
   set_group_select_ex(elem_id, add_blank, select_group_id);
+}
+
+/**
+ * URLボタン生成
+ */
+function make_popup_url_list() {
+  let base_div = document.getElementById('popup_url_list_div');
+  // 空にする
+  while (base_div.firstChild) {
+    base_div.removeChild(base_div.firstChild);
+  }
+
+  let group = getInternalGroup(g_groupid_url_list_popup);
+  let sub_tasks = group.sub_tasks;
+
+  // ボタン生成
+  for (let i = 0; i < sub_tasks.length; i++) {
+    // 改行(nameが空 or nameが'-'のみ)
+    if(sub_tasks[i].name === '' || sub_tasks[i].name.length === (sub_tasks[i].name.match(/-/g) || []).length) {
+      base_div.appendChild(document.createElement("br"));
+      continue;
+    }
+
+    // URL未設定は無視
+    if (sub_tasks[i].url === '') {
+      continue;
+    }
+
+    // 要素生成
+    let elem_button = document.createElement("button");
+    elem_button.value = sub_tasks[i].name;
+    elem_button.textContent = sub_tasks[i].name;
+    elem_button.dataset.id = sub_tasks[i].id;
+    elem_button.dataset.url = sub_tasks[i].url;
+    elem_button.addEventListener("click", function(event){
+      open_url(event.target.dataset.url);
+    });
+    // 要素追加
+    base_div.appendChild(elem_button);
+  }
 }
 
 /**

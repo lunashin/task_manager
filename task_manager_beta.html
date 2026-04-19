@@ -232,6 +232,29 @@
           height: 100%;
         }
 
+        /* --------------- URL List ---------------- */
+        .popup_url_list_div {
+          visibility: hidden;
+          opacity: 1;
+          padding: 27px;
+          width: 750px;
+          height: 350px;
+          position: absolute;
+          background-color: rgb(213, 237, 246);
+          border: 1px solid rgb(147, 147, 147);
+          border-radius: 10px;
+          transition-duration: 200ms;
+          transition-property: opacity;
+          overflow-y: scroll;
+        }        
+
+        .popup_url_list_div > button { 
+          width: 120; 
+          height: 50; 
+          font-size: 100%; 
+          padding: 0px;
+          margin: 2px;
+        }
 
         /* --------------- Calender ---------------- */
         .iframe_calender {
@@ -510,6 +533,11 @@
     </div>
 
     <div>
+      <!-- URL List Area -->
+       <div id="url_list_hover_area" class="mouseover_area">URL一覧<br>(ここにマウスカーソルを当てる)</div>
+    </div>
+
+    <div>
       <!-- Button Area -->
        <div id="buttons_hover_area" class="mouseover_area">ボタン系<br>(ここにマウスカーソルを当てる)</div>
     </div>
@@ -630,6 +658,9 @@
   <!-- Memo/Mail Preview Popup -->
   <div id="popup_note_mail_preview" class="popup_note_mail_preview"></div>
 
+
+  <!-- URL List(Popup) -->
+  <div id="popup_url_list_div" class="popup_url_list_div"></div>
 
   <!-- Button Area (Popup) -->
   <div id="button_area_div" class="button_area_div">
