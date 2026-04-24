@@ -1820,29 +1820,44 @@ function getInternalGroupFromItemID(id) {
  * @summary 指定IDの後ろへアイテムを追加
  * @param ID
  * @param アイテム
- * @returns アイテムID or null
+ * @returns 追加したアイテムID or null
  */
 function addItemBehind(id, item) {
   // 所属グループのデータ取得
   let group = getInternalGroupFromItemID(id);
   if (group === null) {
-    return;
+    // idがグループの可能性がある為、グループを取得
+    group = getInternalGroup(id);
+    if (group === null) {
+      return;
+    }
   }
-  // 指定位置へアイテム挿入
+
   pushHistory();
+
+  // 指定位置へアイテム挿入
   let items = group.sub_tasks;
-  for (let j = 0 ; j < items.length; j++) {
+  let added_id = null;
+  for (let j = 0; j < items.length; j++) {
     if (items[j].id === id) {
       // アイテム追加
       items.splice(j+1, 0, item);
-      return item.id;
+      added_id = item.id;
+      break;
     }
   }
-  return null;
+
+  // 追加されなかったらグループの最後へ追加
+  if (added_id === null) {
+    items.push(item);
+    added_id = item.id;
+  }
+
+  return added_id;
 }
 
 /**
- * @summary 内部データアイテムを指定idの後ろへ追加
+ * @summary 内部データアイテムを指定idの後ろへ追加(idがグループの場合はアイテムの最後へ追加)
  * @param id
  * @param タスク名
  * @returns 追加アイテムのID
@@ -1867,7 +1882,7 @@ function addIntarnalData(id, name) {
  * @summary 内部データアイテムを指定idの後ろへ追加(複数)
  * @param id
  * @param タスク名リスト 
- * @param 最後に追加したアイテムのID
+ * @return 最後に追加したアイテムのID
  */
 function addIntarnalDataEx(id, names) {
   let insert_pos_id = id;
@@ -4188,10 +4203,16 @@ function add_items() {
   let lines = task_names.split('\n');
  
   let selected_id = get_selected_id(elem_id_list_stock);
-  addIntarnalDataEx(selected_id, lines);
- 
+  if (selected_id === null) {
+    alert("追加先となるアイテム or グループを選択してください。");
+    return;
+  }
+  // アイテム追加
+  let added_item_id = addIntarnalDataEx(selected_id, lines);
   // リストを更新
   refresh_screen('item');
+  // 追加アイテムを選択
+  set_select(elem_id_list_stock, added_item_id, true, true);
  
   // 入力値をクリア
   document.getElementById("add_item_text").value = '';

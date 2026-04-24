@@ -17,7 +17,8 @@
         body.no_scroll { overflow: hidden; }
 
         /* 子要素を横方向へ配置 */
-        .flex-box {display: flex; flex-grow: 1;}
+        .flex-box {display: flex; }
+        .flex-box-h-even {display: flex; justify-content: space-between; }
         .flex-box-vCenter {display: flex; align-items: center;}
 
         /* 文字小さめ */
@@ -500,7 +501,7 @@
 
 
 
-  <div class="flex-box">
+  <div class="flex-box-h-even">
     <!-- Input -->
     <div class="flex-box">
       <div>
