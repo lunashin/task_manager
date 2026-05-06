@@ -63,10 +63,8 @@ const g_address_list = [
     type: "address",
     field: 1,
     address: {
-      'hogehoge@ohayo-.com': 'hogehoge',
-      'hello@ohayo-.com': 'hello',
-      'JOJO@ohayo-.com': 'JOJO',
-      'Joseph@ohayo-.com': 'Joseph',
+      'hogehoge@sample.com': 'hogehoge',
+      'hello@sample.com': 'hello',
     },
   },
   {
@@ -95,8 +93,9 @@ const g_address_list = [
     name: 'メール作成テスト',
     type: "create",
     field: 3,
-    address_to_name: 'グループメンバー(全員)',
-    address_cc_name: 'ほげほげ株式会社(開発メンバー)',
+    param_input: {},
+    address_to_name: ['グループメンバー(全員)'],
+    address_cc_name: ['ほげほげ株式会社(開発メンバー)'],
     subject: 'テスト タイトル',
     body: `テスト 本文`,
   },
@@ -106,8 +105,8 @@ const g_address_list = [
     field: 3,
     // param_input: ['日時(yyyy/dd/mm hh:mm)', 'URL','備考'],
     param_input: {'日時': 'date', 'URL':'string', '備考':'string' },
-    address_to_name: 'グループメンバー(全員)',
-    address_cc_name: 'ほげほげ株式会社(開発メンバー)',
+    address_to_name: ['グループメンバー(全員)', 'グループ(MG)'],
+    address_cc_name: ['ほげほげ株式会社(開発メンバー)'],
     subject: 'XX会議の案内 [日時: {0}]',
     body: `XX部
 {to_names}

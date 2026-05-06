@@ -29,8 +29,8 @@ function click_handler(event) {
 
     // TODO: メール作成処理をpromise化
 
-    let item_to = get_item_from_name(item.address_to_name);
-    let item_cc = get_item_from_name(item.address_cc_name);
+    let items_to = get_items_from_names(item.address_to_name);
+    let items_cc = get_items_from_names(item.address_cc_name);
     let subject = item.subject;
     let body = item.body;
 
@@ -46,13 +46,15 @@ function click_handler(event) {
     subject = subject.replaceAll('{today}', today);
     body = body.replaceAll('{today}', today);
     // {to_names} → 宛先の名前
-    let to_names = getAddressNamesStr(item_to, g_names_separator);
+    let to_names = getAddressNamesStrFromItems(items_to, g_names_separator);
     subject = subject.replaceAll('{to_names}', to_names);
     body = body.replaceAll('{to_names}', to_names);
     // {cc_names} → 宛先(CC)の名前
-    let cc_names = getAddressNamesStr(item_cc, g_names_separator);
-    subject = subject.replaceAll('{cc_names}', cc_names);
-    body = body.replaceAll('{cc_names}', cc_names);
+    if (items_cc !== null) {
+      let cc_names = getAddressNamesStrFromItems(items_cc, g_names_separator);
+      subject = subject.replaceAll('{cc_names}', cc_names);
+      body = body.replaceAll('{cc_names}', cc_names);
+    }
     // {signature} → 署名 (bodyのみ)
     body = body.replaceAll('{signature}', g_signature);
 
@@ -72,12 +74,12 @@ function click_handler(event) {
 
     // 宛先
     let address_to = '';
-    if (item_to !== null) {
-      address_to = getAddressListStr(item_to);
+    if (items_to !== null) {
+      address_to = getAddressListStrFromItems(items_to);
     }
     let address_cc = '';
-    if (item_cc !== null) {
-      address_cc = getAddressListStr(item_cc);
+    if (items_cc !== null) {
+      address_cc = getAddressListStrFromItems(items_cc);
     }
 
     // mailto URL生成
@@ -91,6 +93,7 @@ function click_handler(event) {
 /**
  * @summary 宛先アドレス一覧文字列作成
  * @param item
+ * @returns 宛先アドレス一覧(文字列)
  */
 function getAddressListStr(item) {
   let keys = Object.keys(item.address);
@@ -98,9 +101,23 @@ function getAddressListStr(item) {
 }
 
 /**
+ * @summary 宛先アドレス一覧文字列作成
+ * @param item(配列)
+ * @returns 宛先アドレス一覧(文字列)
+ */
+function getAddressListStrFromItems(items) {
+  let ret = '';
+  for (let i = 0; i < items.length; i++) {
+    ret += getAddressListStr(items[i]);
+  }
+  return ret;
+}
+
+/**
  * @summary 宛先アドレスの名前一覧文字列作成
  * @param item
  * @param セパレーター
+ * @returns 宛先アドレスの名前一覧(文字列)
  */
 function getAddressNamesStr(item, separator=' ') {
   let keys = Object.keys(item.address);
@@ -112,14 +129,36 @@ function getAddressNamesStr(item, separator=' ') {
 }
 
 /**
- * @summary nameからアイテムを検索
- * @param name属性値
+ * @summary 宛先アドレスの名前一覧文字列作成
+ * @param item(配列)
+ * @param セパレーター
+ * @returns 宛先アドレスの名前一覧(文字列)
  */
-function get_item_from_name(name) {
-  for (let i = 0; i < g_address_list.length; i++) {
-    if (g_address_list[i].name === name) {
-      return g_address_list[i];
+function getAddressNamesStrFromItems(items, separator=' ') {
+  let ret = '';
+  for (let i = 0; i < items.length; i++) {
+    ret += getAddressNamesStr(items[i], separator);
+    ret += separator;
+  }
+  return ret;
+}
+
+/**
+ * @summary nameからアイテムを検索
+ * @param name属性値(配列)
+ * @returns item(配列)
+ */
+function get_items_from_names(names) {
+  let ret = [];
+  for (let i = 0; i < names.length; i++) {
+    for (let k = 0; k < g_address_list.length; k++) {
+      if (g_address_list[k].name === names[i]) {
+        ret.push(g_address_list[k]);
+      }
     }
+  }
+  if (ret.length > 0) {
+    return ret;
   }
   return null;
 }
