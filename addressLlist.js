@@ -5,7 +5,7 @@
 /**
  * @summary ボタンクリック処理
  */
-function click_handler(event) {
+async function click_handler(event) {
   let index = event.target.dataset.index;
   let item = g_address_list[index];
 
@@ -24,10 +24,18 @@ function click_handler(event) {
 
   // メール作成
   if (event.target.dataset.type === 'create') {
-    // 入力ポップアップ表示
-    // showInputPopup(item.param_input);
-
     // TODO: メール作成処理をpromise化
+    // 入力ポップアップ表示
+    // let p = showInputPopup(item.param_input);
+    // try {
+    //   await p.then((result) => { 
+    //     console.log(result)
+    //   });
+    //   deleteInputPopup();
+    // } catch {
+    //   deleteInputPopup();
+    // }
+    // return;
 
     let items_to = get_items_from_names(item.address_to_name);
     let items_cc = get_items_from_names(item.address_cc_name);
@@ -202,31 +210,56 @@ function createButton() {
  * @summary パラメータ入力ポップアップ表示
  * @param パラメータリスト
  */
-function showInputPopup(param_input) {
-  // ベース作成
-  let base_div = document.createElement('div');
-  base_div.classList.add('popup-base');
-  base_div.style.top = 500;
-  base_div.style.left = 500;
+async function showInputPopup(param_input) {
+  const promise = new Promise((resolve, reject) => {
+    // ベース作成
+    let base_div = document.createElement('div');
+    base_div.classList.add('popup-base');
+    base_div.style.top = 500;
+    base_div.style.left = 500;
 
-  // 要素作成
-  let keys = Object.keys(param_input);
-  for (let i = 0; i < keys.length; i++) {
-    let elem_label = document.createElement('span');
-    elem_label.innerText = keys[i];
-    let elem_input = document.createElement('input');
-    if (param_input[keys[i]] === 'date') {
-      elem_input.type = 'date';
-    } else {
-      elem_input.type = 'text';
+    // 要素作成
+    let keys = Object.keys(param_input);
+    for (let i = 0; i < keys.length; i++) {
+      let elem_label = document.createElement('span');
+      elem_label.innerText = keys[i];
+      let elem_input = document.createElement('input');
+      if (param_input[keys[i]] === 'date') {
+        elem_input.type = 'date';
+      } else {
+        elem_input.type = 'text';
+      }
+      elem_input.classList.add('popup-input');
+      elem_input.dataset.key = keys[i];
+      base_div.appendChild(elem_label);
+      base_div.appendChild(elem_input);
+      base_div.appendChild(document.createElement('br'));
     }
-    elem_input.classList.add('popup-input');
-    elem_input.dataset.key = keys[i];
-    base_div.appendChild(elem_label);
-    base_div.appendChild(elem_input);
-    base_div.appendChild(document.createElement('br'));
-  }
-  document.body.appendChild(base_div);
+    // OK / Cancelボタン
+    let elem_button_ok = document.createElement('button');
+    elem_button_ok.innerText = 'OK';
+    elem_button_ok.addEventListener('click', function() { 
+      // OKボタンの処理
+      let ret = {}; 
+      let elems_input = document.getElementsByClassName('popup-input');
+      for (let i = 0; i < elems_input.length; i++) {
+        ret[elems_input[i].dataset.key] = elems_input[i].value;
+      }
+      resolve(ret);
+    });
+    base_div.appendChild(elem_button_ok);
+    let elem_button_cancel = document.createElement('button');
+    elem_button_cancel.innerText = 'Cancel';
+    elem_button_cancel.addEventListener('click', function() { 
+      // Cancelボタンの処理
+      reject()
+    });
+    base_div.appendChild(elem_button_cancel);
+
+    document.body.appendChild(base_div);
+  });
+
+  return promise;
 }
 
 /**
@@ -235,7 +268,7 @@ function showInputPopup(param_input) {
 function deleteInputPopup() {
   let elem = document.getElementsByClassName('popup-base');
   if (elem.length > 0) {
-    elem.remove();
+    elem[0].remove();
   }
 }
 
