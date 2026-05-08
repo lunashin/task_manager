@@ -93,7 +93,7 @@ const g_address_list = [
     name: 'メール作成テスト',
     type: "create",
     field: 3,
-    param_input: {},
+    param: {},
     address_to_name: ['グループメンバー(全員)'],
     address_cc_name: ['ほげほげ株式会社(開発メンバー)'],
     subject: 'テスト タイトル',
@@ -104,10 +104,14 @@ const g_address_list = [
     type: "create",
     field: 3,
     // param_input: ['日時(yyyy/dd/mm hh:mm)', 'URL','備考'],
-    param_input: {'日時': 'date', 'URL':'string', '備考':'string' },
+    param: {
+      'date': {name: '日時', type: 'date_s'}, 
+      'url': {name: 'URL', type: 'string'}, 
+      'note': {name: '備考', type: 'string'},
+    },
     address_to_name: ['グループメンバー(全員)', 'グループ(MG)'],
     address_cc_name: ['ほげほげ株式会社(開発メンバー)'],
-    subject: 'XX会議の案内 [日時: {0}]',
+    subject: 'XX会議の案内 [日時: {date}]',
     body: `XX部
 {to_names}
 (CC: {cc_names})
@@ -117,11 +121,11 @@ const g_address_list = [
 表題の件ですが、以下の通りご連絡いたします。
 尚、本日({today})夕方には資料を展開予定です。
 
-- 日時: {0}
+- 日時: {date}
 - 場所: XX棟 302 会議室
 - 参加者: XX部 XXGrメンバー
-- URL: {1}
-- 備考: {2}
+- URL: {url}
+- 備考: {note}
 
 以上、よろしくお願いします。
 

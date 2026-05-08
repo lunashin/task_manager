@@ -24,18 +24,18 @@ async function click_handler(event) {
 
   // メール作成
   if (event.target.dataset.type === 'create') {
-    // TODO: メール作成処理をpromise化
     // 入力ポップアップ表示
-    // let p = showInputPopup(item.param_input);
-    // try {
-    //   await p.then((result) => { 
-    //     console.log(result)
-    //   });
-    //   deleteInputPopup();
-    // } catch {
-    //   deleteInputPopup();
-    // }
-    // return;
+    let input = null;
+    let p = showInputPopup(item.param);
+    try {
+      await p.then((result) => { 
+        input = result;
+      });
+      deleteInputPopup();
+    } catch {
+      deleteInputPopup();
+      return;
+    }
 
     let items_to = get_items_from_names(item.address_to_name);
     let items_cc = get_items_from_names(item.address_cc_name);
@@ -67,16 +67,12 @@ async function click_handler(event) {
     body = body.replaceAll('{signature}', g_signature);
 
     // パラメータ入力/置換
-    let param_content = [];
-    if (item.param_input !== undefined && item.param_input.length > 0) {
-      // 入力
-      for (let i = 0; i < item.param_input.length; i++) {
-        param_content[i] = prompt(item.param_input[i]);
-      }
+    if (input !== null && Object.keys(input).length > 0) {
       // 置換
-      for (let i = 0; i < item.param_input.length; i++) {
-        subject = subject.replaceAll(`{${i}}`, param_content[i]);
-        body = body.replaceAll(`{${i}}`, param_content[i]);
+      let keys = Object.keys(input);
+      for (let i = 0; i < keys.length; i++) {
+        subject = subject.replaceAll(`{${keys[i]}}`, input[keys[i]]);
+        body = body.replaceAll(`{${keys[i]}}`, input[keys[i]]);
       }
     }
 
@@ -210,27 +206,29 @@ function createButton() {
  * @summary パラメータ入力ポップアップ表示
  * @param パラメータリスト
  */
-async function showInputPopup(param_input) {
+async function showInputPopup(param) {
   const promise = new Promise((resolve, reject) => {
     // ベース作成
     let base_div = document.createElement('div');
     base_div.classList.add('popup-base');
-    base_div.style.top = 500;
-    base_div.style.left = 500;
+    // base_div.style.top = 500;
+    // base_div.style.left = 500;
 
     // 要素作成
-    let keys = Object.keys(param_input);
+    let keys = Object.keys(param);
     for (let i = 0; i < keys.length; i++) {
+      let param_item = param[keys[i]];
       let elem_label = document.createElement('span');
-      elem_label.innerText = keys[i];
+      elem_label.innerText = param_item.name;
       let elem_input = document.createElement('input');
-      if (param_input[keys[i]] === 'date') {
+      if (param_item.type === 'date' || param_item.type === 'date_s') {
         elem_input.type = 'date';
-      } else {
+      } else if (param_item.type === 'string') {
         elem_input.type = 'text';
       }
       elem_input.classList.add('popup-input');
       elem_input.dataset.key = keys[i];
+      elem_input.dataset.type = param_item.type;
       base_div.appendChild(elem_label);
       base_div.appendChild(elem_input);
       base_div.appendChild(document.createElement('br'));
@@ -240,10 +238,18 @@ async function showInputPopup(param_input) {
     elem_button_ok.innerText = 'OK';
     elem_button_ok.addEventListener('click', function() { 
       // OKボタンの処理
+      // 入力パラメータを収集
       let ret = {}; 
       let elems_input = document.getElementsByClassName('popup-input');
       for (let i = 0; i < elems_input.length; i++) {
-        ret[elems_input[i].dataset.key] = elems_input[i].value;
+        let value = elems_input[i].value;
+        if (elems_input[i].dataset.type === 'date') {
+          value = value.replaceAll('-', '/');
+        } else if (elems_input[i].dataset.type === 'date_s') {
+          let s = value.split('-');
+          value = `${s[1]}/${s[2]}`;
+        }
+        ret[elems_input[i].dataset.key] = value;
       }
       resolve(ret);
     });
@@ -256,7 +262,11 @@ async function showInputPopup(param_input) {
     });
     base_div.appendChild(elem_button_cancel);
 
+    // bodyへ追加
     document.body.appendChild(base_div);
+
+    // 画面中央に表示
+    moveCenter(base_div);
   });
 
   return promise;
@@ -270,6 +280,13 @@ function deleteInputPopup() {
   if (elem.length > 0) {
     elem[0].remove();
   }
+}
+
+function moveCenter(elem) {
+  let top = window.innerHeight / 2 - elem.clientHeight / 2;
+  let left = window.innerWidth / 2 - elem.clientWidth / 2;
+  elem.top = top;
+  elem.left = left;
 }
 
 
