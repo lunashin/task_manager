@@ -26,15 +26,17 @@ async function click_handler(event) {
   if (event.target.dataset.type === 'create') {
     // 入力ポップアップ表示
     let input = null;
-    let p = showInputPopup(item.param);
-    try {
-      await p.then((result) => { 
-        input = result;
-      });
-      deleteInputPopup();
-    } catch {
-      deleteInputPopup();
-      return;
+    if (Object.keys(item.param).length > 0) {
+      let p = showInputPopup(item.param);
+      try {
+        await p.then((result) => {
+          input = result;
+        });
+        deleteInputPopup();
+      } catch {
+        deleteInputPopup();
+        return;
+      }
     }
 
     let items_to = get_items_from_names(item.address_to_name);
@@ -43,16 +45,31 @@ async function click_handler(event) {
     let body = item.body;
 
     // 置換
+    // {company} → 差出人
+    subject = subject.replaceAll('{company}', g_company);
+    body = body.replaceAll('{company}', g_company);
     // {name} → 差出人
     subject = subject.replaceAll('{name}', g_name);
     body = body.replaceAll('{name}', g_name);
     // {name_s} → 差出人(short)
     subject = subject.replaceAll('{name_s}', g_name_short);
     body = body.replaceAll('{name_s}', g_name_short);
-    // {today} → 今日の日付
-    let today = get_today_str(true, false, false, true);
+    // {today} → 今日の日付(yyyy/mm/dd)
+    let today = get_today_str(true, false, true, false);
     subject = subject.replaceAll('{today}', today);
     body = body.replaceAll('{today}', today);
+    // {today_w} → 今日の日付(yyyy/mm/dd(曜日))
+    let today_w = get_today_str(true, false, true, true);
+    subject = subject.replaceAll('{today_w}', today_w);
+    body = body.replaceAll('{today_w}', today_w);
+    // {today_s} → 今日の日付(mm/dd)
+    let today_s = get_today_str(true, false, false, false);
+    subject = subject.replaceAll('{today_s}', today_s);
+    body = body.replaceAll('{today_s}', today_s);
+    // {today_sw} → 今日の日付(mm/dd(曜日))
+    let today_sw = get_today_str(true, false, false, true);
+    subject = subject.replaceAll('{today_sw}', today_sw);
+    body = body.replaceAll('{today_sw}', today_sw);
     // {to_names} → 宛先の名前
     let to_names = getAddressNamesStrFromItems(items_to, g_names_separator);
     subject = subject.replaceAll('{to_names}', to_names);
@@ -112,6 +129,9 @@ function getAddressListStr(item) {
 function getAddressListStrFromItems(items) {
   let ret = '';
   for (let i = 0; i < items.length; i++) {
+    if (i > 0) {
+      ret += '; \n';
+    }
     ret += getAddressListStr(items[i]);
   }
   return ret;
@@ -141,8 +161,10 @@ function getAddressNamesStr(item, separator=' ') {
 function getAddressNamesStrFromItems(items, separator=' ') {
   let ret = '';
   for (let i = 0; i < items.length; i++) {
+    if (i > 0) {
+      ret += separator;
+    }
     ret += getAddressNamesStr(items[i], separator);
-    ret += separator;
   }
   return ret;
 }
@@ -191,7 +213,9 @@ function createButton() {
       if (item.type === 'create') {
         btn.title = item.subject + '\n------------------\n' + item.body;
       }
-      btn.classList.add('btn_medium');
+      if (item.type === 'create') {
+        btn.classList.add('button-mail-create');
+      }
       btn.dataset.index = i;
       btn.dataset.type = item.type;
       btn.addEventListener('click', click_handler);
@@ -211,8 +235,6 @@ async function showInputPopup(param) {
     // ベース作成
     let base_div = document.createElement('div');
     base_div.classList.add('popup-base');
-    // base_div.style.top = 500;
-    // base_div.style.left = 500;
 
     // 要素作成
     let keys = Object.keys(param);
@@ -221,14 +243,21 @@ async function showInputPopup(param) {
       let elem_label = document.createElement('span');
       elem_label.innerText = param_item.name;
       let elem_input = document.createElement('input');
-      if (param_item.type === 'date' || param_item.type === 'date_s') {
+      if (param_item.type === 'date' || param_item.type === 'date_w' || param_item.type === 'date_s' || param_item.type === 'date_sw') {
+        // 日付
         elem_input.type = 'date';
+        // 今日の日付を初期値として設定
+        elem_input.value = new Date().toLocaleDateString('sv-SE');  // スウェーデン語を指定すると yyyy-mm-dd 形式になる。
       } else if (param_item.type === 'string') {
+        // テキスト
         elem_input.type = 'text';
       }
       elem_input.classList.add('popup-input');
       elem_input.dataset.key = keys[i];
       elem_input.dataset.type = param_item.type;
+      if (param_item.default !== undefined) {
+        elem_input.value = param_item.default;
+      }
       base_div.appendChild(elem_label);
       base_div.appendChild(elem_input);
       base_div.appendChild(document.createElement('br'));
@@ -239,21 +268,30 @@ async function showInputPopup(param) {
     elem_button_ok.addEventListener('click', function() { 
       // OKボタンの処理
       // 入力パラメータを収集
-      let ret = {}; 
+      let ret = {};
       let elems_input = document.getElementsByClassName('popup-input');
       for (let i = 0; i < elems_input.length; i++) {
-        let value = elems_input[i].value;
+        let value = elems_input[i].value.trim();
         if (elems_input[i].dataset.type === 'date') {
-          value = value.replaceAll('-', '/');
+          value = get_date_str(new Date(value), true, false, true, false, false);
+        } else if (elems_input[i].dataset.type === 'date_w') {
+          value = get_date_str(new Date(value), true, false, true, false, true);
+        // } else if (elems_input[i].dataset.type === 'date_dot') {
+        //   value = value.replaceAll('-', '.');
         } else if (elems_input[i].dataset.type === 'date_s') {
-          let s = value.split('-');
-          value = `${s[1]}/${s[2]}`;
+          value = get_date_str(new Date(value), true, false, false, false, false);
+        } else if (elems_input[i].dataset.type === 'date_sw') {
+          value = get_date_str(new Date(value), true, false, false, false, true);
+        // } else if (elems_input[i].dataset.type === 'date_s_dot') {
+        //   let s = value.split('-');
+        //   value = `${s[1]}.${s[2]}`;
         }
         ret[elems_input[i].dataset.key] = value;
       }
       resolve(ret);
     });
     base_div.appendChild(elem_button_ok);
+
     let elem_button_cancel = document.createElement('button');
     elem_button_cancel.innerText = 'Cancel';
     elem_button_cancel.addEventListener('click', function() { 
@@ -265,8 +303,12 @@ async function showInputPopup(param) {
     // bodyへ追加
     document.body.appendChild(base_div);
 
+    // 最初の入力要素へフォーカス移動
+    document.getElementsByClassName('popup-input')[0].focus();
+
     // 画面中央に表示
     moveCenter(base_div);
+
   });
 
   return promise;
@@ -285,8 +327,8 @@ function deleteInputPopup() {
 function moveCenter(elem) {
   let top = window.innerHeight / 2 - elem.clientHeight / 2;
   let left = window.innerWidth / 2 - elem.clientWidth / 2;
-  elem.top = top;
-  elem.left = left;
+  elem.style.top = top;
+  elem.style.left = left;
 }
 
 
