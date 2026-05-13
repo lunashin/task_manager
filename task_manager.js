@@ -105,6 +105,9 @@ const g_meeting_group_name = '会議';
 // URL一覧ポップアップ表示対象のグループID(TODO: 画面上から設定, configへ保存したい)
 const g_groupid_url_list_popup = 0;
 
+// 進捗管理ダイアログクラス
+var g_progress_dialog = null;
+
 // ファイル名
 // const g_mail_flag = 'timeline_mail_flag.js.txt';
 // const g_meeting_script = 'timeline_tasks.js';
@@ -1126,6 +1129,7 @@ function refresh_screen(timeline_refreshmode = 'all') {
   update_priority_list();
 
   show_timeline(timeline_refreshmode);
+  showProgressDialog();
 }
 
 /**
@@ -5545,6 +5549,37 @@ function show_remote_status() {
   document.getElementById("member_status_area").innerHTML = html;
 }
 
+/**
+ * @summary 進捗管理ダイアログ表示
+ */
+function showProgressDialog() {
+  if (g_progress_dialog === null) {
+    g_progress_dialog = new ProgressDialog("progress-dialog-title-div", "progress-dialog-item-div");
+  }
+  g_progress_dialog.resetAll();
+
+  // 今日のMUSTタスク
+  let target_items = [];
+  let rowData = getInternalRawTasksData();
+  let keys = get_internal_keys(null, null);
+  for (let i = 0 ; i < keys.length; i++) {
+    // アイテムの要素一覧を作成
+    let items = rowData[keys[i]].sub_tasks;
+    for (let j = 0 ; j < items.length; j++) {
+      let item = items[j];
+      if (item.is_tomorrow || item.is_everyday) {
+        // 明日のタスク or 毎日のタスクは表示しない
+        continue;
+      }
+      if (item.is_today > 0 && item.is_todays_must === true && item.status == 'yet') {
+        target_items.push(item);
+      }
+    }
+  }
+
+  // ダイアログ表示
+  g_progress_dialog.make(target_items, '');
+}
 
 
 
@@ -6213,6 +6248,9 @@ set_stocklist_filter_text_items();
 
 // 出社/在宅状況の表示
 read_work_schedule();
+
+// 進捗管理ダイアログ
+showProgressDialog();
 
 
 

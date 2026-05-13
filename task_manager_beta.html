@@ -10,6 +10,7 @@
     <!-- task_manager.js -->
     <script src="task_manager_env.js" type="text/javascript" defer></script>
     <script src="crypt.js" type="text/javascript" defer></script>
+    <script src="ProgressDialog.js" type="text/javascript" defer></script>
     <script src="task_manager.js" type="text/javascript" defer></script>
 
     <style type="text/css">
@@ -380,6 +381,54 @@
           background-color: rgb(205, 205, 205);
         }
 
+        /* --------------- 進捗管理ダイアログ ---------------- */
+        .progress-dialog-base {
+          width: 70vw;
+          height: 300px;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          background-color: #d8d5d5;
+          /* position: absolute; */
+        }
+        .progress-dialog-base-div {
+          display: flex;
+        }
+        .progress-dialog-title-div {}
+        .progress-dialog-item-div {
+          overflow-x: scroll;
+        }
+        .progress-dialog-item-row-div {
+          display: flex;
+        }
+        .progress-dialog-box-title {
+          width: 20rem;
+          min-width: 20rem;
+          height: 3rem;
+          font-weight: bold;
+          border: 1px solid #afaeae;
+          border-radius: 10px;
+          background-color: white;
+          margin: 2px;
+          overflow-x: hidden;
+        }
+        .progress-dialog-box-item {
+          width: 10rem;
+          min-width: 10rem;
+          height: 3rem;
+          border: 1px solid #afaeae;
+          border-radius: 10px;
+          background-color: white;
+          margin: 2px;
+          overflow-x: hidden;
+        }
+        .progress-dialog-box-item-past{
+          background-color: #d8d5d5;
+        }
+        .progress-dialog-box-item-empty {
+          opacity: 0;
+        }
+
         /* table */
         table {
           border-collapse: collapse;
@@ -712,6 +761,16 @@
   <!-- Copy Notifycation -->
   <div id="popup_copy_base" class="popup_copy">
     <span id="popup_copy_text" class="popup_copy_text">Copy!</span>
+  </div>
+
+  <!-- 進捗管理ダイアログ -->
+  <div class="progress-dialog-base">
+    <div class="progress-dialog-base-div">
+      <!-- タスク名列 -->
+      <div id="progress-dialog-title-div" class="progress-dialog-title-div"></div>
+      <!-- 進捗列 -->
+      <div id="progress-dialog-item-div" class="progress-dialog-item-div"></div>
+    </div>
   </div>
 
 
