@@ -71,9 +71,11 @@ async function click_handler(event) {
     subject = subject.replaceAll('{today_sw}', today_sw);
     body = body.replaceAll('{today_sw}', today_sw);
     // {to_names} → 宛先の名前
-    let to_names = getAddressNamesStrFromItems(items_to, g_names_separator);
-    subject = subject.replaceAll('{to_names}', to_names);
-    body = body.replaceAll('{to_names}', to_names);
+    if (items_to !== null) {
+      let to_names = getAddressNamesStrFromItems(items_to, g_names_separator);
+      subject = subject.replaceAll('{to_names}', to_names);
+      body = body.replaceAll('{to_names}', to_names);
+    }
     // {cc_names} → 宛先(CC)の名前
     if (items_cc !== null) {
       let cc_names = getAddressNamesStrFromItems(items_cc, g_names_separator);
