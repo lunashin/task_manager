@@ -967,8 +967,8 @@ function show_note_preview(event) {
     if (note !== undefined && note !== '') {
       elem.dataset.type = 'note';
       elem.innerHTML = note.replaceAll('\n', '<br>');
-      elem.style.top = event.clientY;
-      elem.style.left = event.clientX + 20;
+      elem.style.top = event.clientY + window.scrollY;  // topはブラウザのクライアント領域となるため、スクロール量を加算
+      elem.style.left = event.clientX + window.scrollX + 20;
       elem.style.height = '';
       elem.style.display = 'block';
       // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
@@ -1173,6 +1173,7 @@ function refresh_screen(timeline_refreshmode = 'all') {
  */
 function click_set_list_filter() {
   set_list_filter(elem_id_list_stock, parseInt(this.dataset.id));
+  document.getElementById(elem_id_list_stock).focus();
 }
 
 /**
@@ -1775,7 +1776,7 @@ function get_group_ids() {
 
 /**
  * @summary 内部データのアイテムを取得 (id指定)
- * @param ID
+ * @param ID (int or string)
  * @returns アイテムデータ or null
  */
 function getInternal(id) {
@@ -1786,7 +1787,7 @@ function getInternal(id) {
   for (let i = 0 ; i < keys.length; i++) {
     let items = getInternalGroup(keys[i]).sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
-      if (items[j].id === id) {
+      if (items[j].id == id) {
         return items[j];
       }
     }
@@ -4386,7 +4387,7 @@ function get_selected_ids(elem_id) {
 }
 
 /**
- * @summary 選択されているoptionを取得
+ * @summary 選択されているoption(複数)を取得
  * @param selectエレメントID
  * @returns エレメントオブジェクト
  */
