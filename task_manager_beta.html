@@ -389,12 +389,14 @@
           border: 1px solid #ccc;
           border-radius: 10px;
           background-color: #d8d5d5;
+          overflow-x: scroll;
           /* position: absolute; */
         }
         .progress-dialog-base-div {
           display: flex;
         }
-        .progress-dialog-title-div {}
+        .progress-dialog-title-div {
+        }
         .progress-dialog-item-div {
           overflow-x: scroll;
         }
@@ -410,7 +412,17 @@
           border-radius: 10px;
           background-color: white;
           margin: 2px;
+          padding: 2px;
           overflow-x: hidden;
+        }
+        .progress-dialog-box-title:focus {
+          border-color: blue;
+        }
+        .progress-dialog-box-title-wait {
+          color:cornflowerblue;
+        }
+        .progress-dialog-box-title-group {
+          height: 1rem;
         }
         .progress-dialog-box-item {
           width: 10rem;
@@ -420,6 +432,7 @@
           border-radius: 10px;
           background-color: white;
           margin: 2px;
+          padding: 2px;
           overflow-x: hidden;
         }
         .progress-dialog-box-item-past{
@@ -427,6 +440,9 @@
         }
         .progress-dialog-box-item-empty {
           opacity: 0;
+        }
+        .progress-dialog-box-item-group {
+          height: 1rem;
         }
 
         /* table */

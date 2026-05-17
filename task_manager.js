@@ -407,7 +407,7 @@ function keyhandler_list_common(event, elem_id, ignore_keys=null) {
       if (event.shiftKey) {
         // ALLリストの選択アイテムを、今日のリストと同期
         event.preventDefault(); // 既定の動作をキャンセル
-        let id = get_select_id(elem_id);
+        let id = get_selected_id(elem_id);
         if (id !== null) {
           g_timeline.setSelection(id);  // タイムライン上のアイテムを選択
           clear_list_filter(elem_id_list_stock);
@@ -536,7 +536,7 @@ function keyhandler_stock_list(event) {
       if (event.shiftKey) {
         // アイテム選択を同期
         event.preventDefault(); // 既定の動作をキャンセル
-        let id = get_select_id(elem_id);
+        let id = get_selected_id(elem_id);
         if (id !== null) {
           // タイムライン上のアイテムを選択
           g_timeline.setSelection(id);
@@ -548,7 +548,7 @@ function keyhandler_stock_list(event) {
             if (!is_sel) {
               is_sel = set_select(elem_id_list_done, id, true, true);
               if (!is_sel) {
-                is_sel = set_select(elem_id_list_tomorrow, id, true, true);
+                is_sel = set_select(elem_id_list_everyday, id, true, true);
               }
             }
           }
@@ -760,6 +760,42 @@ function keyhandler_edit_popup_multi(event) {
     close_edit_multi_popup();
       break;
   }
+}
+
+/**
+ * @summary 進捗ダイアログtitle要素キーダウンハンドラ
+ */
+function keydown_handler_progress_diralog_title(event) {
+  let elem_id = event.target.id;
+  switch (event.keyCode){
+    case key_arrow_right: // →
+      done_item(elem_id);
+      break;
+    case key_z:           // z
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // 元に戻す
+        undo_item()
+        break;
+      }
+      event.preventDefault(); // 既定の動作をキャンセル
+      toggle_wait(elem_id);
+      break;
+    case key_space:       // space
+      event.preventDefault(); // 既定の動作をキャンセル
+      if (event.shiftKey) {
+        // 設定されたURLを開く
+        open_select_items_url(elem_id);
+        break;
+      }
+      // 編集ポップアップ
+      show_edit_popup(elem_id);
+      break;
+    case key_enter:     // Enter
+      event.preventDefault(); // 既定の動作をキャンセル
+      show_edit_popup(elem_id);
+      break;
+  };
 }
 
 /**
@@ -1151,7 +1187,7 @@ function set_list_filter(elem_id, filter_id) {
   }
 
   // 元フィルタのカーソル位置を記憶
-  let sel_itemid = get_select_id(elem_id_list_stock);
+  let sel_itemid = get_selected_id(elem_id_list_stock);
   if (sel_itemid !== null) {
     set_filter_cursor_pos(g_stock_filter_id, sel_itemid);
   }
@@ -1996,7 +2032,7 @@ function addIntarnalBlankData(id, set_today) {
  * @returns アイテムID
  */
 function addItemBehindSelectedItem(elem_id, is_duplicate, set_today) {
-  let sel_id = get_select_id(elem_id);
+  let sel_id = get_selected_id(elem_id);
   if (sel_id !== null) {
     if (is_duplicate) {
       let item = getInternal(sel_id);
@@ -3637,19 +3673,19 @@ function get_after_icons(item) {
  * @param エレメントID
  * @returns ID
  */
-function get_select_id(elem_id) {
-  // 全リストから選択アイテムを選択、選択アイテムを削除
-  let options = document.getElementById(elem_id).options;
-  for (let i = 0; i < options.length; i++) {
-    if(options[i].selected) {
-      // if (options[i].classList.contains('group_top')) {
-      //   return null;
-      // }
-      return parseInt(options[i].dataset.id);
-    }
-  }
-  return null;
-}
+// function get_select_id(elem_id) {
+//   // 全リストから選択アイテムを選択、選択アイテムを削除
+//   let options = document.getElementById(elem_id).options;
+//   for (let i = 0; i < options.length; i++) {
+//     if(options[i].selected) {
+//       // if (options[i].classList.contains('group_top')) {
+//       //   return null;
+//       // }
+//       return parseInt(options[i].dataset.id);
+//     }
+//   }
+//   return null;
+// }
 
 /**
  * @summary 選択されているアイテムの data-id 値を取得
@@ -3777,7 +3813,7 @@ function set_select_ex(elem_id, ids, is_scroll, is_focus) {
 // 選択アイテムを今日のタスクへ移動
 function move_today_item() {
   // リストから選択アイテムを取得
-  let id = get_select_id(elem_id_list_stock);
+  let id = get_selected_id(elem_id_list_stock);
   if (id === null) {
     // 未選択
     return;
@@ -3842,7 +3878,7 @@ function move_today_item_todays_expires() {
 
 // 選択アイテムを今日のタスクから削除
 function remove_today_item(elem_id) {
-  let id = get_select_id(elem_id);
+  let id = get_selected_id(elem_id);
   if (id === null) {
     return;
   }
@@ -4091,7 +4127,7 @@ function done_item(elem_id) {
     // クリックイベントから飛んできた
     id = parseInt(elem_id.target.dataset.id);
   } else {
-    id = get_select_id(elem_id);
+    id = get_selected_id(elem_id);
   }
   if (id === null) {
     return;
@@ -4265,7 +4301,7 @@ function swap_selected_item(elem_id, is_up) {
  * 選択アイテムのURLを開く
  */
 function open_select_items_url(elem_id) {
-  let id = get_select_id(elem_id);
+  let id = get_selected_id(elem_id);
   if (id === null) {
     return;
   }
@@ -4310,9 +4346,20 @@ function toggle_scroll_lock() {
  * @returns ID or null
  */
 function get_selected_id(elem_id) {
-  let select_elems = get_selected_option(elem_id);
-  if (select_elems.length > 0) {
-    return parseInt(select_elems[0].dataset.id);
+  let item_id = null;
+  let tagName = document.getElementById(elem_id).tagName.toLowerCase();
+  if (tagName === 'select') {
+    let select_elems = get_selected_option(elem_id);
+    if (select_elems.length > 0) {
+      item_id = select_elems[0].dataset.id;
+    }
+  }
+  if (tagName === 'div') {
+    item_id = document.getElementById(elem_id).dataset.id;
+  }
+
+  if (item_id !== null) {
+    return parseInt(item_id);
   }
   return null;
 }
@@ -4324,10 +4371,17 @@ function get_selected_id(elem_id) {
  */
 function get_selected_ids(elem_id) {
   let ret = [];
-  let select_elems = get_selected_option(elem_id);
-  for (let i = 0; i < select_elems.length; i++) {
-    ret.push(parseInt(select_elems[i].dataset.id));
+  let tagName = document.getElementById(elem_id).tagName.toLowerCase();
+  if (tagName === 'select') {
+    let select_elems = get_selected_option(elem_id);
+    for (let i = 0; i < select_elems.length; i++) {
+      ret.push(parseInt(select_elems[i].dataset.id));
+    }
   }
+  if (tagName === 'div') {
+    ret.push(parseInt(document.getElementById(elem_id).dataset.id));
+  }
+
   return ret;
 }
 
@@ -4676,13 +4730,18 @@ function get_now_json() {
  * @param 要素ID
  */
 function show_edit_popup(elem_id) {
-  let selected_ids = get_selected_ids(elem_id);
-  if (selected_ids.length === 1) {
-    // 1件の編集
-    show_edit_popup_single(selected_ids[0], {parent_elem_id: elem_id});
-  } else if (selected_ids.length > 1) {
-    // 複数件の編集
-    show_edit_popup_multi(elem_id, selected_ids);
+  let tagName = document.getElementById(elem_id).tagName.toLowerCase();
+  if (tagName === 'select') {
+    let selected_ids = get_selected_ids(elem_id);
+    if (selected_ids.length === 1) {
+      // 1件の編集
+      show_edit_popup_single(selected_ids[0], {parent_elem_id: elem_id});
+    } else if (selected_ids.length > 1) {
+      // 複数件の編集
+      show_edit_popup_multi(elem_id, selected_ids);
+    }
+  } else if (tagName === 'div') {
+    show_edit_popup_single(document.getElementById(elem_id).dataset.id, {parent_elem_id: elem_id});
   }
 }
 
@@ -4800,12 +4859,19 @@ function show_edit_popup_single_ex(item_or_group, option) {
   // ポップアップの左上をリストの選択位置へ移動
   let top, left = 0;
   if (option.parent_elem_id !== undefined) {
-    let selected_elems = get_selected_option(option.parent_elem_id);
-    if (selected_elems.length > 0) {
-      let rect = selected_elems[0].getBoundingClientRect();
-      top = rect.top;
-      left = rect.right;
+    let elem = null;
+    let tagName = document.getElementById(option.parent_elem_id).tagName.toLowerCase();
+    if (tagName === 'select') {
+      let selected_elems = get_selected_option(option.parent_elem_id);
+      if (selected_elems.length > 0) {
+        elem = selected_elems[0];
+      }
+    } else if (tagName === 'div') {
+      elem = document.getElementById(option.parent_elem_id);
     }
+    let rect = elem.getBoundingClientRect();
+    top = rect.top;
+    left = rect.right;
   } else if (option.top !== undefined && option.left !== undefined) {
       top = option.top;
       left = option.left;
@@ -5554,7 +5620,12 @@ function show_remote_status() {
  */
 function showProgressDialog() {
   if (g_progress_dialog === null) {
-    g_progress_dialog = new ProgressDialog("progress-dialog-title-div", "progress-dialog-item-div");
+    let cb_dict = {
+      'mousemove': mouseover_handler_option, 
+      'mouseleave': mouseleave_handler_option, 
+      'keydown': keydown_handler_progress_diralog_title,
+    };
+    g_progress_dialog = new ProgressDialog("progress-dialog-title-div", "progress-dialog-item-div", cb_dict);
   }
   g_progress_dialog.resetAll();
 
@@ -5567,12 +5638,15 @@ function showProgressDialog() {
     let items = rowData[keys[i]].sub_tasks;
     for (let j = 0 ; j < items.length; j++) {
       let item = items[j];
-      if (item.is_tomorrow || item.is_everyday) {
-        // 明日のタスク or 毎日のタスクは表示しない
+      if (item.is_tomorrow) {
+        // 明日のタスクは表示しない
         continue;
       }
-      if (item.is_today > 0 && item.is_todays_must === true && item.status == 'yet') {
+      // 今日のタスク or 今日のMUSTタスク or 未処理のタスクを表示
+      if (item.is_today > 0) {
+        if ((item.is_todays_must === true || item.is_everyday === true) && item.status == 'yet') {
         target_items.push(item);
+        }
       }
     }
   }
