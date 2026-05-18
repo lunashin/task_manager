@@ -771,6 +771,20 @@ function keydown_handler_progress_diralog_title(event) {
     case key_arrow_right: // →
       done_item(elem_id);
       break;
+    case key_s:           // s
+      if (event.shiftKey) {
+        // ALLリストの選択アイテムを、今日のリストと同期
+        event.preventDefault(); // 既定の動作をキャンセル
+        let id = get_selected_id(elem_id);
+        if (id !== null) {
+          g_timeline.setSelection(id);  // タイムライン上のアイテムを選択
+          clear_list_filter(elem_id_list_stock);
+          set_select(elem_id_list_stock, id, true, true);
+          document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+        }
+        break;
+      }
+      break;
     case key_z:           // z
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
@@ -823,6 +837,22 @@ function contextmenu_handler_list(event) {
 
   // アイテムを選択
   set_select(elem_id, parseInt(event.target.dataset.id), false, false);
+
+  if (event.shiftKey) {
+    // テキストをコピー
+    copy_selected_item_name(elem_id, event);
+  } else {
+    // テキストをコピー(Outlook用クエリ)
+    copy_selected_item_name_for_mailquery(elem_id, event);
+  }
+}
+
+/**
+ * @summary div右クリック
+ */
+function contextmenu_handler_div(event) {
+  const elem_id = event.target.id;
+  event.preventDefault(); // 既定の動作をキャンセル
 
   if (event.shiftKey) {
     // テキストをコピー
@@ -5625,6 +5655,7 @@ function showProgressDialog() {
       'mousemove': mouseover_handler_option, 
       'mouseleave': mouseleave_handler_option, 
       'keydown': keydown_handler_progress_diralog_title,
+      'contextmenu': contextmenu_handler_div,
     };
     g_progress_dialog = new ProgressDialog("progress-dialog-title-div", "progress-dialog-item-div", cb_dict);
   }
