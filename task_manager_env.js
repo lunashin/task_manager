@@ -9,6 +9,9 @@
 //---------------------------------------
 const timelineHeight = '250px';
 
+// URL一覧ポップアップ表示対象のグループID(TODO: 画面上から設定, configへ保存したい)
+const g_groupid_url_list_popup = 0;
+
 // 全リスト フィルタボタン設定
 // const g_filters = [
 //   '',

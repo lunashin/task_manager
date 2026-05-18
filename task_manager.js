@@ -102,9 +102,6 @@ const REFRESH_TIMELINE_DELAY = 100;
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
 
-// URL一覧ポップアップ表示対象のグループID(TODO: 画面上から設定, configへ保存したい)
-const g_groupid_url_list_popup = 0;
-
 // 進捗管理ダイアログクラス
 var g_progress_dialog = null;
 
