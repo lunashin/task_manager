@@ -5628,7 +5628,7 @@ function show_remote_status() {
       let badge = "";
       const s = members_status[i][k];
  
-      if (s === "リモート") {
+      if (s === "在宅") {
         cls = "status_remote";
       } else if (s === "出張") {
         cls = "status_out";
@@ -5636,9 +5636,9 @@ function show_remote_status() {
         cls = "status_wework";
       } else if (s.includes("休暇")) {
         cls = "status_dayoff";
-        if (s.includes("AM")) badge = `<span class="dayoff_badge">AM</span>`;
-        if (s.includes("PM")) badge = `<span class="dayoff_badge">PM</span>`;
       }
+      if (s.includes("AM")) badge = `<span class="dayoff_badge">AM</span>`;
+      if (s.includes("PM")) badge = `<span class="dayoff_badge">PM</span>`;
       html += `<span class="status_box ${cls}">${members[k]}${badge}</span>`;
     }
     html += "<br>";
