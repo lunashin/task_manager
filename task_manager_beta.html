@@ -381,71 +381,6 @@
           background-color: rgb(205, 205, 205);
         }
 
-        /* --------------- 進捗管理ダイアログ ---------------- */
-        .progress-dialog-base {
-          width: 70vw;
-          height: 300px;
-          padding: 10px;
-          border: 1px solid #ccc;
-          border-radius: 10px;
-          background-color: #d8d5d5;
-          overflow-x: scroll;
-          /* position: absolute; */
-        }
-        .progress-dialog-base-div {
-          display: flex;
-        }
-        .progress-dialog-title-div {
-        }
-        .progress-dialog-item-div {
-          overflow-x: scroll;
-        }
-        .progress-dialog-item-row-div {
-          display: flex;
-        }
-        .progress-dialog-box-title {
-          width: 20rem;
-          min-width: 20rem;
-          height: 3rem;
-          font-weight: bold;
-          border: 1px solid #afaeae;
-          border-radius: 10px;
-          background-color: white;
-          margin: 2px;
-          padding: 2px;
-          overflow-x: hidden;
-        }
-        .progress-dialog-box-title:focus {
-          border-color: blue;
-        }
-        .progress-dialog-box-title-wait {
-          color:cornflowerblue;
-        }
-        .progress-dialog-box-title-group {
-          height: 1rem;
-          font-weight: bold;
-        }
-        .progress-dialog-box-item {
-          width: 10rem;
-          min-width: 10rem;
-          height: 3rem;
-          border: 1px solid #afaeae;
-          border-radius: 10px;
-          background-color: white;
-          margin: 2px;
-          padding: 2px;
-          overflow-x: hidden;
-        }
-        .progress-dialog-box-item-past{
-          background-color: #d8d5d5;
-        }
-        .progress-dialog-box-item-empty {
-          opacity: 0;
-        }
-        .progress-dialog-box-item-group {
-          height: 1rem;
-        }
-
         /* table */
         table {
           border-collapse: collapse;
@@ -459,6 +394,7 @@
 
     <!-- 環境ごとのCSS(上のCSSを上書き) -->
     <link rel="stylesheet" type="text/css" href="task_manager_env.css">
+    <link rel="stylesheet" type="text/css" href="ProgressDialog.css">
 
 </head>
 
