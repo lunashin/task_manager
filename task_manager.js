@@ -143,6 +143,7 @@ document.getElementById("stock_list_done_hidden").addEventListener("click", togg
 
 // todays must list
 document.getElementById("copy_todays_must_list").addEventListener("click", copy_todays_must_list);
+document.getElementById("show_todays_must_progress_dialog").addEventListener("click", show_todays_must_progress_dialog);
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
@@ -806,6 +807,10 @@ function keydown_handler_progress_diralog_title(event) {
       event.preventDefault(); // 既定の動作をキャンセル
       show_edit_popup(elem_id);
       break;
+    case key_esc:
+      event.preventDefault(); // 既定の動作をキャンセル
+      g_progress_dialog.close();
+      break;
   };
 }
 
@@ -1192,7 +1197,6 @@ function refresh_screen(timeline_refreshmode = 'all') {
   update_priority_list();
 
   show_timeline(timeline_refreshmode);
-  showProgressDialog();
 }
 
 /**
@@ -4733,6 +4737,13 @@ function get_html_table(ignre_non_task, ignre_done_task) {
   return html;
 }
 
+/**
+ * @summary 進捗ダイアログ表示
+ */
+function show_todays_must_progress_dialog() {
+  showProgressDialog();
+}
+
 // 現在の状態をJSONファイルとしてダウンロード
 function download_now_json() {
   // ダウンロード
@@ -5654,7 +5665,7 @@ function showProgressDialog() {
       'keydown': keydown_handler_progress_diralog_title,
       'contextmenu': contextmenu_handler_div,
     };
-    g_progress_dialog = new ProgressDialog("progress-dialog-title-div", "progress-dialog-item-div", cb_dict);
+    g_progress_dialog = new ProgressDialog("progress-dialog-base", "progress-dialog-title-div", "progress-dialog-item-div", cb_dict);
   }
   g_progress_dialog.resetAll();
 
@@ -5681,7 +5692,7 @@ function showProgressDialog() {
   }
 
   // ダイアログ表示
-  g_progress_dialog.make(target_items, '');
+  g_progress_dialog.show(target_items);
 }
 
 
@@ -6352,8 +6363,6 @@ set_stocklist_filter_text_items();
 // 出社/在宅状況の表示
 read_work_schedule();
 
-// 進捗管理ダイアログ
-showProgressDialog();
 
 
 

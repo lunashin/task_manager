@@ -18,11 +18,23 @@ class ProgressDialog {
    * @param 進捗内容領域の要素ID
    * @param タスク名領域keydownイベントコールバック {'イベント名': コールバック関数, ...}
    */
-  constructor(title_elem_id, item_elem_id, cb_event_title = null) {
+  constructor(base_elem_id, title_elem_id, item_elem_id, cb_event_title = null) {
+    this.base_elem_id = base_elem_id;
     this.title_elem_id = title_elem_id;
     this.item_elem_id= item_elem_id;
     this.cb_event_title = cb_event_title;
     this.items = null;
+  }
+
+  show(items) {
+    this.make(items);
+    let elem = document.getElementById(this.base_elem_id);
+    elem.style.top = 500;
+    elem.style.visibility = 'visible';
+  }
+
+  close() {
+    document.getElementById(this.base_elem_id).style.visibility = 'hidden';
   }
 
   /**
@@ -175,7 +187,8 @@ class ProgressDialog {
     comment = `${today_str} ${comment}`;
     let item = getInternal(parseInt(event.target.dataset.id));
     item.note = `${comment}\n${item.note}`;
-    
+    item.last_progress_updated = get_today_str(true, true, true);
+
     // 表示更新
     this.reflesh('');
   }
@@ -198,7 +211,8 @@ class ProgressDialog {
     let lines = item.note.split('\n');
     lines[0] = comment;
     item.note = lines.join('\n');
-    
+    item.last_progress_updated = get_today_str(true, true, true);
+
     // 表示更新
     this.reflesh('');
   }
