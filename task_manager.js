@@ -768,6 +768,7 @@ function keydown_handler_progress_diralog_title(event) {
   switch (event.keyCode){
     case key_arrow_right: // →
       done_item(elem_id);
+      g_progress_dialog.reflesh(get_todays_must_task());
       break;
     case key_s:           // s
       if (event.shiftKey) {
@@ -788,10 +789,12 @@ function keydown_handler_progress_diralog_title(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         // 元に戻す
         undo_item()
+        g_progress_dialog.reflesh(get_todays_must_task());
         break;
       }
       event.preventDefault(); // 既定の動作をキャンセル
       toggle_wait(elem_id);
+      g_progress_dialog.reflesh();
       break;
     case key_space:       // space
       event.preventDefault(); // 既定の動作をキャンセル
@@ -806,10 +809,6 @@ function keydown_handler_progress_diralog_title(event) {
     case key_enter:     // Enter
       event.preventDefault(); // 既定の動作をキャンセル
       show_edit_popup(elem_id);
-      break;
-    case key_esc:
-      event.preventDefault(); // 既定の動作をキャンセル
-      g_progress_dialog.close();
       break;
   };
 }
@@ -5669,7 +5668,18 @@ function showProgressDialog() {
   }
   g_progress_dialog.resetAll();
 
-  // 今日のMUSTタスク
+  // 今日のMustタスクリスト取得
+  let todays_items = get_todays_must_task();
+
+  // ダイアログ表示
+  g_progress_dialog.show(todays_items);
+}
+
+/**
+ * @summary 今日のMustタスクリスト取得
+ * @returns item(配列)
+ */
+function get_todays_must_task() {
   let target_items = [];
   let rowData = getInternalRawTasksData();
   let keys = get_internal_keys(null, null);
@@ -5690,9 +5700,7 @@ function showProgressDialog() {
       }
     }
   }
-
-  // ダイアログ表示
-  g_progress_dialog.show(target_items);
+  return target_items;
 }
 
 

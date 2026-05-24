@@ -24,15 +24,32 @@ class ProgressDialog {
     this.item_elem_id= item_elem_id;
     this.cb_event_title = cb_event_title;
     this.items = null;
+
+    // ベースdiv キーイベント登録
+    let elem_base = document.getElementById(this.base_elem_id);
+    elem_base.tabIndex = 0;
+    elem_base.addEventListener('keydown', this.keydown_handler_base.bind(this));
   }
 
+  /**
+   * @summary ダイアログ表示
+   * @param items(配列)
+   */
   show(items) {
     this.make(items);
     let elem = document.getElementById(this.base_elem_id);
-    elem.style.top = 500;
+
+    // 画面中央部に移動
+    elem.style.top = window.innerHeight/2 - elem.clientHeight/2;
+    elem.style.left = window.innerWidth/2 - elem.clientWidth/2;
+
     elem.style.visibility = 'visible';
+    elem.focus();
   }
 
+  /**
+   * @summary ダイアログを閉じる
+   */
   close() {
     document.getElementById(this.base_elem_id).style.visibility = 'hidden';
   }
@@ -42,7 +59,7 @@ class ProgressDialog {
    * @param アイテム(配列)
    * @param 開始日(Date)
    */
-  make(items, d_start = null) {
+  make(items) {
     this.items = items;
     let groupid_prev = null;
     for (let idx = 0; idx < items.length; idx++) {
@@ -170,6 +187,18 @@ class ProgressDialog {
   }
 
   /**
+   * @summary ベースdiv キーハンドラ
+   */
+  keydown_handler_base(event) {
+    switch (event.keyCode){
+      case key_esc:
+        event.preventDefault(); // 既定の動作をキャンセル
+        this.close();
+        break;
+    }
+  }
+
+  /**
    * @summary titleダブルクリックハンドラ
    */
   dblclick_handler_title(event) {
@@ -190,7 +219,7 @@ class ProgressDialog {
     item.last_progress_updated = get_today_str(true, true, true);
 
     // 表示更新
-    this.reflesh('');
+    this.reflesh();
   }
 
   /**
@@ -199,8 +228,8 @@ class ProgressDialog {
   div_dblclick_item_handler(event) {
     // アイテムのコメントを変更
     let comment = prompt('コメント変更', event.target.innerText);
-    if (comment === null || comment === '') {
-      // キャンセル or 空
+    if (comment === null) {
+      // キャンセル
       return;
     }
 
@@ -209,12 +238,17 @@ class ProgressDialog {
     // コメントの先頭行を変更
     let item = getInternal(parseInt(event.target.dataset.id));
     let lines = item.note.split('\n');
-    lines[0] = comment;
+    if (comment === '') {
+      // 空の場合は削除
+      lines.splice(0,1);
+    } else {
+      lines[0] = comment;
+    }
     item.note = lines.join('\n');
     item.last_progress_updated = get_today_str(true, true, true);
 
     // 表示更新
-    this.reflesh('');
+    this.reflesh();
   }
 
   /**
@@ -235,8 +269,12 @@ class ProgressDialog {
    * @summary 画面更新
    * @param 開始日(string)
    */
-  reflesh(start_date = '') {
+  reflesh(items = null) {
     this.resetAll();
-    this.make(this.items, start_date);
+    if (items !== null) {
+      this.make(items);
+    } else {
+      this.make(this.items);
+    }
   }
 };

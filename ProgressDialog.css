@@ -3,12 +3,13 @@
   width: 90vw;
   /* height: 300px; */
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #afaeae;
   border-radius: 10px;
   background-color: #d8d5d5;
   overflow-x: scroll;
   position: absolute;
   visibility: hidden;
+  top: 0;
   left: 0;
 }
 .progress-dialog-base-div {
