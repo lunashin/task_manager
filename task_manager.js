@@ -102,6 +102,9 @@ const REFRESH_TIMELINE_DELAY = 100;
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
 
+// クリップボード クイック登録先グループ名
+const g_quick_clipboard_group_name = 'クイック登録タスク';
+
 // 進捗管理ダイアログクラス
 var g_progress_dialog = null;
 
@@ -130,6 +133,7 @@ document.getElementById(elem_id_list_done).addEventListener("dblclick", return_i
 document.getElementById("btn_input_reflect").addEventListener("click", regist_from_textarea);
 document.getElementById("btn_input_json").addEventListener("click", click_handler_regist_from_json);
 document.getElementById("btn_input_json_file").addEventListener("change", change_handler_regist_from_jsonfile);
+document.getElementById("btn_regist_from_clipboard").addEventListener("click", click_handler_regist_from_clipboard);
 
 // stock list
 document.getElementById("copy_stock_list").addEventListener("click", copy_all_task_blob);
@@ -755,7 +759,7 @@ function keyhandler_edit_popup(event) {
 function keyhandler_edit_popup_multi(event) {
   switch (event.keyCode){
     case key_esc:       // ESC
-    close_edit_multi_popup();
+      close_edit_multi_popup();
       break;
   }
 }
@@ -1635,6 +1639,42 @@ function convert_internal_data(input) {
   }
   Object.assign(getInternalRawTasksData(), internal_list);
   return group_id;
+}
+
+/**
+ * @summary クリップボードからタスク登録
+ */
+async function click_handler_regist_from_clipboard(event) {
+  let data = await extractRegistDataFromClipboard();
+
+  // データなし
+  if (data.text === '') {
+    return;
+  }
+
+  // item作成
+  let items = [];
+  let item = makeInternalItem_ex(data.text, genItemID());
+  if (data.url !== '') {
+    item.url = data.url;
+  }
+  items.push(item);
+
+  // 追加先グループ取得
+  let group = getInternalFromName(g_quick_clipboard_group_name);
+  if (group === null) {
+    // グループがなければ追加
+    group = makeInternalGroup(g_quick_clipboard_group_name, '');
+    setInternalGroup(g_quick_clipboard_group_name, group);
+  }
+
+  // タスクリストへ追加
+  pushHistory();
+  addIntarnalDatasToGroup(group.id, items, false);
+  refresh_screen('item');
+
+  // 選択
+  set_select(elem_id_list_stock, group.id, true, true);
 }
 
 /**
@@ -4734,6 +4774,43 @@ function get_html_table(ignre_non_task, ignre_done_task) {
   html += '</tbody>';
   html += '</table>';
   return html;
+}
+
+/**
+ * @summary クリップボード内のデータから登録タスクデータを抽出
+ * @return dict ( { text: [テキスト] }, url: [URL] )
+ */
+async function extractRegistDataFromClipboard() {
+  let ret = { text: '', url: ''};
+  try {
+    const clipboardContents = await navigator.clipboard.read();
+    for (const item of clipboardContents) {
+      // HTML
+      if (item.types.includes("text/html")) {
+        const blob_html = await item.getType("text/html");
+        let html = await blob_html.text();
+        let temp_div = document.createElement('div');
+        temp_div.innerHTML = html;
+
+        for (const elements of temp_div.children) {
+          if (elements.tagName === 'A') {
+            let url = elements.href;
+            let link_text = elements.innerText;
+            ret = { text: link_text, url: url };
+          }
+        }
+      // Text
+      } else if (item.types.includes("text/plain")) {
+        const blob_text = await item.getType("text/plain");
+        let text = await blob_text.text();
+        ret = { text: text, url: '' };
+      }
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+
+  return ret;
 }
 
 /**
