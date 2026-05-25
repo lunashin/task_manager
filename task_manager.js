@@ -103,7 +103,7 @@ const REFRESH_TIMELINE_DELAY = 100;
 const g_meeting_group_name = '会議';
 
 // クリップボード クイック登録先グループ名
-const g_quick_clipboard_group_name = 'クイック登録タスク';
+// const g_quick_clipboard_group_name = 'クイック登録タスク';
 
 // 進捗管理ダイアログクラス
 var g_progress_dialog = null;
@@ -1661,16 +1661,24 @@ async function click_handler_regist_from_clipboard(event) {
   items.push(item);
 
   // 追加先グループ取得
-  let group = getInternalFromName(g_quick_clipboard_group_name);
-  if (group === null) {
-    // グループがなければ追加
-    group = makeInternalGroup(g_quick_clipboard_group_name, '');
-    setInternalGroup(g_quick_clipboard_group_name, group);
-  }
+  // let group = getInternalFromName(g_quick_clipboard_group_name);
+  // if (group === null) {
+  //   // グループがなければ追加
+  //   group = makeInternalGroup(g_quick_clipboard_group_name, '');
+  //   setInternalGroup(g_quick_clipboard_group_name, group);
+  // }
 
   // タスクリストへ追加
   pushHistory();
-  addIntarnalDatasToGroup(group.id, items, false);
+
+  let select_item_id = get_selected_id(elem_id_list_stock);
+  if (select_item_id === null) {
+    alert("追加先となるアイテム or グループを選択してください。");
+    return;
+  }
+  addItemBehind(select_item_id, item);
+
+  // addIntarnalDatasToGroup(group.id, items, false);
   refresh_screen('item');
 
   // 選択
@@ -4797,6 +4805,24 @@ async function extractRegistDataFromClipboard() {
             let url = elements.href;
             let link_text = elements.innerText;
             ret = { text: link_text, url: url };
+            break;
+          }
+        }
+
+        // 見つからなければ、更に子の要素から検索
+        if (ret.text === '') {
+          for (const elements of temp_div.children) {
+            for (const elements2 of elements.children) {
+              if (elements2.tagName === 'A') {
+                let url = elements2.href;
+                let link_text = elements2.innerText;
+                ret = { text: link_text, url: url };
+                break;
+              }
+            }
+            if (ret.text !== undefined) {
+              break;
+            }
           }
         }
       // Text
