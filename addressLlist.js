@@ -350,7 +350,7 @@ function create_mailto_url(address_to, address_cc, subject, body) {
   let url = 'mailto:';
   url += address_to;
   url += '?';
-  if (address_cc !== null) {
+  if (address_cc !== '') {
     url += 'cc=' + address_cc;
     url += '&';
   }
