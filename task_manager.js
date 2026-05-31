@@ -3576,14 +3576,19 @@ function make_popup_url_list() {
     base_div.removeChild(base_div.firstChild);
   }
 
+  // 指定グループの情報を取得
   let group = getInternalGroup(g_groupid_url_list_popup);
   let sub_tasks = group.sub_tasks;
 
   // ボタン生成
+  let target_div = null;
   for (let i = 0; i < sub_tasks.length; i++) {
-    // 改行(nameが空 or nameが'-'のみ)
-    if(sub_tasks[i].name === '' || sub_tasks[i].name.length === (sub_tasks[i].name.match(/-/g) || []).length) {
-      base_div.appendChild(document.createElement("br"));
+    // 初回 or nameが空 or nameが'-'のみ は行要素を追加
+    if(i == 0 || sub_tasks[i].name === '' || sub_tasks[i].name.length === (sub_tasks[i].name.match(/-/g) || []).length) {
+      target_div = document.createElement('div');
+      target_div.classList.add('popup_url_list_row_div');
+      base_div.appendChild(target_div);
+      // base_div.appendChild(document.createElement("br"));
       continue;
     }
 
@@ -3592,7 +3597,7 @@ function make_popup_url_list() {
       continue;
     }
 
-    // 要素生成
+    // ボタン要素生成
     let elem_button = document.createElement("button");
     elem_button.value = sub_tasks[i].name;
     elem_button.textContent = sub_tasks[i].name;
@@ -3602,7 +3607,7 @@ function make_popup_url_list() {
       open_url(event.target.dataset.url);
     });
     // 要素追加
-    base_div.appendChild(elem_button);
+    target_div.appendChild(elem_button);
   }
 }
 

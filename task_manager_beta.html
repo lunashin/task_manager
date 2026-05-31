@@ -248,15 +248,23 @@
           border-radius: 10px;
           transition-duration: 200ms;
           transition-property: opacity;
+          overflow-x: scroll;
           overflow-y: scroll;
         }
 
-        .popup_url_list_div > button {
-          width: 120;
-          height: 50;
+        .popup_url_list_row_div {
+          display: flex;
+          min-height: 1rem;
+        }
+
+        .popup_url_list_row_div > button {
+          width: 8rem;
+          min-width: 8rem;
+          height: 3.2rem;
           font-size: 100%;
           padding: 0px;
           margin: 2px;
+          overflow-y: scroll;
         }
 
         /* --------------- Calender ---------------- */
