@@ -70,7 +70,7 @@ const g_list_history_num = 20;
 const g_modify_history_num = 50;  // 最大保持数
 
 // 全リストの済みタスク表示フラグ (true:表示する / false:表示しない)
-var g_is_show_stock_done = true;
+var g_is_show_stock_done = false;
 // 今日の済みタスク表示フラグ (true:表示する / false:表示しない)
 var g_is_show_todays_done = false;
 // 今日のタスク ロック状態
@@ -3447,6 +3447,13 @@ function update_auto_save() {
 }
 
 /**
+ * 全リスト 済みタスク非表示チェックを更新
+ */
+function update_hide_done_checkbox() {
+  document.getElementById("stock_list_done_hidden").checked = !g_is_show_stock_done;
+}
+
+/**
  * フィルターボタン生成
  */
 // function make_filter_buttons() {
@@ -6466,6 +6473,8 @@ update_check_todays_done();
 update_check_todays_lock();
 // 自動保存 チェック更新
 update_auto_save();
+// 全リスト 済みタスク非表示チェックを更新
+update_hide_done_checkbox();
 
 // フィルターボタン生成
 // make_filter_buttons();
