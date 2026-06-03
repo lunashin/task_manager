@@ -5738,6 +5738,7 @@ function show_timeline(mode = 'all')
 function show_remote_status() {
   let html = '';
   for (let i = 0; i < members_status.length; i++) {
+    html += "<span>" + members_status_date[i] + "</span>";
     for (let k = 0; k < members.length; k++) {
       let cls = "status_office";
       let badge = "";
