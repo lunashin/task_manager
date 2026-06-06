@@ -577,6 +577,15 @@ function keyhandler_everyday_list(event) {
   if (keyhandler_list_common(event, elem_id)) {
     return;
   }
+
+  switch (event.keyCode){
+    case key_arrow_right: // →
+      done_item(elem_id);
+      break;
+    case key_arrow_left: // ←
+      remove_today_item(elem_id);
+      break;
+  }
 }
 
 /**
@@ -604,8 +613,7 @@ function keyhandler_todays_must_list(event) {
       done_item(elem_id);
       break;
     case key_arrow_left: // ←
-      pushHistory();
-      clear_today_and_must_task(elem_id);
+      remove_today_item(elem_id);
       break;
     case key_d:           // d
       if (event.ctrlKey) {
@@ -770,6 +778,10 @@ function keyhandler_edit_popup_multi(event) {
 function keydown_handler_progress_diralog_title(event) {
   let elem_id = event.target.id;
   switch (event.keyCode){
+    case key_arrow_left: // ←
+      remove_today_item(elem_id);
+      g_progress_dialog.reflesh(get_todays_must_task());
+      break;
     case key_arrow_right: // →
       done_item(elem_id);
       g_progress_dialog.reflesh(get_todays_must_task());
@@ -3090,7 +3102,7 @@ function update_everyday_list() {
     getInternalRawTasksData(), elem_id_list_everyday, null, '',
     function(item) {
       // 表示条件
-      return item.is_everyday;
+      return (item.is_everyday && item.status === 'yet');
     },
     function(item) {
       // クラスリスト
@@ -3989,6 +4001,8 @@ function remove_today_item(elem_id) {
   pushHistory();
   item.is_today = 0;
   item.is_first = false;  // 優先タスクフラグ解除
+  item.is_todays_must = false; // 今日のMUSTフラグ解除
+  item.is_everyday = false; // 毎日フラグ解除
   // item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
@@ -4159,27 +4173,6 @@ function clear_todays_must_task(elem_id) {
   }
 
   item.is_todays_must = false;
-
-  refresh_screen('item');
-}
-
-// 今日のタスク & 必須タスクを解除
-function clear_today_and_must_task(elem_id) {
-  pushHistory();
-
-  let id = get_selected_id(elem_id);
-  if (id === null) {
-    return;
-  }
-
-  let item = getInternal(id)
-  if (item === null) {
-    return;
-  }
-  
-  item.is_todays_must = false;
-  item.is_today = 0;
-  item.is_first = false;  // 優先タスクフラグ解除
 
   refresh_screen('item');
 }
@@ -5815,9 +5808,12 @@ function get_todays_must_task() {
         // 明日のタスクは表示しない
         continue;
       }
-      // 今日のタスク or 今日のMUSTタスク or 未処理のタスクを表示
-      if (item.is_today > 0) {
-        if ((item.is_todays_must === true || item.is_everyday === true) && item.status == 'yet') {
+      // 毎日のタスク and 未処理のタスク
+      if (item.is_everyday === true && item.status == 'yet') {
+        target_items.push(item);
+      // 今日のMUSTタスク and 未処理のタスク
+      } else if (item.is_today > 0) {
+        if (item.is_todays_must === true && item.status == 'yet') {
         target_items.push(item);
         }
       }
