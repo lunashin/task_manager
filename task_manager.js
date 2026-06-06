@@ -1002,10 +1002,10 @@ function show_note_preview(event) {
     if (note !== undefined && note !== '') {
       elem.dataset.type = 'note';
       elem.innerHTML = note.replaceAll('\n', '<br>');
-      elem.style.top = event.clientY + window.scrollY;  // topはブラウザのクライアント領域となるため、スクロール量を加算
+      elem.style.top = event.clientY + window.scrollY;  // topはページのクライアント領域となるため、スクロール量を加算
       elem.style.left = event.clientX + window.scrollX + 20;
       elem.style.height = '';
-      elem.style.display = 'block';
+      elem.style.visibility = 'visible';
       // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
     }
   } else if (event.ctrlKey) {
@@ -1025,14 +1025,20 @@ function show_note_preview(event) {
           tags[i].remove();
         }
       }
-      elem.style.display = 'block'; // ここで一旦表示
+
+      // 位置調整
       let pos = adjust_element_position('popup_note_mail_preview', event.clientY, event.clientX + 20);
-      elem.style.top = pos.top;
-      elem.style.left = pos.left;
+      elem.style.top = pos.top + window.scrollY;
+      elem.style.left = pos.left + window.scrollX;
+ 
       // 高さが画面高さ以上の場合は画面高さに合わせる
-      if (document.getElementById('popup_note_mail_preview').clientHeight > window.innerHeight) {
-        elem.style.height = window.innerHeight;
-      }
+      // if (document.getElementById('popup_note_mail_preview').clientHeight > window.innerHeight) {
+      //   elem.style.height = window.innerHeight;
+      // }
+
+      // 表示
+      elem.style.visibility = 'visible';
+
     }
   }
 }
@@ -1043,7 +1049,8 @@ function show_note_preview(event) {
  */
 function close_note_preview(event) {
   let elem = document.getElementById('popup_note_mail_preview');
-  elem.style.display = 'none';
+  // elem.style.display = 'none';
+  elem.style.visibility = 'hidden';
   elem.innerHTML = '';
   elem.style.height = '';
   elem.dataset.type = '';
