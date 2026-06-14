@@ -148,7 +148,7 @@ document.getElementById("copy_todays_must_list").addEventListener("click", copy_
 document.getElementById("show_todays_must_progress_dialog").addEventListener("click", show_todays_must_progress_dialog);
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
-// document.getElementById("set_first_task").addEventListener("click", toggle_todays_first_task);
+// document.getElementById("set_first_task").addEventListener("click", toggle_first_task);
 // document.getElementById("clear_first_task").addEventListener("click", clear_first_task);
 document.getElementById("toggle_show_done").addEventListener("click", toggle_show_todays_done);
 document.getElementById("lock_todays_task").addEventListener("click", toggle_lock_todays_task);
@@ -331,6 +331,11 @@ function keyhandler_list_common(event, elem_id, ignore_keys=null) {
         remove_selected_item(elem_id);
         is_processed = true;
       }
+      break;
+    case key_f:           // f
+      event.preventDefault(); // 既定の動作をキャンセル
+      // ファーストタスク
+      toggle_first_task(elem_id);
       break;
     case key_s:           // s
       if (event.shiftKey) {
@@ -614,8 +619,6 @@ function keyhandler_todays_list(event) {
         toggle_todays_doing_task();
         break;
       }
-      // ファーストタスク
-      toggle_todays_first_task();
       break;
     case key_n:           //n
       // 非タスク化
@@ -687,6 +690,12 @@ function keydown_handler_progress_diralog_title(event) {
       break;
     case key_arrow_right: // →
       done_item(elem_id);
+      g_progress_dialog.reflesh(get_todays_must_task());
+      break;
+    case key_f:           // f
+      event.preventDefault(); // 既定の動作をキャンセル
+      // ファーストタスク
+      toggle_first_task(elem_id);
       g_progress_dialog.reflesh(get_todays_must_task());
       break;
     case key_s:           // s
@@ -3835,10 +3844,10 @@ function remove_today_item(elem_id) {
 }
 
 // 選択アイテムをファーストタスクへ設定
-function toggle_todays_first_task() {
+function toggle_first_task(elem_id) {
   pushHistory();
 
-  let id = get_selected_id(elem_id_list_today);
+  let id = get_selected_id(elem_id);
   if (id === null) {
     return;
   }
@@ -3848,13 +3857,9 @@ function toggle_todays_first_task() {
     return;
   }
 
-  if (item.is_first) {
-    // ファーストタスクの場合はOFF
-    item.is_first = false;
-  } else if (item.is_today > 0 && item.status !== 'done') {
-    // 非ファーストタスクで、今日 かつ 処理済みでないデータならファーストへ
-    item.is_first = true;
-  }
+  // 反転
+  item.is_first = !item.is_first;
+
   refresh_screen('item');
 }
 

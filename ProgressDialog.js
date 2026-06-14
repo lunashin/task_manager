@@ -57,17 +57,17 @@ class ProgressDialog {
   /**
    * @summary 画面更新
    * @param アイテム(配列)
-   * @param 開始日(Date)
    */
   make(items) {
-    this.items = items;
+    this.items = items;   // 更新用に参照を保持
     let groupid_prev = null;
     for (let idx = 0; idx < items.length; idx++) {
       let item = items[idx];
       let lines = item.note.split('\n'); // noteを改行で分割
       let prev1 = '';
       let disp_notes = [];
-      // 各行を処理 (後ろから回す)
+
+      // メモの各行を処理 (後ろから回す)
       for (let k = lines.length - 1; k >= 0; k--) {
         // 日付を抽出
         let temp = lines[k].split(' ');
@@ -102,7 +102,7 @@ class ProgressDialog {
       }
       groupid_prev = group.id;
 
-      // 要素を作成
+      // 行の要素を作成
       this.addItemRow(item, disp_notes);
     }
   }
@@ -119,6 +119,9 @@ class ProgressDialog {
     new_title_div.classList.add('progress-dialog-box-title');
     if (item.is_wait) {
       new_title_div.classList.add('progress-dialog-box-title-wait');
+    }
+    if (item.is_first) {
+      new_title_div.classList.add('progress-dialog-box-title-first');
     }
     new_title_div.id = `progress-dialog-box-title-${item.id}`;
     new_title_div.innerText = get_before_icons(item) + ' ' + item.name + ' ' + get_after_icons(item); // 前アイコン + タスク名 + 後アイコン

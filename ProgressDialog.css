@@ -41,6 +41,10 @@
 .progress-dialog-box-title-wait {
   color:cornflowerblue;
 }
+.progress-dialog-box-title-first {
+  background-color: #FFFF55; 
+  font-weight: bold;
+}
 .progress-dialog-box-title-group {
   height: 1rem;
   font-weight: bold;
