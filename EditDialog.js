@@ -21,12 +21,15 @@ class EditDialog {
    */
   constructor() {
     this.show_popup = false;
-    this.show_popup_list = null;
+
+    this.user_operation_promise = null;
+    this.user_operation_resolve = null;
+    this.user_operation_reject = null;
 
     // Popup
     document.getElementById("popup_edit_base").addEventListener("keydown", this.keyhandler_edit_popup.bind(this));
     document.getElementById("popup_edit_form").addEventListener("submit", this.submit_edit_popup.bind(this));
-    document.getElementById("popup_edit_cancel_btn").addEventListener("click", this.close_edit_popup.bind(this));
+    document.getElementById("popup_edit_cancel_btn").addEventListener("click", this.cancel_edit_popup.bind(this));
     // Popup(multi)
     document.getElementById("popup_edit_multi_base").addEventListener("keydown", this.keyhandler_edit_popup_multi.bind(this));
     document.getElementById("popup_edit_multi_form").addEventListener("submit", this.submit_edit_multi_popup.bind(this));
@@ -89,7 +92,7 @@ class EditDialog {
   keyhandler_edit_popup(event) {
     switch (event.keyCode){
       case key_esc:       // ESC
-        this.close_edit_popup();
+        this.cancel_edit_popup();
         break;
     }
   }
@@ -101,7 +104,7 @@ class EditDialog {
   keyhandler_edit_popup_multi(event) {
     switch (event.keyCode){
       case key_esc:       // ESC
-        this.close_edit_multi_popup();
+        this.cancel_edit_multi_popup();
         break;
     }
   }
@@ -216,22 +219,24 @@ class EditDialog {
 
   /**
    * @summary 編集ポップアップ表示
-   * @param 要素ID (アイテムを表示しているselect or div要素)
+   * @param アイテムID(複数)
+   * @param 表示位置の基準となる要素ID
+   * @returns true: OK, false: Cancel
    */
-  show_edit_popup(elem_id) {
-    let tagName = document.getElementById(elem_id).tagName.toLowerCase();
-    if (tagName === 'select') {
-      let selected_ids = get_selected_ids(elem_id);
-      if (selected_ids.length === 1) {
-        // 1件の編集
-        this.show_edit_popup_single(selected_ids[0], {parent_elem_id: elem_id});
-      } else if (selected_ids.length > 1) {
-        // 複数件の編集
-        this.show_edit_popup_multi(elem_id, selected_ids);
-      }
-    } else if (tagName === 'div') {
-      this.show_edit_popup_single(document.getElementById(elem_id).dataset.id, {parent_elem_id: elem_id});
+  async show_edit_popup(item_ids, parent_elem_id) {
+    if (item_ids.length === 1) {
+      this.show_edit_popup_single(item_ids[0], {parent_elem_id: parent_elem_id});
+    } else {
+      this.show_edit_popup_multi(item_ids, {parent_elem_id: parent_elem_id});
     }
+
+    // ユーザー操作を待つ
+    this.user_operation_promise = new Promise((resolve, reject) => {
+      this.user_operation_resolve = resolve;
+      this.user_operation_reject = reject;
+    });
+
+    return this.user_operation_promise;
   }
 
 
@@ -281,12 +286,7 @@ class EditDialog {
 
     if (item.type === "item") {
       // // 所属グループ
-      if (option.group_id !== undefined) {
-        set_group_select_ex("popup_edit_group_list", false, option.group_id);
-      } else {
-        set_group_select("popup_edit_group_list", false, item.id);
-      }
-
+      set_group_select("popup_edit_group_list", false, item.id);
       document.getElementById("popup_edit_group_list").style.display = "block";
       // URL
       document.getElementById("popup_edit_url").value = item.url;
@@ -345,25 +345,16 @@ class EditDialog {
     // 表示(非表示状態だと↓のclientHeightが取れない為、ここで表示)
     // elem.style.display = "block";
 
-    // ポップアップの左上をリストの選択位置へ移動
+    // ポップアップの左上位置を決定
     let top, left = 0;
     if (option.parent_elem_id !== undefined) {
-      let elem = null;
-      let tagName = document.getElementById(option.parent_elem_id).tagName.toLowerCase();
-      if (tagName === 'select') {
-        let selected_elems = get_selected_option(option.parent_elem_id);
-        if (selected_elems.length > 0) {
-          elem = selected_elems[0];
-        }
-      } else if (tagName === 'div') {
-        elem = document.getElementById(option.parent_elem_id);
-      }
+      let elem = document.getElementById(option.parent_elem_id);
       let rect = elem.getBoundingClientRect();
       top = rect.top;
       left = rect.right;
     } else if (option.top !== undefined && option.left !== undefined) {
-        top = option.top;
-        left = option.left;
+      top = option.top;
+      left = option.left;
     }
     // 表示位置調整
     let pos = adjust_element_position('popup_edit_base', top, left);
@@ -383,7 +374,7 @@ class EditDialog {
 
   /**
    * @summary 編集ポップアップ表示
-   * @param 編集対象ID
+   * @param 編集対象アイテムID
    * @param 親情報(ポップアップ位置に利用) {parent_elem_id, top, left}
    */
   show_edit_popup_single(selected_id, option) {
@@ -392,10 +383,10 @@ class EditDialog {
 
   /**
    * @summary 編集ポップアップ表示(複数用)
-   * @param 要素ID
-   * @param 編集対象ID(配列)
+   * @param 編集対象アイテムID(配列)
+   * @param 親情報(ポップアップ位置に利用) {parent_elem_id}
    */
-  show_edit_popup_multi(elem_id, selected_ids) {
+  show_edit_popup_multi(selected_ids, option) {
     if (this.show_popup) {
       return;
     }
@@ -474,17 +465,24 @@ class EditDialog {
     // ID 
     document.getElementById("popup_edit_multi_hidden_id").value = target_ids.join(',');
 
-    // ポップアップをリストの選択位置へ移動
+    // ポップアップの左上位置を決定
+    let top, left = 0;
     let elem = document.getElementById("popup_edit_multi_base");
-    let selected_elems = get_selected_option(elem_id);
-    if (selected_elems.length > 0) {
-      let rect = selected_elems[0].getBoundingClientRect();
-      elem.style.top = rect.top;
-      elem.style.left = rect.right;
+    if (option.parent_elem_id !== undefined) {
+      let elem = document.getElementById(option.parent_elem_id);
+      let rect = elem.getBoundingClientRect();
+      top = rect.top;
+      left = rect.right;
+    } else if (option.top !== undefined && option.left !== undefined) {
+      top = option.top;
+      left = option.left;
     }
+    // 表示位置調整
+    let pos = adjust_element_position('popup_edit_base', top, left);
+    elem.style.top = pos.top;
+    elem.style.left = pos.left;
 
     // 表示
-    // elem.style.display = "block";
     document.getElementById("popup_bg_cover").style.display = 'block';
     elem.style.visibility = "visible";
     elem.style.opacity= "1";
@@ -493,7 +491,6 @@ class EditDialog {
     document.getElementById("popup_edit_multi_done").focus();
 
     this.show_popup = true;
-    this.show_popup_list = elem_id;
   }
 
   /**
@@ -603,13 +600,10 @@ class EditDialog {
 
     // ポップアップ消去
     this.close_edit_popup();
-    // リスト更新 / TODO:期限変更判断追加
-    refresh_screen(item.type === 'group' ? 'all' : 'item');
 
-    // ポップアップ起動元リストへフォーカス移動
-    if (parent_elem_id !== "") {
-      document.getElementById(parent_elem_id).focus();
-    }
+    this.user_operation_resolve(true);
+    this.user_operation_resolve = null;
+    this.user_operation_reject = null;
   }
 
   /**
@@ -653,6 +647,20 @@ class EditDialog {
     this.close_edit_multi_popup();
     // リスト更新 / TODO:期限変更判断追加
     refresh_screen('all');
+
+    this.user_operation_resolve(true);
+    this.user_operation_resolve = null;
+    this.user_operation_reject = null;
+  }
+
+  /**
+   * @summary キャンセルボタンハンドラ
+   */
+  cancel_edit_popup(event) {
+    this.close_edit_popup();
+    this.user_operation_resolve(false);
+    this.user_operation_resolve = null;
+    this.user_operation_reject = null;
   }
 
   /**
@@ -660,24 +668,21 @@ class EditDialog {
    */
   close_edit_popup() {
     let elem = document.getElementById("popup_edit_base");
-    // elem.style.display = "none";
     elem.style.visibility = "hidden";
     elem.style.opacity= "0";
     document.getElementById("popup_bg_cover").style.display = 'none';
 
-    // // フォーカスをリストへ移動
-    // if (g_show_popup_list !== null) {
-    //   document.getElementById(g_show_popup_list).focus();
-    // }
-
-    // ポップアップ起動元リストへフォーカス移動
-    let parent_elem_id = document.getElementById("popup_edit_hidden_parent_elem_id").value;
-    if (parent_elem_id !== "") {
-      document.getElementById(parent_elem_id).focus();
-    }
-
     this.show_popup = false;
-    // this.show_popup_list = null;
+  }
+
+  /**
+   * @summary キャンセルボタンハンドラ(Multi)
+   */
+  cancel_edit_multi_popup() {
+    this.close_edit_multi_popup();
+    this.user_operation_resolve(false);
+    this.user_operation_resolve = null;
+    this.user_operation_reject = null;
   }
 
   /**
@@ -685,18 +690,11 @@ class EditDialog {
    */
   close_edit_multi_popup() {
     let elem = document.getElementById("popup_edit_multi_base");
-    // elem.style.display = "none";
     elem.style.visibility = "hidden";
     elem.style.opacity= "0";
     document.getElementById("popup_bg_cover").style.display = 'none';
 
-    // フォーカスをリストへ移動
-    if (this.show_popup_list !== null) {
-      document.getElementById(this.show_popup_list).focus();
-    }
-
     this.show_popup = false;
-    this.show_popup_list = null;
   }
 
   /**
