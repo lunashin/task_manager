@@ -3401,22 +3401,24 @@ function set_group_select_ex(elem_id, add_blank, select_group_id = -1) {
     elem_groups.appendChild(elem_option);
     prev_name = elem_option.text;
   }
+
+  // 初期選択グループID
+  elem_groups.dataset.orgid = select_group_id;
 }
 
 /**
  * @summary グループID一覧リスト作成
  * @param select要素のID
- * @param 未選択アイテムを追加するかどうか(true/false)
+ * @param 未選択用アイテムを追加するかどうか(true/false)
  * @param 初期選択するグループのアイテムID
  */
-function set_group_select(elem_id, add_blank, selected_item_id= -1) {
+function set_group_select(elem_id, add_blank, selected_item_id = -1) {
   // 所属グループ取得
   let elem_groups = document.getElementById(elem_id);
   elem_groups.innerHTML = '';
   let select_group_id = -1;
   let select_group = getInternalGroupFromItemID(selected_item_id);
   if (select_group !== null) {
-    elem_groups.dataset.orgid = select_group.id;
     select_group_id = select_group.id
   }
 
