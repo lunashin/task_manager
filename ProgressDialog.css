@@ -46,8 +46,9 @@
   font-weight: bold;
 }
 .progress-dialog-box-title-group {
-  height: 1rem;
+  min-height: 1.2rem;
   font-weight: bold;
+  font-size: 150%;
 }
 .progress-dialog-box-item {
   width: 17rem;
@@ -67,5 +68,5 @@
   opacity: 0;
 }
 .progress-dialog-box-item-group {
-  height: 1rem;
+  min-height: 1.2rem;
 }
