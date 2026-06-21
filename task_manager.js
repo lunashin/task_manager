@@ -98,6 +98,10 @@ const REFRESH_TIMELINE_DELAY = 100;
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
 
+// メール取り込みInterval ID
+const g_ReadMailIntervalID = -1;
+const g_ReadMailIntervalTime = 60000;
+
 // クリップボード クイック登録先グループ名
 // const g_quick_clipboard_group_name = 'クイック登録タスク';
 
@@ -1150,7 +1154,7 @@ function move_list_filter(prev) {
 /**
  * @summary フラグメール情報を取り込み ('メール'グループへ追加)
  */
-function read_mail_flag() {
+function read_mail_flag(isRefleshList = true, isSelect = true) {
   // ボタン無効化
   // this.disabled = true;
 
@@ -1211,11 +1215,15 @@ function read_mail_flag() {
         set_last_mail_id(mail_id_last);
       }
 
-      // addIntarnalDataEx2(group.id, titles, true);
-      refresh_screen('item');
+      // リスト更新
+      if (isRefleshList) {
+        refresh_screen('item');
+      }
     
       // 選択
-      set_select(elem_id_list_stock, group.id, true, true);
+      if (isSelect) {
+        set_select(elem_id_list_stock, group.id, true, true);
+      }
     }
   );
 }
@@ -5879,6 +5887,9 @@ set_stocklist_filter_text_items();
 
 // 出社/在宅状況の表示
 read_work_schedule();
+
+// 自動メール取り込み設定
+g_ReadMailIntervalID = setInterval(read_mail_flag, g_ReadMailIntervalTime, false, false);
 
 // 編集ポップアップ初期化
 g_edit_dialog = new EditDialog();
