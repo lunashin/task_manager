@@ -99,7 +99,7 @@ const REFRESH_TIMELINE_DELAY = 100;
 const g_meeting_group_name = '会議';
 
 // メール取り込みInterval ID
-const g_ReadMailIntervalID = -1;
+var g_ReadMailIntervalID = -1;
 const g_ReadMailIntervalTime = 60000;
 
 // クリップボード クイック登録先グループ名
