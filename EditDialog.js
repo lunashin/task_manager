@@ -239,6 +239,28 @@ class EditDialog {
     return this.user_operation_promise;
   }
 
+  /**
+   * @summary 編集ポップアップ表示
+   * @param アイテムID(複数)
+   * @param top
+   * @param left
+   * @returns true: OK, false: Cancel
+   */
+  async show_edit_popup_ex(item_ids, top, left) {
+    if (item_ids.length === 1) {
+      this.show_edit_popup_single(item_ids[0], {top: top, left: left});
+    } else {
+      this.show_edit_popup_multi(item_ids, {top: top, left: left});
+    }
+
+    // ユーザー操作を待つ
+    this.user_operation_promise = new Promise((resolve, reject) => {
+      this.user_operation_resolve = resolve;
+      this.user_operation_reject = reject;
+    });
+
+    return this.user_operation_promise;
+  }
 
   /**
    * @summary 編集ポップアップ表示(アイテム指定)

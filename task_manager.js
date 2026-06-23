@@ -5082,7 +5082,7 @@ function show_timeline(mode = 'all')
       }
     });
     // ダブルクリックイベント登録
-    g_timeline.on('doubleClick', function (properties) {
+    g_timeline.on('doubleClick', async function (properties) {
       // console.log("timeline dblclick" , properties.item);
       if (properties.what === 'background' && properties.item === null) {
         // 空欄をクリック. アイテム作成
@@ -5098,7 +5098,10 @@ function show_timeline(mode = 'all')
       } else {
         // アイテム編集
         // g_edit_dialog.show_edit_popup_single(properties.item, {top: properties.event.clientY, left: properties.event.clientX});
-        g_edit_dialog.show_edit_popup_single(properties.item, {top: properties.event.center.y+20, left: properties.event.center.x});
+        // g_edit_dialog.show_edit_popup_single(properties.item, {top: properties.event.center.y+20, left: properties.event.center.x});
+        if (await g_edit_dialog.show_edit_popup_ex([properties.item], properties.event.center.y+20, properties.event.center.x)) {
+          show_timeline('item');
+        }
       }
     });
   }
