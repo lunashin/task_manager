@@ -399,7 +399,7 @@ function keyhandler_stock_list(event) {
   const elem_id = elem_id_list_stock;
 
   // 共通処理
-  if (keyhandler_list_common(event, elem_id, [key_s])) {
+  if (keyhandler_list_common(event, elem_id, [key_s]) === true) {
     return;
   }
 
@@ -502,7 +502,7 @@ function keyhandler_everyday_list(event) {
   const elem_id = elem_id_list_everyday;
 
   // 共通処理
-  if (keyhandler_list_common(event, elem_id)) {
+  if (keyhandler_list_common(event, elem_id) === true) {
     return;
   }
 
@@ -524,7 +524,7 @@ function keyhandler_todays_must_list(event) {
   const elem_id = elem_id_list_today_must;
 
     // 共通処理
-  if (keyhandler_list_common(event, elem_id)) {
+  if (keyhandler_list_common(event, elem_id) === true) {
     return;
   }
 
@@ -563,7 +563,7 @@ function keyhandler_todays_list(event) {
   const elem_id = elem_id_list_today;
 
   // 共通処理
-  if (keyhandler_list_common(event, elem_id)) {
+  if (keyhandler_list_common(event, elem_id) === true) {
     return;
   }
 
@@ -631,7 +631,7 @@ function keyhandler_done_list(event) {
   const elem_id = elem_id_list_done;
 
   // 共通処理
-  if (keyhandler_list_common(event, elem_id)) {
+  if (keyhandler_list_common(event, elem_id) === true) {
     return;
   }
 
@@ -650,7 +650,7 @@ function keyhandler_priority_list(event) {
   const elem_id = elem_id_list_priority;
 
   // 共通処理
-  if (keyhandler_list_common(event, elem_id)) {
+  if (keyhandler_list_common(event, elem_id) === true) {
     return;
   }
 }
@@ -663,7 +663,7 @@ function keyhandler_tomorroy_list(event) {
   const elem_id = elem_id_list_tomorrow;
  
   // 共通処理
-  if (keyhandler_list_common(event, elem_id)) {
+  if (keyhandler_list_common(event, elem_id) === true) {
     return;
   }
 
