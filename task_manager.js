@@ -17,6 +17,15 @@ const elem_id_list_done = 'done_list';
 const elem_id_list_priority = 'priority_list';
 // const elem_id_list_tomorrow = 'tomorrow_list';
 
+// List list
+const g_lists = [
+  elem_id_list_stock,
+  elem_id_list_everyday,
+  elem_id_list_today_must,
+  elem_id_list_today,
+  elem_id_list_done,
+  elem_id_list_priority,
+];
 
 // key code
 // https://developer.mozilla.org/ja/docs/Web/API/KeyboardEvent/keyCode
@@ -3707,8 +3716,10 @@ function set_select(elem_id, id, is_scroll, is_focus) {
   }
 
   // 全リストから選択アイテムを選択、選択アイテムを削除
-  let selected_top = -1;
+  let selected_item_top = -1;
+  let selected_group_top = -1;
   let elem_group = null;
+  let hit = false;
   let options = document.getElementById(elem_id).options;
   for (let i = 0; i < options.length; i++) {
     // スクロール位置取得の為にグループ要素を取っておく
@@ -3716,13 +3727,21 @@ function set_select(elem_id, id, is_scroll, is_focus) {
       elem_group = options[i];
     }
     if(options[i].dataset.id == id) {
+      hit = true;
       options[i].selected = true;
       document.getElementById(elem_id).selectedIndex = i;   // アクティブ行の変更
-      // selected_top = options[i].offsetTop;  // 要素位置(スクロールの為に取得)
-      selected_top = elem_group.offsetTop;  // 要素位置(スクロールの為に取得)
+      selected_item_top = options[i].offsetTop;  // 要素位置(スクロールの為に取得)
+      if (elem_group !== null) {
+        selected_group_top = elem_group.offsetTop;  // 要素位置(スクロールの為に取得)
+      }
     } else {
       options[i].selected = false;
     }
+  }
+
+  // 対象が見つからなかった
+  if (!hit) {
+    return false;
   }
 
   // フォーカス移動
@@ -3732,6 +3751,10 @@ function set_select(elem_id, id, is_scroll, is_focus) {
 
   if (is_scroll !== false) {
     // 0.005秒後にスクロール
+    let selected_top = selected_group_top;
+    if (selected_top < 0 && selected_item_top > 0) {
+      selected_top = selected_group_top;
+    }
     if (selected_top > 0) {
       setTimeout(() => {
         let list_top = document.getElementById(elem_id).getBoundingClientRect().top;
@@ -3740,7 +3763,20 @@ function set_select(elem_id, id, is_scroll, is_focus) {
     }
   }
 
-  return (selected_top > 0);
+  return true;
+}
+
+/**
+ * @summary 全てのリストの該当アイテムを選択する
+ * @param 選択状態にするアイテムのID
+ * @param スクロールするかどうか
+ * @param フォーカス移動するかどうか
+ * @returns true:成功 / false:失敗(idなし)
+ */
+function set_select_all_list(id, is_scroll, is_focus) {
+  g_lists.forEach((list) => {
+    set_select(list, id, is_scroll, is_focus)
+  });
 }
 
 /**
@@ -5082,7 +5118,7 @@ function show_timeline(mode = 'all')
       
       // クリックしたアイテムをリスト中で選択
       if (properties.items.length > 0) {
-        set_select(elem_id_list_stock, properties.items[0], true, true);
+        set_select_all_list(properties.items[0], true, true);
         // 選択アイテムを記憶
         g_timeline_selected_itemid = properties.items[0]
       } else {
