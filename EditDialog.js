@@ -57,6 +57,7 @@ class EditDialog {
     document.getElementById("popup_edit_date_end").addEventListener("input", this.change_handler_period_refresh_weekday.bind(this));
 
     document.getElementById("popup_button_copy_url").addEventListener("click", this.clickhandler_edit_popup_copy_url.bind(this));
+    document.getElementById("popup_button_open_url_web").addEventListener("click", this.clickhandler_edit_popup_open_url_web.bind(this));
     document.getElementById("popup_edit_note_add_btn").addEventListener("click", this.clickhandler_edit_popup_note_add.bind(this));
     document.getElementById("popup_edit_note").addEventListener("keydown", this.keydownhandler_edit_popup_note_add.bind(this));
 
@@ -110,10 +111,20 @@ class EditDialog {
   }
 
   // URL（Copyボタン）
-  clickhandler_edit_popup_copy_url() {
+  clickhandler_edit_popup_copy_url(event) {
     let url = document.getElementById("popup_edit_url").value;
-    navigator.clipboard.writeText(url);
-    copy_animation2(this);
+    if (url !== '') {
+      navigator.clipboard.writeText(url);
+      copy_animation2(event.target);
+    }
+  }
+
+  // URL（WEBで開くボタン）
+  clickhandler_edit_popup_open_url_web(event) {
+    let url = document.getElementById("popup_edit_url").value;
+    if (url !== '') {
+      open_url(url);
+    }
   }
 
   // メモ追加ボタン
@@ -290,6 +301,7 @@ class EditDialog {
       // URL
       document.getElementById("popup_edit_url").style.display = "none";
       document.getElementById("popup_button_copy_url").style.display = "none";
+      document.getElementById("popup_button_open_url_web").style.display = "none";
       document.getElementById("popup_edit_url_app_type").style.display = "none";
       // メール
       document.getElementById("popup_edit_mail").style.display = "none";
@@ -313,6 +325,7 @@ class EditDialog {
       // URL
       document.getElementById("popup_edit_url").value = item.url;
       document.getElementById("popup_button_copy_url").style.display = "block";
+      document.getElementById("popup_button_open_url_web").style.display = "block";
       document.getElementById("popup_edit_url").style.display = "block";
       // URLアプリ種類
       document.getElementById("popup_edit_form").elements['url_app_type'].value = item.url_app_type;

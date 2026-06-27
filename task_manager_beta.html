@@ -331,6 +331,7 @@
           white-space: nowrap;
           animation: steamRise 2s ease-out forwards;
           text-shadow: 0 0 4px rgba(0,0,0,0.15);
+          z-index: 10000;
         }
         @keyframes steamRise {
           0% {
@@ -566,6 +567,7 @@
       <div class="flex-box">
         <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
         <input id="popup_button_copy_url" type="button" value="Copy" >
+        <input id="popup_button_open_url_web" type="button" value="Web" >
       </div>
       <div id="popup_edit_url_app_type" class="flex-box">
         <label><input type="radio" name="url_app_type" value="auto">Auto</label>
