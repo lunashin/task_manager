@@ -1176,10 +1176,9 @@ function read_mail_flag(isRefleshList = true, isSelect = true) {
         setInternalGroup(group_name, group);
       }
 
-      pushHistory();
-      
       // 最後に読み込んだIDを検索して、読み込み開始を移動
       let mail_id_prev = get_last_mail_id();
+      console.log("mail_id_prev: " + mail_id_prev);
       let start_index = 0;
       for (let i = 0; i < window.mail_flag.length; i++) {
         if (mail_flag[i].messageid === mail_id_prev) {
@@ -1187,6 +1186,15 @@ function read_mail_flag(isRefleshList = true, isSelect = true) {
           break;
         }
       }
+      console.log("start_index: " + start_index);
+      console.log("mail_flag.length: " + window.mail_flag.length);
+
+      // 読み込む対象がなければ終了
+      if (start_index === window.mail_flag.length) {
+        return;
+      }
+
+      pushHistory();
 
       // タスクを追加
       let mail_id_last = '';
@@ -1194,6 +1202,8 @@ function read_mail_flag(isRefleshList = true, isSelect = true) {
       for (let i = start_index; i < window.mail_flag.length; i++) {
         let name = `(${window.mail_flag[i].receive_date}) ${mail_flag[i].title}`;
         let period = extractDateYMD(mail_flag[i].title);
+
+        // タスク名で内部データを検索してヒットしなかったら取り込み
         if (getInternalFromName(name) === null) {
           let item = makeInternalItem(name);
           item.mail = window.mail_flag[i].title;
@@ -1207,9 +1217,9 @@ function read_mail_flag(isRefleshList = true, isSelect = true) {
           }
 
           group.sub_tasks.push(item);
-          // 最後のIDを記憶
-          mail_id_last = mail_flag[i].messageid;
         }
+        // 最後のIDを記憶
+        mail_id_last = mail_flag[i].messageid;
       }
       if (mail_id_last !== '') {
         set_last_mail_id(mail_id_last);
