@@ -119,6 +119,7 @@ const g_address_list = [
       'date3': {name: '日時(full/曜日付き)', type: 'date_w'},
       'date4': {name: '日時(短い/曜日付き)', type: 'date_sw'},
       'note': {name: '備考', type: 'string', default: 'sample note'},
+      'cc': {name: 'CC(追加)', type: 'string', default: ''},
     },
     address_to_name: ['グループメンバー(全員)'],
     address_cc_name: ['ほげほげ株式会社(開発メンバー)'],

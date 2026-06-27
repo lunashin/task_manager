@@ -86,10 +86,16 @@ async function click_handler(event) {
     body = body.replaceAll('{signature}', g_signature);
 
     // パラメータ入力/置換
+    let cc_add = '';
     if (input !== null && Object.keys(input).length > 0) {
       // 置換
       let keys = Object.keys(input);
       for (let i = 0; i < keys.length; i++) {
+        // 'cc' は宛先のCCとして使う
+        if (keys[i] === 'cc') {
+          cc_add = input[keys[i]];
+          continue;
+        }
         subject = subject.replaceAll(`{${keys[i]}}`, input[keys[i]]);
         body = body.replaceAll(`{${keys[i]}}`, input[keys[i]]);
       }
@@ -102,7 +108,7 @@ async function click_handler(event) {
     }
     let address_cc = '';
     if (items_cc !== null) {
-      address_cc = getAddressListStrFromItems(items_cc);
+      address_cc = getAddressListStrFromItems(items_cc, cc_add);
     }
 
     // mailto URL生成
@@ -128,13 +134,17 @@ function getAddressListStr(item) {
  * @param item(配列)
  * @returns 宛先アドレス一覧(文字列)
  */
-function getAddressListStrFromItems(items) {
+function getAddressListStrFromItems(items, add = '') {
   let ret = '';
   for (let i = 0; i < items.length; i++) {
     if (i > 0) {
       ret += '; \n';
     }
     ret += getAddressListStr(items[i]);
+  }
+  if (add !== '') {
+    ret += '; \n';
+    ret += add;
   }
   return ret;
 }
@@ -215,6 +225,8 @@ function createButton() {
       if (item.type === 'create') {
         btn.title = item.subject + '\n------------------\n' + item.body;
       }
+
+      btn.classList.add('button-base');
       if (item.type === 'create') {
         btn.classList.add('button-mail-create');
       }
