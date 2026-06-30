@@ -490,6 +490,12 @@ class EditDialog {
     }
     document.getElementById("popup_edit_multi_done").style.display = "block";
     document.getElementById("popup_edit_multi_done_label").style.display = "block";
+
+    // 期限日 増減
+    popup_edit_multi_move_date_num_label.style.display = "block";
+    popup_edit_multi_move_date_num.style.display = "block";
+    popup_edit_multi_move_date_num.value = 0;
+
     // グループ
     if (group_id === null) {
       set_group_select_ex("popup_edit_multi_group_list", true, -1);
@@ -669,6 +675,14 @@ class EditDialog {
       // 待ち状態
       if(!elem_wait.indeterminate) {
         item.is_wait = elem_wait.checked;
+      }
+      // 期限 (期限設定なければ無視)
+      if (popup_edit_multi_move_date_num.value !== 0 && item.period !== '') {
+        // 日付を加算
+        item.period = addDays_s(new Date(item.period), popup_edit_multi_move_date_num.value, true);
+        if (item.period_end !== '') {
+          item.period_end = addDays_s(new Date(item.period_end), popup_edit_multi_move_date_num.value, true);
+        }
       }
       // グループ
       let elem_sel_group_option = get_selected_element('popup_edit_multi_group_list');

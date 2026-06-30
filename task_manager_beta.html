@@ -637,10 +637,14 @@
     <form id="popup_edit_multi_form" onsubmit="return false;" novalidate >
       <select id="popup_edit_multi_group_list" class="popup_size_fit" size="1" name="groups" ></select>
       <div class="flex-box">
-        <label class="checkbox_ex" id="popup_edit_multi_done_label" for="popup_edit_done">済み</label>
-        <input class="checkbox_ex" id="popup_edit_multi_done" type="checkbox" >
-        <label class="checkbox_ex" id="popup_edit_multi_wait_label" for="popup_edit_wait">待ち</label>
-        <input class="checkbox_ex" id="popup_edit_multi_wait" type="checkbox" >
+        <label class="checkbox" id="popup_edit_multi_done_label" for="popup_edit_done">済み</label>
+        <input class="checkbox" id="popup_edit_multi_done" type="checkbox" >
+        <label class="checkbox" id="popup_edit_multi_wait_label" for="popup_edit_wait">待ち</label>
+        <input class="checkbox" id="popup_edit_multi_wait" type="checkbox" >
+      </div>
+      <div class="flex-box">
+        <label class="" id="popup_edit_multi_move_date_num_label" for="popup_edit_multi_move_date_num">期限日 増減</label>
+        <input class="popup_number" id="popup_edit_multi_move_date_num" type="number" >
       </div>
       <input type="hidden" id="popup_edit_multi_hidden_id" name="id" >
       <div>
