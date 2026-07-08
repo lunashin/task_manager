@@ -40,9 +40,10 @@
 }
 .progress-dialog-box-title-wait {
   color:cornflowerblue;
+  background: linear-gradient(white, cornflowerblue);
 }
 .progress-dialog-box-title-first {
-  background-color: #FFFF55; 
+  background: linear-gradient(white, #FFFF55);
   font-weight: bold;
 }
 .progress-dialog-box-title-group {
