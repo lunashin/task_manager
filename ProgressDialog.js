@@ -14,9 +14,10 @@ class ProgressDialog {
 
   /**
    * @summary コンストラクタ
+   * @param ベース領域の要素ID
    * @param タスク名領域の要素ID
    * @param 進捗内容領域の要素ID
-   * @param タスク名領域keydownイベントコールバック {'イベント名': コールバック関数, ...}
+   * @param タスク名領域イベントコールバック {'イベント名': コールバック関数, ...}
    */
   constructor(base_elem_id, title_elem_id, item_elem_id, cb_event_title = null) {
     this.base_elem_id = base_elem_id;
@@ -24,6 +25,7 @@ class ProgressDialog {
     this.item_elem_id= item_elem_id;
     this.cb_event_title = cb_event_title;
     this.items = null;
+    this.sel_elem_id = null;
 
     // ベースdiv キーイベント登録
     let elem_base = document.getElementById(this.base_elem_id);
@@ -105,6 +107,11 @@ class ProgressDialog {
       // 行の要素を作成
       this.addItemRow(item, disp_notes);
     }
+
+    // フォーカス移動
+    if (this.sel_elem_id !== null) {
+      document.getElementById(this.sel_elem_id).focus();
+    }
   }
 
   /**
@@ -127,8 +134,9 @@ class ProgressDialog {
     new_title_div.innerText = get_before_icons(item) + ' ' + item.name + ' ' + get_after_icons(item); // 前アイコン + タスク名 + 後アイコン
     new_title_div.dataset.id = item.id;
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
-    // ダブルクリックイベント
+    // クリックイベント
     new_title_div.addEventListener('dblclick', this.dblclick_handler_title.bind(this));
+    new_title_div.addEventListener('click', this.click_handler_title.bind(this));
     // その他イベント
     let keys = Object.keys(this.cb_event_title);
     for (let i = 0; i < keys.length; i++) {
@@ -199,6 +207,14 @@ class ProgressDialog {
         this.close();
         break;
     }
+  }
+
+  /**
+   * @summary titleクリックハンドラ
+   */
+  click_handler_title(event) {
+    // クリックされた要素IDを記憶する
+    this.sel_elem_id = event.target.id;
   }
 
   /**
