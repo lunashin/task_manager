@@ -289,11 +289,19 @@ function click_handler_todays_list(event) {
  * @summary Body キーイベント処理
  * @param イベント情報
  */
-function keyhandler_body(event) {
+async function keyhandler_body(event) {
   switch (event.keyCode){
     case key_l:    // L
       // 画面スクロールロック切り替え
       toggle_scroll_lock();
+      break;
+    case key_a:           // a
+      if(event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        // タスク追加
+        await g_edit_dialog.show_edit_popup_new();
+        refresh_screen('item');
+      }
       break;
   }
 }
@@ -446,6 +454,9 @@ function keyhandler_stock_list(event) {
       break;
     case key_a:           // a
       // 空白タスクを選択行の下へ追加
+      if (event.ctrlKey || event.shiftKey) {
+        break;
+      }
       event.preventDefault(); // 既定の動作をキャンセル
       const add_id = addItemBehindSelectedItem(elem_id, false, false);
       refresh_screen('item');
@@ -602,6 +613,10 @@ function keyhandler_todays_list(event) {
       done_item(elem_id);
       break;
     case key_a:           // a
+      if (event.ctrlKey || event.shiftKey) {
+        break;
+      }
+
       // 空白タスクを選択行の下へ追加
       event.preventDefault(); // 既定の動作をキャンセル
       const add_id = addItemBehindSelectedItem(elem_id, false, true);
@@ -2044,7 +2059,7 @@ function is_item(id) {
  * @param 期限(MM/dd or yyyy/MM/dd)
  * @return dict
  */
-function makeInternalGroup(name, period) {
+function makeInternalGroup(name, period = '') {
   let ret = { 
     id: genGroupID(), 
     type: 'group', 

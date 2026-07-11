@@ -20,6 +20,8 @@ class EditDialog {
    * @param タスク名領域イベントコールバック {'イベント名': コールバック関数, ...}
    */
   constructor() {
+    this.group_name_new_item = '@クイック登録'; // 新しいアイテム作成時の所属グループ
+
     this.show_popup = false;
 
     this.user_operation_promise = null;
@@ -274,6 +276,38 @@ class EditDialog {
   }
 
   /**
+   * @summary 編集ポップアップ表示(新しいアイテム)
+   * @param アイテムID
+   * @param top
+   * @param left
+   * @returns true: OK, false: Cancel
+   */
+  async show_edit_popup_new(top = null, left = null) {
+    // 空アイテム作成
+    let item = makeInternalItem('');
+    // 一時的に内部データへ登録
+    let group_temp = getInternalFromName(this.group_name_new_item);
+    if (group_temp === null) {
+      // なければ作成
+      group_temp = makeInternalGroup(this.group_name_new_item);  // グループ作成
+      setInternalGroup(group_temp.id, group_temp);
+    }
+
+    // グループへ一時的にアイテム追加
+    group_temp.sub_tasks.push(item);
+
+    // ポップアップ呼び出し
+    let ret = await this.show_edit_popup_ex([item.id], top, left);
+
+    if (ret === false) {
+      // キャンセル時はアイテム削除
+      removeIntarnalData(item.id, false);
+    }
+
+    return ret;
+  }
+
+  /**
    * @summary 編集ポップアップ表示(アイテム指定)
    * @param アイテム or グループ情報
    * @param 拡張情報 {parent_elem_id, top, left, group_id}
@@ -380,6 +414,10 @@ class EditDialog {
     // 表示(非表示状態だと↓のclientHeightが取れない為、ここで表示)
     // elem.style.display = "block";
 
+    // undefined, nullをnullに統一
+    option.top = option.top ?? null;
+    option.left = option.left ?? null;
+
     // ポップアップの左上位置を決定
     let top, left = 0;
     if (option.parent_elem_id !== undefined) {
@@ -387,9 +425,13 @@ class EditDialog {
       let rect = elem.getBoundingClientRect();
       top = rect.top;
       left = rect.right;
-    } else if (option.top !== undefined && option.left !== undefined) {
+    } else if (option.top !== null && option.left !== null) {
       top = option.top;
       left = option.left;
+    } else {
+      // 画面中央に表示
+      top = window.innerHeight / 2 - popup_edit_base.clientHeight / 2;
+      left = window.innerWidth / 2 - popup_edit_base.clientWidth / 2;
     }
     // 表示位置調整
     let pos = adjust_element_position('popup_edit_base', top, left);
@@ -506,6 +548,10 @@ class EditDialog {
     // ID 
     document.getElementById("popup_edit_multi_hidden_id").value = target_ids.join(',');
 
+    // undefined, nullをnullに統一
+    option.top = option.top ?? null;
+    option.left = option.left ?? null;
+
     // ポップアップの左上位置を決定
     let top, left = 0;
     let elem = document.getElementById("popup_edit_multi_base");
@@ -514,9 +560,13 @@ class EditDialog {
       let rect = elem.getBoundingClientRect();
       top = rect.top;
       left = rect.right;
-    } else if (option.top !== undefined && option.left !== undefined) {
+    } else if (option.top !== null && option.left !== null) {
       top = option.top;
       left = option.left;
+    } else {
+      // 画面中央に表示
+      top = window.innerHeight / 2 - popup_edit_multi_base.clientHeight / 2;
+      left = window.innerWidth / 2 - popup_edit_multi_base.clientWidth / 2;
     }
     // 表示位置調整
     let pos = adjust_element_position('popup_edit_base', top, left);
