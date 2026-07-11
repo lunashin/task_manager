@@ -5258,7 +5258,7 @@ function showProgressDialog() {
 function get_todays_must_task() {
   let target_items = [];
   let rowData = getInternalRawTasksData();
-  let keys = get_internal_keys(null, null);
+  let keys = get_internal_keys(null, 'string');
   for (let i = 0 ; i < keys.length; i++) {
     // アイテムの要素一覧を作成
     let items = rowData[keys[i]].sub_tasks;
