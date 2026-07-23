@@ -1245,7 +1245,7 @@ function read_meeting(target_d) {
       if (window.schedules === undefined) {
         return;
       }
-      let meeting_list = get_meeting_text(window.schedules, target_d);
+      let meeting_list = get_meeting_items(window.schedules, target_d);
       if (meeting_list.length <= 0) {
         return;
       }
@@ -1260,8 +1260,7 @@ function read_meeting(target_d) {
       }
       // タスクリストへ追加
       pushHistory();
-      let date_str = get_date_str(target_d, true, false, true, true);
-      addIntarnalDataEx2(group.id, meeting_list, true, date_str);
+      addIntarnalDatasToGroup(group.id, meeting_list, true);
       refresh_screen('item');
     
       // 選択
@@ -1301,6 +1300,41 @@ function get_meeting_text(schedules, target_d)
     ret.push(`${title} ${location} (${start_time}〜${end_time} / ${diff_hour}h)`);
   }
 
+  return ret;
+}
+
+/**
+* @summary 指定日の会議予定を抽出
+* @param スケジュールdict
+* @param 対象日時(Date)
+* @returns アイテム(配列)
+*/
+function get_meeting_items(schedules, target_d)
+{
+  let meetings = get_meeting_list(schedules, target_d);
+  if (meetings.length <= 0) {
+    return [];
+  }
+ 
+  let ret = [];
+  for (let i = 0; i < meetings.length; i++) {
+    let title = meetings[i].title;
+    let location = meetings[i].location.replaceAll('Microsoft Teams 会議', '');
+    location = location.replaceAll('; [MMC Okazaki]', '');
+    if (location) {location = '💺' +location};
+    let start_time = meetings[i].start.split(" ")[1];
+    let end_time = meetings[i].end.split(" ")[1];
+    let d_s = new Date(meetings[i].start);
+    let d_e = new Date(meetings[i].end);
+    let diff_msec = (d_e - d_s);
+    let diff_hour = floorEx(diff_msec / 1000 / 60 / 60, 10);
+ 
+    let item = makeInternalItem(`${title} ${location} (${start_time}〜${end_time} / ${diff_hour}h)`);
+    item.period = get_date_str(target_d, true, false, true, true);
+    item.url = meetings[i].url;
+    ret.push(item);
+  }
+ 
   return ret;
 }
 
