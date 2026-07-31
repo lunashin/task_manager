@@ -3,6 +3,11 @@
 // Values
 // ##############################################
 
+const g_list_filter_texts = [
+  'ほげ',
+  'MG',
+];
+
 // field number
 const g_field_number = 4;
 

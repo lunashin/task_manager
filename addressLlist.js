@@ -1,6 +1,48 @@
+//---------------------------------------
+// Define
+//---------------------------------------
+const key_f = 70;
+const key_esc = 27;
+
+
+
 // ##############################################
-// Function
+// Event
 // ##############################################
+
+/**
+* @summary Body Keydownイベントハンドラ
+*/
+function handler_keydown_body(event) {
+  switch (event.keyCode) {
+    case key_f:
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        filter_text.focus();  // フォーカスを検索欄へ移動
+      }
+      break;
+    case key_esc:
+      filter_text.value = '';
+      createButton();
+      break;
+  }
+}
+
+/**
+* @summary フィルタ文字列変更
+*/
+function handler_input_filter_text(event) {
+  let filter = event.target.value;
+  createButton(filter);
+}
+
+/**
+ * @summary フィルタクリアボタンクリック処理
+ */
+function handler_click_filter_clear(event) {
+  filter_text.value = '';
+  createButton();
+}
 
 /**
  * @summary ボタンクリック処理
@@ -119,6 +161,24 @@ async function click_handler(event) {
 }
 
 
+
+
+// ##############################################
+// Function
+// ##############################################
+
+/**
+ * @summary 検索テキスト選択肢作成
+ */
+function set_list_filter_text() {
+  let elem = document.getElementById("select_list_filter_text");
+  for (let i = 0; i < g_list_filter_texts.length; i++) {
+    let option = document.createElement("option");
+    option.value = g_list_filter_texts[i];
+    elem.appendChild(option);
+  }
+}
+
 /**
  * @summary 宛先アドレス一覧文字列作成
  * @param item
@@ -204,16 +264,28 @@ function get_items_from_names(names) {
 /**
  * @summary ボタン生成
  */
-function createButton() {
-  let elem_parent = document.getElementById('button_area');
-  elem_parent.classList.add('flex-box');
+function createButton(filter = '') {
+  // 既存の base div を削除、新規作成
+  if (document.getElementById('button_base_div') !== null) {
+    document.getElementById('button_base_div').remove();
+  }
+  let div_base = document.createElement('div');
+  div_base.id = "button_base_div";
+  div_base.classList.add('flex-box');
 
+  // ボタン生成
   for (let field = 1; field <= g_field_number; field++) {
     let div = document.createElement('div');
     for (let i = 0; i < g_address_list.length; i++) {
       let item = g_address_list[i];
       if (item.field !== field) {
         continue;
+      }
+
+      if (filter !== '') {
+        if (item.name.toLowerCase().indexOf(filter.toLowerCase()) === -1) {
+          continue;
+        }
       }
 
       // ボタン要素生成
@@ -235,8 +307,10 @@ function createButton() {
       btn.addEventListener('click', click_handler);
       div.appendChild(btn);
       div.appendChild(document.createElement('br'));
+
+      div_base.appendChild(div);
     }
-    elem_parent.appendChild(div);
+    document.getElementById('button_area').appendChild(div_base);
   }
 }
 
@@ -502,5 +576,12 @@ function getWeekDay(d) {
 // Main
 // ##############################################
 
+// イベント登録
+document.getElementsByTagName('body')[0].addEventListener("keydown", handler_keydown_body);
+document.getElementById("filter_text").addEventListener("input", handler_input_filter_text);
+document.getElementById("btn_filter_clear").addEventListener("click", handler_click_filter_clear);
+
 // ボタン生成
 createButton();
+// 検索ワードのリストセット
+set_list_filter_text();
