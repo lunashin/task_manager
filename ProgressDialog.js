@@ -82,7 +82,7 @@ class ProgressDialog {
         // 今日のコメント + 昨日以前のコメント1 のリストを作成
         let days_diff = get_days_from_today(d_str);
         if (days_diff > 0) {
-          prev1 = lines[k];
+          prev1 = `(${days_diff}日前) ${lines[k]}`;
         } else if (days_diff === 0) {
           if (prev1 !== '') {
             disp_notes.push({content: prev1, type: 'past'});
@@ -246,7 +246,14 @@ class ProgressDialog {
    */
   div_dblclick_item_handler(event) {
     // アイテムのコメントを変更
-    let comment = prompt('コメント変更', event.target.innerText);
+    let input_initial = event.target.innerText;
+    if (event.target.innerText.split(' ').length > 2) {
+      // 先頭の「(xx日前)」を削除
+      let temp_list = event.target.innerText.split(' ');
+      temp_list.splice(0,1);
+      input_initial = temp_list.join(' ');
+    }
+    let comment = prompt('コメント変更', input_initial);
     if (comment === null) {
       // キャンセル
       return;
