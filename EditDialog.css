@@ -4,8 +4,6 @@
   visibility:hidden;
   opacity: 0;
   background-color: aquamarine;
-  width: 340px;
-  height: 310px;
   border-radius: 10px;
   position: absolute;
   top:100px;
@@ -13,12 +11,25 @@
   z-index: 2000;
   transition-duration: 200ms;
   transition-property: opacity;
+  padding: 4px;
 }
 .popup_size_fit { width: 220px; }
 .button-small { width: 80; height: 30; font-size: 130%; }
 .popup_edit_note_button {height: 50px;}
 .popup_group_list { height: 35px; }
 .popup_number { width: 5em; }
+
+.popup_change_period_button {
+  width: 4em;
+  height: 2.2em;
+  margin: 2px;
+}
+
+.popup_ok_cancel_button {
+  width: 7em;
+  height: 3em;
+  margin: 2px;
+}
 
 /* 暗幕 */
 .popup_bg_cover{

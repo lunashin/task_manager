@@ -593,22 +593,22 @@
       <div class="flex-box-vCenter">
         <input id="popup_edit_date" type="date" name="period" value="2018-07-22" min="2023-11-01" max="2030-12-31" data-weekday_elem="popup_edit_week_day" >
         <div id="popup_edit_week_day"></div>
-        <input id="popup_button_set_today" type="button" value="今日" data-target="popup_edit_date" >
-        <input id="popup_button_date_inc" type="button" value="+1d" data-inc_date="1" data-target="popup_edit_date" >
-        <input id="popup_button_date_inc1w" type="button" value="+1w" data-inc_date="7" data-target="popup_edit_date" >
-        <input id="popup_button_date_inc1m" type="button" value="+1M" data-target="popup_edit_date" >
+        <input id="popup_button_set_today" class="popup_change_period_button" type="button" value="今日" data-target="popup_edit_date" >
+        <input id="popup_button_date_inc" class="popup_change_period_button" type="button" value="+1d" data-inc_date="1" data-target="popup_edit_date" >
+        <input id="popup_button_date_inc1w" class="popup_change_period_button" type="button" value="+1w" data-inc_date="7" data-target="popup_edit_date" >
+        <input id="popup_button_date_inc1m" class="popup_change_period_button" type="button" value="+1M" data-target="popup_edit_date" >
         &nbsp;&nbsp;
-        <input id="popup_button_date_clear" type="button" value=" C " data-target="popup_edit_date" >
+        <input id="popup_button_date_clear" class="popup_change_period_button" type="button" value=" C " data-target="popup_edit_date" >
       </div>
       <div class="flex-box-vCenter">
         <input id="popup_edit_date_end" type="date" name="period_end" value="2018-07-22" min="2023-11-01" max="2030-12-31" data-weekday_elem="popup_edit_date_end_week_day" >
         <div id="popup_edit_date_end_week_day"></div>
-        <input id="popup_button_date_end_set_today" type="button" value="今日" data-target="popup_edit_date_end" >
-        <input id="popup_button_date_end_inc" type="button" value="+1d" data-inc_date="1" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
-        <input id="popup_button_date_end_inc1w" type="button" value="+1w" data-inc_date="7" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
-        <input id="popup_button_date_end_inc1m" type="button" value="+1M" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
+        <input id="popup_button_date_end_set_today" class="popup_change_period_button" type="button" value="今日" data-target="popup_edit_date_end" >
+        <input id="popup_button_date_end_inc" class="popup_change_period_button" type="button" value="+1d" data-inc_date="1" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
+        <input id="popup_button_date_end_inc1w" class="popup_change_period_button" type="button" value="+1w" data-inc_date="7" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
+        <input id="popup_button_date_end_inc1m" class="popup_change_period_button" type="button" value="+1M" data-target="popup_edit_date_end" data-from_target="popup_edit_date" >
         &nbsp;&nbsp;
-        <input id="popup_button_date_end_clear" type="button" value=" C " data-target="popup_edit_date_end" >
+        <input id="popup_button_date_end_clear" class="popup_change_period_button" type="button" value=" C " data-target="popup_edit_date_end" >
       </div>
 
       <div class="flex-box">
@@ -631,8 +631,8 @@
       <input type="hidden" id="popup_edit_hidden_id" name="id" >
       <input type="hidden" id="popup_edit_hidden_parent_elem_id" name="parent_elem_id" >
       <div>
-        <input type="submit" class="button-small" value="OK" >
-        <input type="button" id="popup_edit_cancel_btn" class="button-small" value="Cancel">
+        <input type="submit" class="popup_ok_cancel_button" value="OK" >
+        <input type="button" id="popup_edit_cancel_btn" class="popup_ok_cancel_button" value="Cancel">
       </div>
     </form>
   </div>
@@ -640,7 +640,7 @@
   <!-- Popup(for Multi) -->
   <div id="popup_edit_multi_base" class="popup_edit">
     <form id="popup_edit_multi_form" onsubmit="return false;" novalidate >
-      <select id="popup_edit_multi_group_list" class="popup_size_fit" size="1" name="groups" ></select>
+      <select id="popup_edit_multi_group_list" class="popup_size_fit popup_group_list" size="1" name="groups" ></select>
       <div class="flex-box">
         <label class="checkbox" id="popup_edit_multi_done_label" for="popup_edit_done">済み</label>
         <input class="checkbox" id="popup_edit_multi_done" type="checkbox" >
@@ -653,8 +653,8 @@
       </div>
       <input type="hidden" id="popup_edit_multi_hidden_id" name="id" >
       <div>
-        <input type="submit" class="button-small" value="OK" >
-        <input type="button" id="popup_edit_multi_cancel_btn" class="button-small" value="Cancel">
+        <input type="submit" class="popup_ok_cancel_button" value="OK" >
+        <input type="button" id="popup_edit_multi_cancel_btn" class="popup_ok_cancel_button" value="Cancel">
       </div>
     </form>
   </div>
