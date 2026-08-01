@@ -110,7 +110,12 @@ class ProgressDialog {
 
     // フォーカス移動
     if (this.sel_elem_id !== null) {
-      document.getElementById(this.sel_elem_id).focus();
+      let elem_focus = document.getElementById(this.sel_elem_id)
+      if (elem_focus !== null) {
+        document.getElementById(this.sel_elem_id).focus();
+      } else {
+        this.sel_elem_id = null;
+      }
     }
   }
 
