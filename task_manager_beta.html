@@ -166,6 +166,34 @@
         .timeline_item_item_wait { font-size: 60%; color:cornflowerblue; }
         .timeline_item_item_priority { font-size: 80%; font-weight: bold; color:red }
 
+        /* --------------- Group List ---------------- */
+        .popup_group_list_div {
+          visibility: hidden;
+          opacity: 0;
+          padding: 20px;
+          position: absolute;
+          top: 0;
+          left: 0;
+          background-color: rgb(211, 244, 220);
+          border: 1px solid rgb(147, 147, 147);
+          border-radius: 10px;
+          transition-duration: 200ms;
+          transition-property: opacity;
+          z-index: 5000;
+        }
+        .popup_group_list_item {
+          width: 30em;
+          height: 3.5em;
+          margin: 5px;
+          border: 1px solid #afaeae;
+          border-radius: 10px;
+          background-color: white;
+          text-align: center;
+       }
+        .popup_group_list_item:hover {
+          background-color: rgb(196, 196, 196);
+        }
+
         /* --------------- Button Area ---------------- */
         .button_area_div {
           visibility: hidden;
@@ -369,6 +397,18 @@
           background-color: rgb(205, 205, 205);
         }
 
+        .mouseover_area_mini {
+          text-align: center;
+          vertical-align: baseline;
+          height: 1.5vw;
+          width: 6vw;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+        }
+        .mouseover_area_mini:hover {
+          background-color: rgb(205, 205, 205);
+        }
+
         /* table */
         table {
           border-collapse: collapse;
@@ -419,6 +459,10 @@
         <span>検索</span>
         <input list="stock_list_filter_select_items" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
         <datalist id="stock_list_filter_select_items"></datalist>
+
+        <!-- Group List MouseOver Area -->
+       <div id="group_list_hover_area" class="mouseover_area_mini" data-target="popup_group_list_div" data-prepare-func="make_popup_group_list">グループ選択</div>
+
         <!-- 済みタスク表示・非表示切り替え -->
         <input class="checkbox_ex" id="stock_list_done_hidden" type="checkbox">
         <label class="checkbox_ex" id="stock_list_done_hidden_label" for="stock_list_done_hidden">済み非表示</label>
@@ -662,6 +706,9 @@
   <!-- Memo/Mail Preview Popup -->
   <div id="popup_note_mail_preview" class="popup_note_mail_preview"></div>
 
+
+  <!-- Group List(Popup) -->
+  <div id="popup_group_list_div" class="popup_group_list_div"></div>
 
   <!-- URL List(Popup) -->
   <div id="popup_url_list_div" class="popup_url_list_div"></div>

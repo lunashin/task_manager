@@ -191,14 +191,16 @@ document.getElementById("import_todays_meeting").addEventListener("click", read_
 document.getElementById("import_tomorrows_meeting").addEventListener("click", read_tomorrows_meeting);
 document.getElementById("read_member_status").addEventListener("click", read_work_schedule);
 
+// Group List Div
+document.getElementById('group_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
 // URL List Div
-document.getElementById('url_list_hover_area').addEventListener("mouseover", mouseover_handler_buttons_div);
+document.getElementById('url_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
 // Buttons Div
-document.getElementById('buttons_hover_area').addEventListener("mouseover", mouseover_handler_buttons_div);
+document.getElementById('buttons_hover_area').addEventListener("mouseover", mouseover_handler_div);
 // Address List Div
-document.getElementById('address_list_hover_area').addEventListener("mouseover", mouseover_handler_buttons_div);
+document.getElementById('address_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
 // Calender List Div
-document.getElementById('calender_list_hover_area').addEventListener("mouseover", mouseover_handler_buttons_div);
+document.getElementById('calender_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
 
 // Note/Mail Preview
 document.getElementById('popup_note_mail_preview').addEventListener("mouseover", mouseover_handler_note_preview);
@@ -841,7 +843,7 @@ function mouseleave_handler_option(event) {
 /**
  * @summary ボタン類(div) mouseover
  */
-function mouseover_handler_buttons_div(event) {
+function mouseover_handler_div(event) {
   // 準備関数呼び出し
   let prepare_func = event.target.dataset.prepareFunc;  // data-prepare-func 属性
   if (prepare_func !== undefined) {
@@ -1726,9 +1728,9 @@ function get_internal_keys(filter, sort_type) {
  * @summary グループID一覧取得
  * @return グループID一覧
  */
-function get_group_ids() {
+function get_group_ids(filter = null) {
   let ret = [];
-  let keys = get_internal_keys(null, 'string');
+  let keys = get_internal_keys(filter, 'string');
   for (let i = 0 ; i < keys.length; i++) {
     ret.push(getInternalGroup(keys[i]).id);
   }
@@ -3456,6 +3458,39 @@ function set_group_select(elem_id, add_blank, selected_item_id = -1) {
 
   // グループリスト作成
   set_group_select_ex(elem_id, add_blank, select_group_id);
+}
+
+/**
+ * グループ一覧ポップアップ生成
+ */
+function make_popup_group_list() {
+  let base_div = document.getElementById('popup_group_list_div');
+  // 空にする
+  while (base_div.firstChild) {
+    base_div.removeChild(base_div.firstChild);
+  }
+
+  // 現在のフィルタ条件でグループ一覧取得
+  let prev_name = '';
+  let ids = get_group_ids(g_stock_filter);
+  for (let i = 0; i < ids.length; i++) {
+    let group_name = getInternal(ids[i]).name;
+    let elem_div = document.createElement("div");
+
+    // 「:」以前が一致しないアイテムが来たらセパレータを挿入
+    if (prev_name !== '' && prev_name.split(':')[0].trim() !== group_name.split(':')[0].trim()) {
+      base_div.appendChild(document.createElement("hr"));
+    }
+
+    elem_div.innerText = group_name;
+    elem_div.dataset.id = ids[i];
+    elem_div.classList.add('popup_group_list_item');
+    elem_div.addEventListener("click", function(event){
+      set_select(elem_id_list_stock, event.target.dataset.id, true, true);
+    });
+    base_div.appendChild(elem_div);
+    prev_name = group_name;
+  }
 }
 
 /**
