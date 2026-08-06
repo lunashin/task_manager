@@ -1,4 +1,6 @@
 /* --------------- 編集ポップアップ ---------------- */
+
+/* ポップアップベース要素 */
 .popup_edit { 
   /* display: none; */
   visibility:hidden;
@@ -13,18 +15,27 @@
   transition-property: opacity;
   padding: 4px;
 }
-.popup_size_fit { width: 220px; }
-.button-small { width: 80; height: 30; font-size: 130%; }
+
+/* 入力要素 */
+.popup_input_base { width: 100%; }
+
+/* メモ追加ボタン */
 .popup_edit_note_button {height: 50px;}
+
+/* グループ選択 */
 .popup_group_list { height: 35px; }
+
+/* 数値入力 */
 .popup_number { width: 5em; }
 
+/* 期限+-ボタン */
 .popup_change_period_button {
   width: 4em;
   height: 2.2em;
   margin: 2px;
 }
 
+/* OK/Cancelボタン */
 .popup_ok_cancel_button {
   width: 7em;
   height: 3em;

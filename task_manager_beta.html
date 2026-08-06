@@ -613,10 +613,10 @@
   <!-- Popup -->
   <div id="popup_edit_base" class="popup_edit">
     <form id="popup_edit_form" onsubmit="return false;" novalidate >
-      <select id="popup_edit_group_list" class="popup_size_fit popup_group_list" size="1" name="groups" ></select>
-      <input id="popup_edit_text" class="popup_size_fit" type="text" autocomplete="off" name="name">
+      <select id="popup_edit_group_list" class="popup_input_base popup_group_list" size="1" name="groups" ></select>
+      <input id="popup_edit_text" class="popup_input_base" type="text" autocomplete="off" name="name">
       <div class="flex-box">
-        <input id="popup_edit_url" type="url" class="popup_size_fit" autocomplete="off" placeholder="URL" >
+        <input id="popup_edit_url" type="url" class="popup_input_base" autocomplete="off" placeholder="URL" >
         <input id="popup_button_copy_url" type="button" value="Copy" >
         <input id="popup_button_open_url_web" type="button" value="Web" >
       </div>
@@ -628,10 +628,10 @@
         <label><input type="radio" name="url_app_type" value="web">Web</label>
       </div>
 
-      <input id="popup_edit_mail" type="text" class="popup_size_fit" autocomplete="off" placeholder="メール件名" >
+      <input id="popup_edit_mail" type="text" class="popup_input_base" autocomplete="off" placeholder="メール件名" >
 
       <div class="flex-box">
-        <textarea id="popup_edit_note" class="popup_size_fit" rows="3" autocomplete="off" placeholder="メモ(進捗など)
+        <textarea id="popup_edit_note" class="popup_input_base" rows="3" autocomplete="off" placeholder="メモ(進捗など)
 ※Shift + Enterで改行入力"></textarea>
         <input type="button" class="popup_edit_note_button" id="popup_edit_note_add_btn" value="追加">
       </div>
@@ -686,7 +686,7 @@
   <!-- Popup(for Multi) -->
   <div id="popup_edit_multi_base" class="popup_edit">
     <form id="popup_edit_multi_form" onsubmit="return false;" novalidate >
-      <select id="popup_edit_multi_group_list" class="popup_size_fit popup_group_list" size="1" name="groups" ></select>
+      <select id="popup_edit_multi_group_list" class="popup_input_base popup_group_list" size="1" name="groups" ></select>
       <div class="flex-box">
         <label class="checkbox" id="popup_edit_multi_done_label" for="popup_edit_done">済み</label>
         <input class="checkbox" id="popup_edit_multi_done" type="checkbox" >
