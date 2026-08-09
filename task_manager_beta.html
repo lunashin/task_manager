@@ -12,6 +12,7 @@
     <script src="crypt.js" type="text/javascript" defer></script>
     <script src="EditDialog.js" type="text/javascript" defer></script>
     <script src="ProgressDialog.js" type="text/javascript" defer></script>
+    <script src="TimelineManager.js" type="text/javascript" defer></script>
     <script src="task_manager.js" type="text/javascript" defer></script>
 
     <style type="text/css">
@@ -420,6 +421,23 @@
           border: 1px solid rgb(160 160 160);
           padding: 8px 10px;
         }
+
+        .timeline_dialog_base {
+          visibility: hidden;
+          width: 90%;
+          height: 90%;
+          border: 3px solid #ccc;
+          border-radius: 8px;
+          padding: 5px;
+          background-color: rgb(244, 234, 234);
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        .timeline_dialog_upper {
+          width: 100%;
+          height: 50px;
+        }
     </style>
 
     <!-- 環境ごとのCSS(上のCSSを上書き) -->
@@ -487,6 +505,7 @@
         <div id="label_todays_must_task" class="list-title">今日の必須タスク</div>
         <button id="copy_todays_must_list" class="button-small">コピー</button>
         <button id="show_todays_must_progress_dialog" class="button-small">進捗ダイアログ</button>
+        <button id="show_timeline_dialog" class="button-small">タイムライン</button>
         <!-- <input type="checkbox" id="toggle_show_done"> -->
         <!-- <label for="toggle_show_done">済み表示切替</label> -->
         <!-- <input type="checkbox" id="lock_todays_task"> -->
@@ -777,6 +796,13 @@
       <div id="progress-dialog-title-div" class="progress-dialog-title-div"></div>
       <!-- 進捗列 -->
       <div id="progress-dialog-item-div" class="progress-dialog-item-div"></div>
+    </div>
+  </div>
+
+  <!-- タイムラインダイアログ -->
+  <div id="timeline_dialog_base" class="timeline_dialog_base">
+    <div id="timeline_dialog_upper" class="timeline_dialog_upper"></div>
+    <div id="timeline_dialog"></div>
     </div>
   </div>
 

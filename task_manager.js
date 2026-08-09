@@ -96,13 +96,6 @@ var g_autosave_timer = null;
 
 // timeline Object
 var g_timeline = null;
-// 表示する日付範囲
-const past_days = 2;
-const post_days = 8;
-// 選択アイテム
-var g_timeline_selected_itemid = null;
-// タイムライン表示更新 遅延実行時間(タイムライン上での変更操作による)
-const REFRESH_TIMELINE_DELAY = 100;
 
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
@@ -159,6 +152,7 @@ document.getElementById("stock_list_done_hidden").addEventListener("click", togg
 // todays must list
 document.getElementById("copy_todays_must_list").addEventListener("click", copy_todays_must_list);
 document.getElementById("show_todays_must_progress_dialog").addEventListener("click", show_todays_must_progress_dialog);
+document.getElementById("show_timeline_dialog").addEventListener("click", show_timeline_dialog);
 
 document.getElementById("release_todays_add_task").addEventListener("click", release_todays_add_task);
 // document.getElementById("set_first_task").addEventListener("click", toggle_first_task);
@@ -4820,6 +4814,31 @@ function show_todays_must_progress_dialog() {
   showProgressDialog();
 }
 
+/**
+ * @summary タイムラインダイアログ表示
+ */
+function show_timeline_dialog(event) {
+  // 画面中央部に移動
+  timeline_dialog_base.tabIndex = 0;
+  timeline_dialog_base.style.top = window.innerHeight/2 - timeline_dialog_base.clientHeight/2;
+  timeline_dialog_base.style.left = window.innerWidth/2 - timeline_dialog_base.clientWidth/2;
+  timeline_dialog_base.style.visibility = 'visible';
+  timeline_dialog_base.addEventListener('keydown', function(event) {
+    switch (event.keyCode) {
+      case key_esc:       // ESC
+        event.preventDefault(); // 既定の動作をキャンセル
+        g_timeline.remove();
+        timeline_dialog_base.style.visibility = 'hidden';
+        break;
+    }
+  });
+
+  let rect_parent = timeline_dialog_base.getBoundingClientRect();
+  let rect_parent_upper = timeline_dialog_upper.getBoundingClientRect();
+  g_timeline = new TimelineManager("timeline_dialog", rect_parent.height-rect_parent_upper.height-10, g_stock_filter, g_edit_dialog);
+  g_timeline.show();
+}
+
 // 現在の状態をJSONファイルとしてダウンロード
 function download_now_json() {
   // ダウンロード
@@ -4901,151 +4920,6 @@ function getWeekDayStr(date_str) {
 
 
 
-/**
- * @summary タイムライン: グループデータ作成
- * @param true:1つのグループのみ作成 / false:該当グループ毎に作成
- * @returns タイムライングループデータ(配列)
- */
-function make_timeline_groups(is_one_group) {
-  let group_id_default = 'task';
-  let groups = [];
-  if (is_one_group) {
-    // 1つのグループに全アイテムをまとめる
-    groups.push( {id: group_id_default, content: 'タスク', title: 'タスク' } );
-  } else {
-    // グループ毎にアイテムを分ける
-    let keys = get_internal_keys(g_stock_filter, 'string');
-    for (let i = 0 ; i < keys.length; i++) {
-      let group = getInternalGroup(keys[i]);
-      // アイテムデータを追加
-      for (let j = 0; j < group.sub_tasks.length; j++) {
-        let item = group.sub_tasks[j];
-        // 期限設定があれば追加
-        if (item.period !== undefined && item.period !== '') {
-          groups.push( {id: group.id, content: group.name, title: group.name } );
-          break;
-        }
-      }
-    }
-  }
-  return groups;
-}
-
-/**
- * @summary タイムライン: アイテムデータ作成
- * @param true:1つのグループのみ作成 / false:該当グループ毎に作成
- * @returns タイムラインアイテムデータ(配列)
- */
-function make_timeline_items(is_one_group)
-{
-  let ret = [];
-  let group_id_default = 'task';
-
-  let keys = get_internal_keys(g_stock_filter, null);
-  for (let i = 0 ; i < keys.length; i++) {
-    let group = getInternalGroup(keys[i]);
-
-    let date_head = '';   // 最も早い日時
-    let date_tail = '';   // 最も遅い日時
-
-    // アイテムデータを追加
-    for (let j = 0; j < group.sub_tasks.length; j++) {
-      let item = group.sub_tasks[j];
-      // 期限設定なし
-      if (item.period === undefined || item.period === '') {
-        continue;
-      }
-      // 表示条件確認
-      if (!is_show_item_stock_list(item, g_stock_filter)) {
-        continue;
-      }
-      // フィルタ条件のマッチを確認
-      if (item.name.toLowerCase().indexOf(g_stock_filter.item_name.toLowerCase()) === -1) {
-        continue;
-      }
-
-      // 日時
-      let period = item.period + ' 12:00';
-      // クラス
-      let className = 'timeline_item_item';
-      if (item.status === 'done') {
-        className = 'timeline_item_item_done';
-      } else if (item.priority) {
-        className = 'timeline_item_item_priority';
-      } else if (item.is_wait) {
-        className = 'timeline_item_item_wait';
-      }
-      // マウスオーバー時に表示するテキスト
-      let title = new Date(item.period).getMonth()+1 + '/' + new Date(item.period).getDate();
-      title += ' ' + item.name;
-      if (item.note !== '') {
-        title += '<br>---------------<br>' + item.note.replaceAll('\n', '<br>');
-      }
-      // 表示テキスト
-      let group_name = '<div>(' + group.name.substring(0,10) + '...) <br></div>';
-      let name = group_name + item.name;
-      if (item.is_wait) {
-        name += get_after_icons(item);
-      }
-      // グループID
-      let timeline_group_id = group_id_default;
-      if (!is_one_group) {
-        timeline_group_id = group.id;
-      }
-      // 日時
-      if (item.period === item.period_end || item.period_end === '') {
-        // 開始日のみ
-        ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, type: 'point', className: className } );
-      } else {
-        // 終了日あり
-        let period_end = item.period_end + ' 12:00';
-        ret.push( { group: timeline_group_id, id: item.id, content: name, title: title, start: period, end: period_end, type: 'range', className: className } );
-      }
-
-      // グループ内の最初と最後の日付を確保
-      // 最初の日付
-      if (date_head === '') {
-        date_head = item.period;
-      } else {
-        if (new Date(item.period) < new Date(date_head)) {
-          date_head = item.period;
-        }
-      }
-      // 最後の日付
-      if (date_tail === '') {
-        date_tail = item.period_end !== '' ? item.period_end : item.period;
-      } else {
-        let temp_date_tail = item.period_end !== '' ? item.period_end : item.period;
-        if (new Date(temp_date_tail) > new Date(date_tail)) {
-          date_tail = temp_date_tail;
-        }
-      }
-    }
-    // console.log("date_head, date_tail");
-    // console.log(date_head, date_tail);
-
-    // グループデータを追加(ガントチャートの親っぽいオブジェクト)
-    if (date_head !== '' && date_tail !== '' && date_head !== date_tail) {
-      // 表示テキスト
-      let name = keys[i];
-      if (group.name !== undefined) {
-        name = group.name;
-      }
-      // 開始日/終了日
-      let start = date_head + ' 11:50';   // 最上部に表示する為、最速の日時にする
-      let end = date_tail + ' 12:00';
-      // マウスオーバー時に表示するテキスト
-      let period_disp = `${new Date(date_head).getMonth()+1}/${new Date(date_head).getDate()}〜${new Date(date_tail).getMonth()+1}/${new Date(date_tail).getDate()} ${name}`;
-      // グループID
-      let timeline_group_id = group_id_default;
-      if (!is_one_group) {
-        timeline_group_id = group.id;
-      }
-      ret.push( { group: timeline_group_id, id: group.id, content: name, title: period_disp, start: start, end: end, type: 'range', className: 'timeline_item_group', editable: false } );
-    }
-  }
-  return ret;
-}
 
 /**
  * タイムライン表示
@@ -5053,143 +4927,9 @@ function make_timeline_items(is_one_group)
  */
 function show_timeline(mode = 'all')
 {
-  groups = [];
-  items = [];
-
-  // DOM element where the Timeline will be attached
-  const container = document.getElementById('visualization');
-
-  // make group/item
-  // let is_one_group = (g_stock_filter_id === 0);
-  groups = groups.concat(make_timeline_groups(false));
-  items = items.concat(make_timeline_items(false));
-
-  let today = new Date(Date.now()); // 今日
-  let today_str= today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate();
-  let date_start = new Date(today.getTime() - past_days * 24 * 60 * 60 * 1000);  // 前
-  let range_start_str = date_start.getFullYear() + '/' + (date_start.getMonth()+1) + '/' + date_start.getDate();
-  let date_end = new Date(today.getTime() + post_days * 24 * 60 * 60 * 1000);  // 後
-  let range_end_str = date_end.getFullYear() + '/' + (date_end.getMonth()+1) + '/' + date_end.getDate();
-
-  // Configuration
-  const options = {
-    start: range_start_str, // timeline軸が表す期間の範囲の開始日
-    end: range_end_str,     // （同）範囲の終了日
-    orientation: 'top',    // timeline軸(見出し行）の表示場所(top:上部/both:上下/bottom:下部)
-    // orientation: {
-    //   axis: 'both',
-    //   item: 'top'
-    // },
-    tooltip: {
-      delay: 10,              // tooltipが表示されるまでのdelay(ms)
-      followMouse: true,      // マウスに追従
-      overflowMethod: 'cap'   // マウス移動追従時、ツールチップが枠外に出ないように制御する
-    },
-    horizontalScroll: true, // 横スクロール
-    verticalScroll: true, // 横スクロール
-    zoomKey: 'shiftKey',    // zoom key
-    zoomMin: 4000000,      // 約1時間
-    zoomMax: 50000000000, // 約1年
-    height: timelineHeight,     // 縦幅 (minHeightと合わせて指定すると日付軸が固定になる)
-    minHeight: timelineHeight,  // 最大縦幅
-    // onInitialDrawComplete: onTimelineShowComplete,
-    editable: {
-      add: false,           // ダブルクリックでアイテム追加
-      updateTime: true,     // 水平方向のアイテム移動
-      updateGroup: false,   // 他のグループへのアイテム移動
-      remove: false,        // deleteボタンによるアイテム削除
-      overrideItems: false  // item.editableの上書きの許可
-    },
-    onMove: function (target, callback) { // アイテム移動後のコールバック
-      console.log(target.id, target.group, target.start);
-      let item = getInternal(target.id);
-      if (item !== null) {
-        pushHistory();
-        item.period = get_date_str(target.start, true, false, true, true);
-        if (target.end !== undefined) {
-          item.period_end = get_date_str(target.end, true, false, true, true);
-        }
-      }
-      callback(target);
-
-      // リスト更新
-      refresh_screen('item');
-
-      // タイムライン更新(遅延更新)
-      setTimeout(() => {
-        show_timeline('item');
-      }, REFRESH_TIMELINE_DELAY);
-    }
-  };
-
-  // Create a Timeline
-  if (g_timeline !== null) {
-    let elem = document.getElementById('visualization');
-    // console.log("(visualization) elem.scrollTop:", elem.scrollTop);
-
-    // g_timeline.destroy();
-    // g_timeline.setData( {groups: groups, items: items });
-    // g_timeline.redraw();
-
-    if (mode === 'all') {
-      g_timeline.setData( {groups: groups, items: items });
-    } else if (mode === 'item') {
-      g_timeline.setItems(items);
-    }
-
-    // 更新前に選択していたアイテムを再選択
-    if (g_timeline_selected_itemid !== null) {
-      g_timeline.setSelection(g_timeline_selected_itemid);
-    }
-  }
-  else {
-    g_timeline = new vis.Timeline(container, items, groups, options);
-
-    // クリックイベント登録
-    g_timeline.on('select', function (properties) {
-      // 2回イベント発生するため、抑制 (クリックすると press, tap の2回呼ばれる)
-      console.log(properties.event.type);
-      if (properties.event.type !== 'tap') {
-        return;
-      }
-
-      // フィルタ解除
-      // set_list_filter(elem_id_list_stock, 0);
-      
-      // クリックしたアイテムをリスト中で選択
-      if (properties.items.length > 0) {
-        set_select_all_list(properties.items[0], true, true);
-        // 選択アイテムを記憶
-        g_timeline_selected_itemid = properties.items[0]
-      } else {
-        // set_select(elem_id_list_stock, -1, false, false); // 選択解除
-        // 選択アイテムクリア
-        g_timeline_selected_itemid = null;
-      }
-    });
-    // ダブルクリックイベント登録
-    g_timeline.on('doubleClick', async function (properties) {
-      // console.log("timeline dblclick" , properties.item);
-      if (properties.what === 'background' && properties.item === null) {
-        // 空欄をクリック. アイテム作成
-        let item = makeInternalItem_ex("", genItemID());
-        item.period = get_date_str(properties.time, true, false, true, true);
-        g_edit_dialog.show_edit_popup_single_ex(item, {top: properties.event.clientY, left: properties.event.clientX, group_id: properties.group});
-      } else if (properties.what === 'group-label' && properties.group !== undefined) {
-        // グループ名をダブルクリック. グループ名でフィルタ
-        let group = getInternal(properties.group);
-        g_stock_filter = {group_name: '^' + RegExp.escape(group.name) + '$', item_name: ''};
-        update_stock_list(g_stock_filter);
-        show_timeline('all');
-      } else {
-        // アイテム編集
-        // g_edit_dialog.show_edit_popup_single(properties.item, {top: properties.event.clientY, left: properties.event.clientX});
-        // g_edit_dialog.show_edit_popup_single(properties.item, {top: properties.event.center.y+20, left: properties.event.center.x});
-        if (await g_edit_dialog.show_edit_popup_ex([properties.item], properties.event.center.y+20, properties.event.center.x)) {
-          show_timeline('item');
-        }
-      }
-    });
+  if (!g_timeline) {
+    g_timeline = new TimelineManager("visualization", timelineHeight, g_stock_filter, g_edit_dialog);
+    g_timeline.show();
   }
 }
 
@@ -5927,6 +5667,10 @@ function formatYMD(y, m, d) {
 //---------------------------------------
 (function init() {
   console.log('call init');
+
+  // 編集ポップアップ初期化
+  g_edit_dialog = new EditDialog();
+
   load_data(false);
 })();
 
@@ -5980,8 +5724,6 @@ read_work_schedule();
 // 自動メール取り込み設定
 g_ReadMailIntervalID = setInterval(read_mail_flag, g_ReadMailIntervalTime, false, false);
 
-// 編集ポップアップ初期化
-g_edit_dialog = new EditDialog();
 
 
 
