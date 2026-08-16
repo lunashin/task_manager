@@ -96,6 +96,7 @@ var g_autosave_timer = null;
 
 // timeline Object
 var g_timeline = null;
+var g_timeline_popup = null;
 
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
@@ -1069,6 +1070,9 @@ function set_list_filter(elem_id, filter_id) {
   if (sel_itemid !== null) {
     set_select(elem_id_list_stock, sel_itemid, true, false);
   }
+
+  // タイムライン更新
+  show_timeline();
 
   // ボタン選択状態変更
   let c = document.querySelectorAll(".set_filter_condition");
@@ -4827,16 +4831,24 @@ function show_timeline_dialog(event) {
     switch (event.keyCode) {
       case key_esc:       // ESC
         event.preventDefault(); // 既定の動作をキャンセル
-        g_timeline.remove();
+        g_timeline_popup.remove();
         timeline_dialog_base.style.visibility = 'hidden';
         break;
     }
   });
 
+  // 上部スペースクリックイベント
+  timeline_dialog_upper.addEventListener('click', function() { 
+    g_timeline_popup.remove();
+    g_timeline_popup = null;
+    timeline_dialog_base.style.visibility = 'hidden';
+  })
+
+  // 表示
   let rect_parent = timeline_dialog_base.getBoundingClientRect();
   let rect_parent_upper = timeline_dialog_upper.getBoundingClientRect();
-  g_timeline = new TimelineManager("timeline_dialog", rect_parent.height-rect_parent_upper.height-10, g_stock_filter, g_edit_dialog);
-  g_timeline.show();
+  g_timeline_popup= new TimelineManager("timeline_dialog", rect_parent.height-rect_parent_upper.height-10, g_stock_filter, g_edit_dialog);
+  g_timeline_popup.show();
 }
 
 // 現在の状態をJSONファイルとしてダウンロード
@@ -4929,6 +4941,9 @@ function show_timeline(mode = 'all')
 {
   if (!g_timeline) {
     g_timeline = new TimelineManager("visualization", timelineHeight, g_stock_filter, g_edit_dialog);
+    g_timeline.show();
+  } else {
+    g_timeline.set_filter(g_stock_filter);
     g_timeline.show();
   }
 }
