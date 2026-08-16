@@ -111,6 +111,38 @@
           font-weight: 600;
         }
 
+        /* Custom Radio */
+        .radiobox_ex {
+          font-family: system-ui, sans-serif;
+        }
+        /* ラジオボタン本体は非表示 */
+        input.radiobox_ex[type="radio"] {
+          display: none;
+        }
+        /* 隣接ラベルをボタン風に */
+        input.radiobox_ex[type="radio"] + label {
+          display: inline-block;
+          padding: 5px 12px;
+          margin: 4px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          background: #f9f9f9;
+          cursor: pointer;
+          user-select: none;
+          transition: all 0.2s ease;
+        }
+        /* hover */
+        input.radiobox_ex[type="radio"] + label:hover {
+          background: #f0f0f0;
+        }
+        /* チェック状態 */
+        input.radiobox_ex[type="radio"]:checked + label {
+          background: purple;
+          color: white;
+          border-color: purple;
+          font-weight: 600;
+        }
+
         /* Edit */
         input.short-width { width: 50; }
 
@@ -642,11 +674,16 @@
         <input id="popup_button_open_url_web" type="button" value="Web" >
       </div>
       <div id="popup_edit_url_app_type" class="flex-box">
-        <label><input type="radio" name="url_app_type" value="auto">Auto</label>
-        <label><input type="radio" name="url_app_type" value="excel">Excel</label>
-        <label><input type="radio" name="url_app_type" value="powerpoint" checked>Ppt</label>
-        <label><input type="radio" name="url_app_type" value="word">Word</label>
-        <label><input type="radio" name="url_app_type" value="web">Web</label>
+        <input id="popup_edit_url_app_type_auto" type="radio" name="url_app_type" value="auto" class="radiobox_ex">
+        <label for="popup_edit_url_app_type_auto">Auto</label>
+        <input id="popup_edit_url_app_type_excel" type="radio" name="url_app_type" value="excel" class="radiobox_ex">
+        <label for="popup_edit_url_app_type_excel">Excel</label>
+        <input id="popup_edit_url_app_type_ppt" type="radio" name="url_app_type" value="powerpoint" class="radiobox_ex" checked>
+        <label for="popup_edit_url_app_type_ppt" >Ppt</label>
+        <input id="popup_edit_url_app_type_word" type="radio" name="url_app_type" value="word" class="radiobox_ex">
+        <label for="popup_edit_url_app_type_word" >Word</label>
+        <input id="popup_edit_url_app_type_web" type="radio" name="url_app_type" value="web" class="radiobox_ex">
+        <label for="popup_edit_url_app_type_web" >Web</label>
       </div>
 
       <input id="popup_edit_mail" type="text" class="popup_input_base" autocomplete="off" placeholder="メール件名" >
