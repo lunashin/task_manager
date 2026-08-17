@@ -124,6 +124,14 @@ class TimelineManager {
   }
 
   /**
+   * @summary 選択
+   * @param アイテムID
+   */
+  setSelection(id) {
+    this.timeline.setSelection(id);
+  }
+
+  /**
    * @summary 削除
    */
   remove() {
