@@ -65,9 +65,9 @@ class ProgressDialog {
    */
   make(items) {
     this.items = items;   // 更新用に参照を保持
-    this.make_ex(this.items, { is_first: true });  // 優先アイテム
+    this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
-    this.make_ex(this.items, { is_first: false, is_wait: true });   // 待ちアイテム (優先アイテムは除く)
+    this.make_ex(this.items, { is_wait: true });   // 待ちアイテム
 
     // フォーカス移動
     if (this.sel_elem_id !== null) {
