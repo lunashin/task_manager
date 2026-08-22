@@ -65,9 +65,39 @@ class ProgressDialog {
    */
   make(items) {
     this.items = items;   // 更新用に参照を保持
+    this.make_ex(this.items, { is_first: true });  // 優先アイテム
+    this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
+    this.make_ex(this.items, { is_first: false, is_wait: true });   // 待ちアイテム (優先アイテムは除く)
+
+    // フォーカス移動
+    if (this.sel_elem_id !== null) {
+      let elem_focus = document.getElementById(this.sel_elem_id)
+      if (elem_focus !== null) {
+        document.getElementById(this.sel_elem_id).focus();
+      } else {
+        this.sel_elem_id = null;
+      }
+    }
+  }
+
+  /**
+   * @summary 画面更新
+   * @param アイテム(配列)
+   * @param 条件(is_wait, is_first) ( {is_wait: true|false, is_first: true|false} )
+   */
+  make_ex(items, option) {
     let groupid_prev = null;
     for (let idx = 0; idx < items.length; idx++) {
       let item = items[idx];
+
+      // オプションに応じたアイテムを処理
+      if (option.is_wait !== undefined && option.is_wait !== item.is_wait) {
+        continue;
+      }
+      if (option.is_first !== undefined && option.is_first !== item.is_first) {
+        continue;
+      }
+
       let lines = item.note.split('\n'); // noteを改行で分割
       let prev1 = '';
       let disp_notes = [];
@@ -109,16 +139,6 @@ class ProgressDialog {
 
       // 行の要素を作成
       this.addItemRow(item, disp_notes);
-    }
-
-    // フォーカス移動
-    if (this.sel_elem_id !== null) {
-      let elem_focus = document.getElementById(this.sel_elem_id)
-      if (elem_focus !== null) {
-        document.getElementById(this.sel_elem_id).focus();
-      } else {
-        this.sel_elem_id = null;
-      }
     }
   }
 
