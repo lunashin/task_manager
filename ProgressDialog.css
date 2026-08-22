@@ -46,6 +46,10 @@
   background: linear-gradient(white, #FFFF55);
   font-weight: bold;
 }
+.progress-dialog-box-title-wait.progress-dialog-box-title-first {
+  background: linear-gradient(#FFFF55, cornflowerblue);
+  font-weight: bold;
+}
 .progress-dialog-box-title-group {
   min-height: 2.5rem;
   font-weight: bold;
