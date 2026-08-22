@@ -121,7 +121,7 @@ class ProgressDialog {
             disp_notes.push({content: prev1, type: 'past'});
             prev1 = '';
           }
-          disp_notes.push({content: lines[k], type: 'today'});
+          disp_notes.push({content: `(本日) ${lines[k]}`, type: 'today'});
         }
       }
       // 今日のメモがない場合、過去の最近のメモを追加
