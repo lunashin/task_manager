@@ -95,6 +95,8 @@ class EditDialog {
   keyhandler_edit_popup(event) {
     switch (event.keyCode){
       case key_esc:       // ESC
+        event.preventDefault(); // 既定の動作をキャンセル
+        event.stopPropagation();  // 親要素への伝播を止める
         this.cancel_edit_popup();
         break;
     }
@@ -107,6 +109,8 @@ class EditDialog {
   keyhandler_edit_popup_multi(event) {
     switch (event.keyCode){
       case key_esc:       // ESC
+        event.preventDefault(); // 既定の動作をキャンセル
+        event.stopPropagation();  // 親要素への伝播を止める
         this.cancel_edit_multi_popup();
         break;
     }

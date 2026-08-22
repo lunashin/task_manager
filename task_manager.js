@@ -302,6 +302,13 @@ async function keyhandler_body(event) {
         refresh_screen('item');
       }
       break;
+    case key_esc:       // ESC
+      event.preventDefault(); // 既定の動作をキャンセル
+      if (g_timeline_popup !== null) {
+        // タイムラインポップアップを閉じる
+        close_timeline_popup();
+      }
+      break;
   }
 }
 
@@ -4838,17 +4845,22 @@ function show_timeline_dialog(event) {
   });
 
   // 上部スペースクリックイベント
-  timeline_dialog_upper.addEventListener('click', function() { 
-    g_timeline_popup.remove();
-    g_timeline_popup = null;
-    timeline_dialog_base.style.visibility = 'hidden';
-  })
+  timeline_dialog_upper.addEventListener('click', close_timeline_popup);
 
   // 表示
   let rect_parent = timeline_dialog_base.getBoundingClientRect();
   let rect_parent_upper = timeline_dialog_upper.getBoundingClientRect();
   g_timeline_popup= new TimelineManager("timeline_dialog", rect_parent.height-rect_parent_upper.height-10, g_stock_filter, g_edit_dialog);
   g_timeline_popup.show();
+}
+
+/**
+ * @summary タイムラインダイアログを閉じる
+ */
+function close_timeline_popup() {
+  g_timeline_popup.remove();
+  g_timeline_popup = null;
+  timeline_dialog_base.style.visibility = 'hidden';
 }
 
 // 現在の状態をJSONファイルとしてダウンロード
