@@ -309,6 +309,9 @@ class TimelineManager {
       item.period = get_date_str(target.start, true, false, true, true);
       if (target.end !== undefined) {
         item.period_end = get_date_str(target.end, true, false, true, true);
+      } else if (item.period_end !== '') {
+        // タイムライン上の終了日時が空でアイテムの終了日時設定がある場合(開始日と終了日が同日のケース)
+        item.period_end = item.period;
       }
     }
 
