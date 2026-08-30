@@ -3544,6 +3544,24 @@ function make_popup_url_list() {
     elem_button.addEventListener("click", function(event){
       open_url(event.target.dataset.url);
     });
+    elem_button.addEventListener("mouseover", function(event){
+      event.target.focus();
+    });
+    elem_button.addEventListener("keydown", function(event){
+      switch(event.keyCode) {
+        case key_s:           // s
+        if (event.shiftKey) {
+          // 全リストの該当アイテムを選択
+          event.preventDefault(); // 既定の動作をキャンセル
+          let id = parseInt(event.target.dataset.id);
+          clear_list_filter(elem_id_list_stock);  // 全リストのフィルタ解除
+          set_select(elem_id_list_stock, id, true, true);
+          // document.getElementById(elem_id_list_stock).focus();  // フォーカス移動
+          break;
+        }
+        break;
+      }
+    });
     // 要素追加
     target_div.appendChild(elem_button);
   }
