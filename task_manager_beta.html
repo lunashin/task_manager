@@ -22,7 +22,9 @@
         /* 子要素を横方向へ配置 */
         .flex-box {display: flex; }
         .flex-box-h-even {display: flex; justify-content: space-between; }
-        .flex-box-vCenter {display: flex; align-items: center;}
+        .flex-box-vCenter {display: flex; align-items: center; }
+        .flex-box-hBetween {display: flex; align-items: center; justify-content:space-between; }
+        .flex-box-hRight {display: flex; justify-content: flex-end; }
 
         /* 文字小さめ */
         .font_small { font-size: 70%; }
@@ -512,17 +514,20 @@
         <!-- フィルタボタン表示エリア -->
         <div id="set_filter_condition_div"></div>
       </div>
-      <div class="flex-box-vCenter">
-        <span>検索</span>
-        <input list="stock_list_filter_select_items" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
-        <datalist id="stock_list_filter_select_items"></datalist>
+      <div class="flex-box-hBetween">
+        <div class="flex-box-vCenter">
+          <span>検索</span>
+          <input list="stock_list_filter_select_items" id="stock_list_filter_text" tabindex="5" placeholder="タスク検索">
+          <datalist id="stock_list_filter_select_items"></datalist>
+        </div>
 
-        <!-- Group List MouseOver Area -->
-       <div id="group_list_hover_area" class="mouseover_area_mini" data-target="popup_group_list_div" data-prepare-func="make_popup_group_list">グループ選択</div>
-
-        <!-- 済みタスク表示・非表示切り替え -->
-        <input class="checkbox_ex" id="stock_list_done_hidden" type="checkbox">
-        <label class="checkbox_ex" id="stock_list_done_hidden_label" for="stock_list_done_hidden">済み非表示</label>
+        <div class="flex-box-vCenter">
+          <!-- Group List MouseOver Area -->
+          <div id="group_list_hover_area" class="mouseover_area_mini" data-target="popup_group_list_div" data-prepare-func="make_popup_group_list">グループ選択</div>
+          <!-- 済みタスク表示・非表示切り替え -->
+          <input class="checkbox_ex" id="stock_list_done_hidden" type="checkbox">
+          <label class="checkbox_ex" id="stock_list_done_hidden_label" for="stock_list_done_hidden">済み非表示</label>
+        </div>
       </div>
       <select id="stock_list" class="stock_list task_list" tabindex="10" multiple></select>
     </div>
