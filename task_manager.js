@@ -304,9 +304,15 @@ async function keyhandler_body(event) {
       break;
     case key_esc:       // ESC
       event.preventDefault(); // 既定の動作をキャンセル
+      if (g_edit_dialog.is_show()) {
+        // 編集ポップアップを閉じる
+        g_edit_dialog.cancel_edit_popup();
+        break;
+      }
       if (g_timeline_popup !== null) {
         // タイムラインポップアップを閉じる
         close_timeline_popup();
+        break;
       }
       break;
   }
