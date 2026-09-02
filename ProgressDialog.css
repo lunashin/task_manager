@@ -23,6 +23,15 @@
 .progress-dialog-item-row-div {
   display: flex;
 }
+
+/* Title Column */
+.progress-dialog-box-title-frame {
+  display: flex;
+}
+.progress-dialog-box-title-space {
+  width: 1rem;
+  height: 3rem;
+}
 .progress-dialog-box-title {
   width: 20rem;
   min-width: 20rem;
@@ -57,6 +66,8 @@
   display: flex;
   align-items: flex-end;
 }
+
+/* Item Column */
 .progress-dialog-box-item {
   width: 17rem;
   min-width: 17rem;

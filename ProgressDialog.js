@@ -150,6 +150,13 @@ class ProgressDialog {
   addItemRow(item, comments) {
     // タスク名列へ行追加
     let elem_title_div = document.getElementById(this.title_elem_id);
+
+    let new_title_frame = document.createElement("div");
+    new_title_frame.classList.add('progress-dialog-box-title-frame');
+    let new_title_space = document.createElement("div");
+    new_title_space.classList.add('progress-dialog-box-title-space'); // 左側のスペース
+    new_title_frame.appendChild(new_title_space);
+
     let new_title_div = document.createElement("div");
     new_title_div.classList.add('progress-dialog-box-title');
     if (item.is_wait) {
@@ -170,7 +177,8 @@ class ProgressDialog {
     for (let i = 0; i < keys.length; i++) {
       new_title_div.addEventListener(keys[i], this.cb_event_title[keys[i]]);
     }
-    elem_title_div.appendChild(new_title_div);
+    new_title_frame.appendChild(new_title_div);
+    elem_title_div.appendChild(new_title_frame);
 
     // コメント列へ行追加
     let elem_item_div = document.getElementById(this.item_elem_id);
