@@ -4980,7 +4980,7 @@ function show_timeline(mode = 'all')
     g_timeline.show();
   } else {
     g_timeline.set_filter(g_stock_filter);
-    g_timeline.show();
+    g_timeline.show(mode);
   }
 }
 

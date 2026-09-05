@@ -318,13 +318,13 @@ class TimelineManager {
     // 既定の処理を流す
     callback(target);
 
-    // リスト更新
+    // リスト更新(タイムライン更新含む)
     refresh_screen('item');
 
     // タイムライン更新(遅延更新)
-    setTimeout(() => {
-      this.show('item');
-    }, this.REFRESH_TIMELINE_DELAY);    
+    // setTimeout(() => {
+    //   this.show('item');
+    // }, this.REFRESH_TIMELINE_DELAY);
   }
 
   /**
