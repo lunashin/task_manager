@@ -3697,8 +3697,8 @@ function get_before_icons(item) {
 
   let ret = '';
   if(item.url !== '') {
-    if (item.url_app_type !== 'auto') {
-      ret += '🌏';
+    if (item.url.indexOf('https://teams.') !== -1) {
+      ret += '👥';  // Teams
     } else {
       ret += '🌏';
     }
