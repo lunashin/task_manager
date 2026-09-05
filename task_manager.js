@@ -929,7 +929,7 @@ function mouseleave_handler_note_preview(event) {
 }
 
 /**
- * @summary リストの枠を一瞬光らせる
+ * @summary リストの背景色を一瞬変更して戻す
  */
 function flash_list_border(list_elem_id) {
   // 適用
@@ -4141,6 +4141,9 @@ function set_todays_must_task(elem_id) {
   let item = getInternal(id)
   if (item === null) {
     return false;
+  }
+  if (item.type !== 'item') {
+    return false; // グループは除外
   }
   
   if (item.is_today === 0) {
