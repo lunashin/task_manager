@@ -459,9 +459,15 @@ function keyhandler_stock_list(event) {
       break;
     case key_arrow_right: // →
       if(event.ctrlKey) {
-        set_todays_must_task(elem_id);  // 今日のMUSTタスクへ
+        // 今日のMUSTタスクへ
+        if (set_todays_must_task(elem_id) === true) {
+          flash_list_border(elem_id_list_today_must);
+        }
       } else {
-        move_today_item();  // 今日のタスクへ
+        // 今日のタスクへ
+        if (move_today_item() === true) {
+          flash_list_border(elem_id_list_today);
+        }
       }
       break;
     case key_a:           // a
@@ -540,10 +546,14 @@ function keyhandler_everyday_list(event) {
 
   switch (event.keyCode){
     case key_arrow_right: // →
-      done_item(elem_id);
+      if (done_item(elem_id) === true) {
+        flash_list_border(elem_id_list_done);
+      }
       break;
     case key_arrow_left: // ←
-      remove_today_item(elem_id);
+      if (remove_today_item(elem_id) === true) {
+        flash_list_border(elem_id_list_stock);
+      }
       break;
   }
 }
@@ -570,10 +580,14 @@ function keyhandler_todays_must_list(event) {
       }
       break;
     case key_arrow_right: // →
-      done_item(elem_id);
+      if (done_item(elem_id) === true) {
+        flash_list_border(elem_id_list_done);
+      }
       break;
     case key_arrow_left: // ←
-      remove_today_item(elem_id);
+      if (remove_today_item(elem_id) === true) {
+        flash_list_border(elem_id_list_stock);
+      }
       break;
     case key_d:           // d
       if (event.ctrlKey) {
@@ -614,7 +628,9 @@ function keyhandler_todays_list(event) {
       }
       break;
     case key_arrow_left: // ←
-      remove_today_item(elem_id);
+      if (remove_today_item(elem_id) === true) {
+        flash_list_border(elem_id_list_stock);
+      }
       break;
     case key_arrow_right: // →
       if (event.ctrlKey) {
@@ -622,7 +638,9 @@ function keyhandler_todays_list(event) {
         set_tomorrow_item(elem_id , true);
         break;
       }
-      done_item(elem_id);
+      if (done_item(elem_id) === true) {
+        flash_list_border(elem_id_list_done);
+      }
       break;
     case key_a:           // a
       if (event.ctrlKey || event.shiftKey) {
@@ -717,12 +735,16 @@ async function keydown_handler_progress_diralog_title(event) {
   let elem_id = event.target.id;
   switch (event.keyCode){
     case key_arrow_left: // ←
-      remove_today_item(elem_id);
-      g_progress_dialog.reflesh(get_todays_must_task());
+      if (remove_today_item(elem_id) === true) {
+        g_progress_dialog.reflesh(get_todays_must_task());
+        flash_list_border(elem_id_list_stock);
+      }
       break;
     case key_arrow_right: // →
-      done_item(elem_id);
-      g_progress_dialog.reflesh(get_todays_must_task());
+      if (done_item(elem_id) === true) {
+        g_progress_dialog.reflesh(get_todays_must_task());
+        flash_list_border(elem_id_list_done);
+      }
       break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
@@ -904,6 +926,16 @@ function mouseover_handler_note_preview(event) {
  */
 function mouseleave_handler_note_preview(event) {
   close_note_preview(event);
+}
+
+/**
+ * @summary リストの枠を一瞬光らせる
+ */
+function flash_list_border(list_elem_id) {
+  // 適用
+  document.getElementById(list_elem_id).classList.add('list-border-flash');
+  // 指定時間後に戻す
+  setTimeout(() => { document.getElementById(list_elem_id).classList.remove('list-border-flash'); }, 200);
 }
 
 /**
@@ -3886,7 +3918,7 @@ function move_today_item() {
   let id = get_selected_id(elem_id_list_stock);
   if (id === null) {
     // 未選択
-    return;
+    return false;
   }
 
   // idから内部データの配列を取得し、ステータスを変更
@@ -3894,12 +3926,12 @@ function move_today_item() {
 
   if(item.type === 'group') {
     // グループの場合は何もしない
-    return;
+    return false;
   }
 
   if (item.is_today >= 1) {
     // すでに今日のタスクの場合は何もしない
-    return;
+    return false;
   }
 
   pushHistory();
@@ -3915,6 +3947,7 @@ function move_today_item() {
 
   // 今日のリストのタスクを選択
   set_select(elem_id_list_today, item.id, false, false);
+  return true;
 }
 
 /**
@@ -3950,12 +3983,15 @@ function move_today_item_todays_expires() {
 function remove_today_item(elem_id) {
   let id = get_selected_id(elem_id);
   if (id === null) {
-    return;
+    return false;
   }
   
   let item = getInternal(id)
   if (item === null) {
-    return;
+    return false;
+  }
+  if (item.type !== 'item') {
+    return false; // グループは除外
   }
 
   pushHistory();
@@ -3967,6 +4003,7 @@ function remove_today_item(elem_id) {
 
   // リストへ反映
   refresh_screen('item');
+  return true;
 }
 
 // 選択アイテムをファーストタスクへ設定
@@ -4098,12 +4135,12 @@ function set_todays_must_task(elem_id) {
 
   let id = get_selected_id(elem_id);
   if (id === null) {
-    return;
+    return false;
   }
 
   let item = getInternal(id)
   if (item === null) {
-    return;
+    return false;
   }
   
   if (item.is_today === 0) {
@@ -4112,6 +4149,7 @@ function set_todays_must_task(elem_id) {
   item.is_todays_must = true;
 
   refresh_screen('item');
+  return true;
 }
 
 // 今日の必須タスクを解除
@@ -4177,12 +4215,15 @@ function done_item(elem_id) {
     id = get_selected_id(elem_id);
   }
   if (id === null) {
-    return;
+    return false;
   }
   
   let item = getInternal(id)
   if (item === null) {
-    return;
+    return false;
+  }
+  if (item.type !== 'item') {
+    return false; // グループは除外
   }
 
   pushHistory();
@@ -4193,6 +4234,7 @@ function done_item(elem_id) {
 
   // リストへ反映
   refresh_screen('item');
+  return true;
 }
 
 /**

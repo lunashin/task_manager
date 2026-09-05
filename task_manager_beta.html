@@ -52,10 +52,14 @@
         }
         .list-title { font-size: 140%; font-weight: bold; }
 
+        .list_base { transition-duration: 100ms; transition-property: background-color; }
         .stock_list { background-color: white; }
         .todays_must_list { background-color: rgb(248, 251, 209); }
         .todays_list { background-color: rgb(251, 225, 229); }
         .done_list { background-color: rgb(214, 230, 235); }
+
+        /* リスト背景色 一時変更用 */
+        .list-border-flash { background-color:hotpink; }
 
         .done { color: rgb(209, 209, 209); font-size: 100%; }
         .today { color: mediumblue; }
@@ -529,7 +533,7 @@
           <label class="checkbox_ex" id="stock_list_done_hidden_label" for="stock_list_done_hidden">済み非表示</label>
         </div>
       </div>
-      <select id="stock_list" class="stock_list task_list" tabindex="10" multiple></select>
+      <select id="stock_list" class="list_base stock_list task_list" tabindex="10" multiple></select>
     </div>
     &nbsp;&nbsp;&nbsp;
 
@@ -537,7 +541,7 @@
       <!-- EveryDay List -->
       <div>
         <div id="label_everyday_task" class="list-title">毎日のタスク</div>
-        <select id="everyday_task_list" class="everyday_task_list h-half-w3" tabindex="25" multiple></select>
+        <select id="everyday_task_list" class="list_base everyday_task_list h-half-w3" tabindex="25" multiple></select>
       </div>
 
       &nbsp;&nbsp;&nbsp;
@@ -551,7 +555,7 @@
         <!-- <label for="toggle_show_done">済み表示切替</label> -->
         <!-- <input type="checkbox" id="lock_todays_task"> -->
         <!-- <label for="lock_todays_task">🔒ロック</label> -->
-        <select id="todays_must_list" class="todays_must_list h-half-w2" tabindex="25" multiple></select>
+        <select id="todays_must_list" class="list_base todays_must_list h-half-w2" tabindex="25" multiple></select>
       </div>
 
       &nbsp;&nbsp;&nbsp;
@@ -567,7 +571,7 @@
         <input type="checkbox" id="lock_todays_task">
         <label for="lock_todays_task">🔒ロック</label>
         <br>
-        <select id="todays_list" class="todays_list h-half-w" tabindex="20" multiple></select>
+        <select id="todays_list" class="list_base todays_list h-half-w" tabindex="20" multiple></select>
       </div>
     </div>
 
@@ -583,14 +587,14 @@
           &nbsp;
           <button id="release_todays_done" class="button-small">今日を解除</button>
         </div>
-        <select id="done_list" class="done_list h-half" tabindex="30" multiple></select>
+        <select id="done_list" class="list_base done_list h-half" tabindex="30" multiple></select>
       </div>
       <br>
 
       <!-- Priority List -->
       <div>
         <div class="list-title">タスク優先順位 (カッコ内は重要度スコア)</div>
-        <select id="priority_list" class="h-half" tabindex="40" multiple></select>
+        <select id="priority_list" class="list_base h-half" tabindex="40" multiple></select>
       </div>
     </div>
   </div>
