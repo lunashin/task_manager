@@ -1235,6 +1235,9 @@ function read_mail_flag(isRefleshList = true, isSelect = true) {
           if (period !== null) {
             item.period = period; // 期限
           }
+          // 今日のMUSTタスクへ登録(タスク見落とし防止)
+          item.is_todays_must = true;
+          item.is_today = 1;
           // content
           if (window.mail_flag[i].content !== undefined) {
             item.mail_is_html = window.mail_flag[i].is_html_content;
@@ -5818,7 +5821,7 @@ set_stocklist_filter_text_items();
 read_work_schedule();
 
 // 自動メール取り込み設定
-g_ReadMailIntervalID = setInterval(read_mail_flag, g_ReadMailIntervalTime, false, false);
+g_ReadMailIntervalID = setInterval(read_mail_flag, g_ReadMailIntervalTime, true, false);
 
 
 
