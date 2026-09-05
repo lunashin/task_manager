@@ -295,7 +295,7 @@ async function keyhandler_body(event) {
       toggle_scroll_lock();
       break;
     case key_a:           // a
-      if(event.shiftKey) {
+      if(event.shiftKey && !g_edit_dialog.is_show()) {
         event.preventDefault(); // 既定の動作をキャンセル
         // タスク追加
         await g_edit_dialog.show_edit_popup_new();
