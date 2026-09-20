@@ -746,6 +746,13 @@ async function keydown_handler_progress_diralog_title(event) {
         flash_list_border(elem_id_list_done);
       }
       break;
+    case key_d:           // d
+      if (!event.shiftKey && !event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        remove_selected_item(elem_id);
+        g_progress_dialog.reflesh(get_todays_must_task());
+      }
+      break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
       // ファーストタスク
