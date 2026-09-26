@@ -34,6 +34,7 @@ const key_a = 65;
 const key_c = 67;
 const key_d = 68;
 const key_f = 70;
+const key_i = 73;
 const key_l = 76;
 const key_n = 78;
 const key_s = 83;
@@ -369,6 +370,11 @@ async function keyhandler_list_common(event, elem_id, ignore_keys=null) {
       event.preventDefault(); // 既定の動作をキャンセル
       // ファーストタスク
       toggle_first_task(elem_id);
+      break;
+    case key_i:           // i
+      event.preventDefault(); // 既定の動作をキャンセル
+      // 重要フラグ
+      toggle_priority_task(elem_id);
       break;
     case key_s:           // s
       if (event.shiftKey) {
@@ -757,6 +763,12 @@ async function keydown_handler_progress_diralog_title(event) {
       event.preventDefault(); // 既定の動作をキャンセル
       // ファーストタスク
       toggle_first_task(elem_id);
+      g_progress_dialog.reflesh(get_todays_must_task());
+      break;
+    case key_i:           // i
+      event.preventDefault(); // 既定の動作をキャンセル
+      // 重要フラグ
+      toggle_priority_task(elem_id);
       g_progress_dialog.reflesh(get_todays_must_task());
       break;
     case key_s:           // s
@@ -3563,8 +3575,9 @@ function make_popup_url_list() {
   // ボタン生成
   let target_div = null;
   for (let i = 0; i < sub_tasks.length; i++) {
+    let item = sub_tasks[i];
     // 初回 or nameが空 or nameが'-'のみ は行要素を追加
-    if(i == 0 || sub_tasks[i].name === '' || sub_tasks[i].name.length === (sub_tasks[i].name.match(/-/g) || []).length) {
+    if(i == 0 || item.name === '' || item.name.length === (item.name.match(/-/g) || []).length) {
       target_div = document.createElement('div');
       target_div.classList.add('popup_url_list_row_div');
       base_div.appendChild(target_div);
@@ -3573,16 +3586,20 @@ function make_popup_url_list() {
     }
 
     // URL未設定は無視
-    if (sub_tasks[i].url === '') {
+    if (item.url === '') {
       continue;
     }
 
     // ボタン要素生成
     let elem_button = document.createElement("button");
-    elem_button.value = sub_tasks[i].name;
-    elem_button.textContent = sub_tasks[i].name;
-    elem_button.dataset.id = sub_tasks[i].id;
-    elem_button.dataset.url = sub_tasks[i].url;
+    elem_button.value = item.name;
+    elem_button.textContent = item.name;
+    elem_button.classList.add('popup_url_list_button');
+    if (item.priority) {
+      elem_button.classList.add('popup_url_list_button_priority');
+    }
+    elem_button.dataset.id = item.id;
+    elem_button.dataset.url = item.url;
     elem_button.addEventListener("click", function(event){
       open_url(event.target.dataset.url);
     });
@@ -4032,6 +4049,26 @@ function toggle_first_task(elem_id) {
 
   // 反転
   item.is_first = !item.is_first;
+
+  refresh_screen('item');
+}
+
+// 選択アイテムを重要フラグ設定
+function toggle_priority_task(elem_id) {
+  pushHistory();
+
+  let id = get_selected_id(elem_id);
+  if (id === null) {
+    return;
+  }
+
+  let item = getInternal(id)
+  if (item === null) {
+    return;
+  }
+
+  // 反転
+  item.priority = !item.priority;
 
   refresh_screen('item');
 }
