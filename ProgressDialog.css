@@ -43,6 +43,7 @@
   margin: 2px;
   padding: 2px;
   overflow-x: hidden;
+  cursor: grab;
 }
 .progress-dialog-box-title:focus {
   border-color: blue;
@@ -65,6 +66,11 @@
   font-size: 150%;
   display: flex;
   align-items: flex-end;
+}
+.progress-dialog-box-title-group-dragging {
+  background-color: skyblue;
+  border: 3px dotted rgb(147, 147, 147);
+  opacity: 0.5;
 }
 
 /* Item Column */

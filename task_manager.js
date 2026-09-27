@@ -742,13 +742,13 @@ async function keydown_handler_progress_diralog_title(event) {
   switch (event.keyCode){
     case key_arrow_left: // ←
       if (remove_today_item(elem_id) === true) {
-        g_progress_dialog.reflesh(get_todays_must_task());
+        g_progress_dialog.reflesh();
         flash_list_border(elem_id_list_stock);
       }
       break;
     case key_arrow_right: // →
       if (done_item(elem_id) === true) {
-        g_progress_dialog.reflesh(get_todays_must_task());
+        g_progress_dialog.reflesh();
         flash_list_border(elem_id_list_done);
       }
       break;
@@ -756,20 +756,20 @@ async function keydown_handler_progress_diralog_title(event) {
       if (!event.shiftKey && !event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         remove_selected_item(elem_id);
-        g_progress_dialog.reflesh(get_todays_must_task());
+        g_progress_dialog.reflesh();
       }
       break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
       // ファーストタスク
       toggle_first_task(elem_id);
-      g_progress_dialog.reflesh(get_todays_must_task());
+      g_progress_dialog.reflesh();
       break;
     case key_i:           // i
       event.preventDefault(); // 既定の動作をキャンセル
       // 重要フラグ
       toggle_priority_task(elem_id);
-      g_progress_dialog.reflesh(get_todays_must_task());
+      g_progress_dialog.reflesh();
       break;
     case key_s:           // s
       if (event.shiftKey) {
@@ -790,7 +790,7 @@ async function keydown_handler_progress_diralog_title(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         // 元に戻す
         undo_item()
-        g_progress_dialog.reflesh(get_todays_must_task());
+        g_progress_dialog.reflesh();
         break;
       }
       event.preventDefault(); // 既定の動作をキャンセル
@@ -806,14 +806,14 @@ async function keydown_handler_progress_diralog_title(event) {
       }
       // 編集ポップアップ
       if (await showEditPopup(elem_id)) {
-        g_progress_dialog.reflesh(get_todays_must_task());
+        g_progress_dialog.reflesh();
       }
       document.getElementById(elem_id).focus();
       break;
     case key_enter:     // Enter
       event.preventDefault(); // 既定の動作をキャンセル
       if (await showEditPopup(elem_id)) {
-        g_progress_dialog.reflesh(get_todays_must_task());
+        g_progress_dialog.reflesh();
       }
       document.getElementById(elem_id).focus();
       break;
@@ -5148,15 +5148,15 @@ function showProgressDialog() {
       'keydown': keydown_handler_progress_diralog_title,
       'contextmenu': contextmenu_handler_div,
     };
-    g_progress_dialog = new ProgressDialog("progress-dialog-base", "progress-dialog-title-div", "progress-dialog-item-div", cb_dict);
+    g_progress_dialog = new ProgressDialog("progress-dialog-base", "progress-dialog-title-div", "progress-dialog-item-div", get_todays_must_task, cb_dict);
   }
   g_progress_dialog.resetAll();
 
   // 今日のMustタスクリスト取得
-  let todays_items = get_todays_must_task();
+  // let todays_items = get_todays_must_task();
 
   // ダイアログ表示
-  g_progress_dialog.show(todays_items);
+  g_progress_dialog.show();
 }
 
 /**

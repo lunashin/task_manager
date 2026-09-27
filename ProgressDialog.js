@@ -17,14 +17,16 @@ class ProgressDialog {
    * @param ベース領域の要素ID
    * @param タスク名領域の要素ID
    * @param 進捗内容領域の要素ID
+   * @param アイテム一覧取得コールバック
    * @param タスク名領域イベントコールバック {'イベント名': コールバック関数, ...}
    */
-  constructor(base_elem_id, title_elem_id, item_elem_id, cb_event_title = null) {
+  constructor(base_elem_id, title_elem_id, item_elem_id, cd_get_itemlist, cb_event_title = null) {
     this.base_elem_id = base_elem_id;
     this.title_elem_id = title_elem_id;
     this.item_elem_id= item_elem_id;
+    this.cd_get_itemlist = cd_get_itemlist;
     this.cb_event_title = cb_event_title;
-    this.items = null;
+    // this.items = null;
     this.sel_elem_id = null;
     this.base_move_info = null;
 
@@ -40,8 +42,8 @@ class ProgressDialog {
    * @summary ダイアログ表示
    * @param items(配列)
    */
-  show(items) {
-    this.make(items);
+  show() {
+    this.make();
     let elem = document.getElementById(this.base_elem_id);
 
     // 画面中央部に移動
@@ -63,12 +65,12 @@ class ProgressDialog {
    * @summary 画面更新
    * @param アイテム(配列)
    */
-  make(items) {
-    this.items = items;   // 更新用に参照を保持
+  make() {
+    // this.items = items;   // 更新用に参照を保持
     // this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     // this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
     // this.make_ex(this.items, { is_wait: true });   // 待ちアイテム
-    this.make_ex(this.items, { });   // 全てのアイテム
+    this.make_ex(this.cd_get_itemlist(), { });   // 全てのアイテム
 
     // フォーカス移動
     if (this.sel_elem_id !== null) {
@@ -170,9 +172,12 @@ class ProgressDialog {
     new_title_div.innerText = get_before_icons(item) + ' ' + item.name + ' ' + get_after_icons(item); // 前アイコン + タスク名 + 後アイコン
     new_title_div.dataset.id = item.id;
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
+    new_title_div.draggable = true; // ドラッグ可
     // クリックイベント
     new_title_div.addEventListener('dblclick', this.dblclick_handler_title.bind(this));
     new_title_div.addEventListener('click', this.click_handler_title.bind(this));
+    // ドラッグイベント
+    new_title_div.addEventListener("dragstart", this.dragStart_handler_title.bind(this));
     // その他イベント
     let keys = Object.keys(this.cb_event_title);
     for (let i = 0; i < keys.length; i++) {
@@ -221,6 +226,13 @@ class ProgressDialog {
     let new_title_div = document.createElement("div");
     new_title_div.classList.add('progress-dialog-box-title-group');
     new_title_div.innerText = group.name;
+    new_title_div.dataset.id = group.id;
+    // ドロップイベント
+    new_title_div.addEventListener("drop", this.drop_handler_title_group.bind(this));
+    new_title_div.addEventListener("dragover", this.dragover_handler_title_group.bind(this));
+    new_title_div.addEventListener("dragenter", this.dragenter_handler_title_group.bind(this));
+    new_title_div.addEventListener("dragleave", this.dragleave_handler_title_group.bind(this));
+    // 子要素へ追加
     elem_title_div.appendChild(new_title_div);
 
     // コメント列へ行追加
@@ -304,6 +316,66 @@ class ProgressDialog {
   }
 
   /**
+   * @summary titleドラッグ開始ハンドラ
+   */
+  dragStart_handler_title(event) {
+    console.log("onDragStart");
+    event.dataTransfer.setData("text", event.currentTarget.dataset.id); // アイテムID
+  }
+
+  /**
+   * @summary title dropハンドラ
+   */
+  drop_handler_title_group(event) {
+    console.log("onDrop");
+    event.currentTarget.classList.remove("progress-dialog-box-title-group-dragging");  // ドロップ先要素のクラス変更
+
+    // アイテムのグループを移動
+    let item_id = parseInt(event.dataTransfer.getData("text"));
+    console.log(item_id);
+    let group_id = parseInt(event.currentTarget.dataset.id);
+    console.log(group_id);
+
+    // 同じグループの場合は何もしない
+    if (group_id === getInternalGroupFromItemID(item_id).id) {
+      return;
+    }
+
+    // グループ移動
+    let item = getInternal(item_id);
+    let item_copy = JSON.parse(JSON.stringify(item)); // アイテム複製
+    pushHistory();
+    removeIntarnalData(item_id);  // アイテム削除
+    addIntarnalDatasToGroup(group_id, [item_copy], false);  // 移動先グループへ追加
+
+    // 表示更新
+    this.reflesh();
+  }
+
+  /**
+   * @summary title dragoverハンドラ
+   */
+  dragover_handler_title_group(event) {
+    event.preventDefault();
+  }
+
+  /**
+   * @summary title dragenterハンドラ
+   */
+  dragenter_handler_title_group(event) {
+    console.log("onDragenter");
+    event.currentTarget.classList.toggle("progress-dialog-box-title-group-dragging");  // ドロップ先要素のクラス変更
+  }
+
+  /**
+   * @summary title dragleaveハンドラ
+   */
+  dragleave_handler_title_group(event) {
+    console.log("onDragleave");
+    event.currentTarget.classList.toggle("progress-dialog-box-title-group-dragging");  // ドロップ先要素のクラス変更
+  }
+
+  /**
    * @summary itemダブルクリックハンドラ
    */
   div_dblclick_item_handler(event) {
@@ -357,12 +429,13 @@ class ProgressDialog {
    * @summary 画面更新
    * @param 開始日(string)
    */
-  reflesh(items = null) {
+  reflesh() {
     this.resetAll();
-    if (items !== null) {
-      this.make(items);
-    } else {
-      this.make(this.items);
-    }
+    this.make();
+    // if (items !== null) {
+    //   this.make(items);
+    // } else {
+    //   this.make(this.items);
+    // }
   }
 };
