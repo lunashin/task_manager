@@ -3670,10 +3670,10 @@ function make_option(title, item, class_list, is_group_top, show_last_update, el
     // 期限
     elem.text += ' (⌛' + get_display_date_str(item.period) + ')';
   }
-  if (!is_group_top && show_last_update) {
-    // 最終更新日時
-    elem.text += ' (🕘' + get_display_date_str(item.last_update) + ')';
-  }
+  // if (!is_group_top && show_last_update) {
+  //   // 最終更新日時
+  //   elem.text += ' (🕘' + get_display_date_str(item.last_update) + ')';
+  // }
   // title
   // elem.title = item.name;
   // if (!is_group_top && item.note !== '') {
