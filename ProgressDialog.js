@@ -169,7 +169,9 @@ class ProgressDialog {
       new_title_div.classList.add('progress-dialog-box-title-first');
     }
     new_title_div.id = `progress-dialog-box-title-${item.id}`;
-    new_title_div.innerText = get_before_icons(item) + ' ' + item.name + ' ' + get_after_icons(item); // 前アイコン + タスク名 + 後アイコン
+    let period_date = item.period_end !== '' ? item.period_end : item.period;
+    let period_days = period_date !== '' ? ' (⌛' + get_display_date_str(period_date) + ')' : '';
+    new_title_div.innerText = get_before_icons(item) + ' ' + item.name + ' ' + get_after_icons(item) + period_days; // 前アイコン + タスク名 + 後アイコン + 期限までの日数
     new_title_div.dataset.id = item.id;
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
     new_title_div.draggable = true; // ドラッグ可
