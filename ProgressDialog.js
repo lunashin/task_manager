@@ -62,6 +62,13 @@ class ProgressDialog {
   }
 
   /**
+   * @summary 表示状態取得
+   */
+  is_show() {
+    return (document.getElementById(this.base_elem_id).style.visibility === 'visible');
+  }
+
+  /**
    * @summary 画面更新
    * @param アイテム(配列)
    */

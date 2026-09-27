@@ -1096,6 +1096,11 @@ function refresh_screen(timeline_refreshmode = 'all') {
   update_priority_list();
 
   show_timeline(timeline_refreshmode);
+
+  // 進捗ダイアログ
+  if (g_progress_dialog.is_show()) {
+    g_progress_dialog.reflesh();
+  }
 }
 
 /**
