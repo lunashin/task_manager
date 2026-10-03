@@ -29,6 +29,7 @@ class ProgressDialog {
     // this.items = null;
     this.sel_elem_id = null;
     this.base_move_info = null;
+    this.group_list_popup = null;
 
     // ベースdiv キーイベント登録
     let elem_base = document.getElementById(this.base_elem_id);
@@ -187,6 +188,7 @@ class ProgressDialog {
     new_title_div.addEventListener('click', this.click_handler_title.bind(this));
     // ドラッグイベント
     new_title_div.addEventListener("dragstart", this.dragStart_handler_title.bind(this));
+    new_title_div.addEventListener("dragend", this.dragEnd_handler_title.bind(this));
     // その他イベント
     let keys = Object.keys(this.cb_event_title);
     for (let i = 0; i < keys.length; i++) {
@@ -330,6 +332,18 @@ class ProgressDialog {
   dragStart_handler_title(event) {
     console.log("onDragStart");
     event.dataTransfer.setData("text", event.currentTarget.dataset.id); // アイテムID
+
+    // グループ一覧ポップアップ表示
+    this.group_list_popup = new GruopListPopup('popup_group_list_div', 'drop', {'drop': this.drop_handler_title_group.bind(this) });
+    this.group_list_popup.show(get_group_ids(g_stock_filter));
+  }
+
+  /**
+   * @summary titleドラッグ終了ハンドラ
+   */
+  dragEnd_handler_title(event) {
+    console.log("onDragEnd");
+    this.group_list_popup.close();
   }
 
   /**
@@ -341,9 +355,7 @@ class ProgressDialog {
 
     // アイテムのグループを移動
     let item_id = parseInt(event.dataTransfer.getData("text"));
-    console.log(item_id);
     let group_id = parseInt(event.currentTarget.dataset.id);
-    console.log(group_id);
 
     // 同じグループの場合は何もしない
     if (group_id === getInternalGroupFromItemID(item_id).id) {
@@ -351,11 +363,8 @@ class ProgressDialog {
     }
 
     // グループ移動
-    let item = getInternal(item_id);
-    let item_copy = JSON.parse(JSON.stringify(item)); // アイテム複製
     pushHistory();
-    removeIntarnalData(item_id);  // アイテム削除
-    addIntarnalDatasToGroup(group_id, [item_copy], false);  // 移動先グループへ追加
+    moveIntarnalDataToGroup(group_id, item_id, false);
 
     // 表示更新
     this.reflesh();

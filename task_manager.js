@@ -2003,11 +2003,12 @@ function addIntarnalDatasToGroup(group_id, items, is_ignore_same_name) {
 /**
  * @summary アイテムを指定グループへ移動
  * @param グループID
- * @param アイテム
+ * @param アイテムID
  * @param 同名のタスクがあった場合スキップするかどうか
  */
-function moveIntarnalDataToGroup(group_id, item, is_ignore_same_name) {
+function moveIntarnalDataToGroup(group_id, item_id, is_ignore_same_name) {
   // 複製
+  let item = getInternal(item_id);
   let item_copy = JSON.parse(JSON.stringify(item));
   // 削除
   removeIntarnalData(item.id, false);

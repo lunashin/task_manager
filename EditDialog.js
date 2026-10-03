@@ -742,7 +742,7 @@ class EditDialog {
       let elem_sel_group_option = get_selected_element('popup_edit_multi_group_list');
       if (elem_sel_group_option.dataset.id !== -1 && elem_sel_group_option.dataset.id !== elem_group.dataset.orgid) {
         // グループ移動
-        moveIntarnalDataToGroup(parseInt(elem_sel_group_option.dataset.id), item, false);
+        moveIntarnalDataToGroup(parseInt(elem_sel_group_option.dataset.id), item.id, false);
       }
     }
 
