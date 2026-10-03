@@ -1,7 +1,7 @@
 /* --------------- 進捗管理ダイアログ ---------------- */
 .progress-dialog-base {
   width: 90vw;
-  /* height: 300px; */
+  max-height: 90%;
   padding: 10px;
   border: 1px solid #afaeae;
   border-radius: 10px;
