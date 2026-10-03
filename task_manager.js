@@ -86,6 +86,10 @@ var g_is_show_todays_done = false;
 // 今日のタスク ロック状態
 var g_lock_todays_task = true;
 
+// mouseoverポップアップタイマー
+var g_timerhandler_mouseover_handler_div = 0;
+const MOUSEOVER_POPUP_DELAY = 400;
+
 // メモ/HTMLプレビュー
 // 消去タイマーID
 var g_note_preview_hidden_timer = null;
@@ -191,14 +195,19 @@ document.getElementById("read_member_status").addEventListener("click", read_wor
 
 // Group List Div
 document.getElementById('group_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
+document.getElementById('group_list_hover_area').addEventListener("mouseleave", mouseleave_handler_div);
 // URL List Div
 document.getElementById('url_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
+document.getElementById('url_list_hover_area').addEventListener("mouseleave", mouseleave_handler_div);
 // Buttons Div
 document.getElementById('buttons_hover_area').addEventListener("mouseover", mouseover_handler_div);
+document.getElementById('buttons_hover_area').addEventListener("mouseleave", mouseleave_handler_div);
 // Address List Div
 document.getElementById('address_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
+document.getElementById('address_list_hover_area').addEventListener("mouseleave", mouseleave_handler_div);
 // Calender List Div
 document.getElementById('calender_list_hover_area').addEventListener("mouseover", mouseover_handler_div);
+document.getElementById('calender_list_hover_area').addEventListener("mouseleave", mouseleave_handler_div);
 
 // Note/Mail Preview
 document.getElementById('popup_note_mail_preview').addEventListener("mouseover", mouseover_handler_note_preview);
@@ -892,31 +901,50 @@ function mouseleave_handler_option(event) {
 }
 
 /**
- * @summary ボタン類(div) mouseover
+ * @summary mouseoverポップアップdiv mouseover
  */
 function mouseover_handler_div(event) {
-  // 準備関数呼び出し
-  let prepare_func = event.target.dataset.prepareFunc;  // data-prepare-func 属性
-  if (prepare_func !== undefined) {
-    window[prepare_func]();
+  if (g_timerhandler_mouseover_handler_div !== 0) {
+    return;
   }
-  
-  let target_div_id = event.target.dataset.target;      // data-target 属性
-  let elem_address_list = document.getElementById(target_div_id);
+  // 一定時間後にポップアップ表示
+  g_timerhandler_mouseover_handler_div = setTimeout(function() {
+    // 準備関数呼び出し
+    let prepare_func = event.target.dataset.prepareFunc;  // data-prepare-func 属性
+    if (prepare_func !== undefined) {
+      window[prepare_func]();
+    }
 
-  // 一旦表示 (表示位置はマウスポインタ位置が基準)
-  elem_address_list.style.visibility = 'visible';
-  elem_address_list.style.opacity = 1;
-  elem_address_list.style.top = event.clientY - 100;
-  elem_address_list.style.left = event.clientX - 100;
+    let target_div_id = event.target.dataset.target;      // data-target 属性
+    let elem_address_list = document.getElementById(target_div_id);
 
-  // 位置調整
-  let pos = adjust_element_position(target_div_id, event.clientY-100, event.clientX-100);
-  elem_address_list.style.top = pos.top;
-  elem_address_list.style.left = pos.left;
+    // 一旦表示 (表示位置はマウスポインタ位置が基準)
+    elem_address_list.style.visibility = 'visible';
+    elem_address_list.style.opacity = 1;
+    elem_address_list.style.top = event.clientY - 100;
+    elem_address_list.style.left = event.clientX - 100;
 
-  // イベント登録
-  elem_address_list.addEventListener('mouseleave', mouseleave_handler_buttons);
+    // 位置調整
+    let pos = adjust_element_position(target_div_id, event.clientY-100, event.clientX-100);
+    elem_address_list.style.top = pos.top;
+    elem_address_list.style.left = pos.left;
+
+    // イベント登録
+    elem_address_list.addEventListener('mouseleave', mouseleave_handler_buttons);
+
+    g_timerhandler_mouseover_handler_div = 0;
+  }, MOUSEOVER_POPUP_DELAY);
+}
+
+/**
+ * @summary mouseoverポップアップdiv mouseleave
+ */
+function mouseleave_handler_div(event) {
+  if (g_timerhandler_mouseover_handler_div !== 0) {
+    // ポップアップ表示待ちをキャンセル
+    clearTimeout(g_timerhandler_mouseover_handler_div);
+    g_timerhandler_mouseover_handler_div = 0;
+  }
 }
 
 /**
