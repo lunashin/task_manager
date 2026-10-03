@@ -113,6 +113,8 @@ const g_ReadMailIntervalTime = 60000;
 var g_edit_dialog = null;
 // 進捗管理ダイアログクラス
 var g_progress_dialog = null;
+// グループリストポップアップ(リスト選択移動用)
+var g_group_selecct_popup = null;
 
 // ファイル名
 // const g_mail_flag = 'timeline_mail_flag.js.txt';
@@ -902,7 +904,7 @@ function mouseover_handler_div(event) {
   let target_div_id = event.target.dataset.target;      // data-target 属性
   let elem_address_list = document.getElementById(target_div_id);
 
-  // 一旦表示
+  // 一旦表示 (表示位置はマウスポインタ位置が基準)
   elem_address_list.style.visibility = 'visible';
   elem_address_list.style.opacity = 1;
   elem_address_list.style.top = event.clientY - 100;
@@ -3534,33 +3536,14 @@ function set_group_select(elem_id, add_blank, selected_item_id = -1) {
  * グループ一覧ポップアップ生成
  */
 function make_popup_group_list() {
-  let base_div = document.getElementById('popup_group_list_div');
-  // 空にする
-  while (base_div.firstChild) {
-    base_div.removeChild(base_div.firstChild);
+  if (g_group_selecct_popup === null) {
+    g_group_selecct_popup = new GruopListPopup(
+      'popup_group_list_div',
+      'select',
+      {'click': function(event){set_select(elem_id_list_stock, event.target.dataset.id, true, true);}}
+    );
   }
-
-  // 現在のフィルタ条件でグループ一覧取得
-  let prev_name = '';
-  let ids = get_group_ids(g_stock_filter);
-  for (let i = 0; i < ids.length; i++) {
-    let group_name = getInternal(ids[i]).name;
-    let elem_div = document.createElement("div");
-
-    // 「:」以前が一致しないアイテムが来たらセパレータを挿入
-    if (prev_name !== '' && prev_name.split(':')[0].trim() !== group_name.split(':')[0].trim()) {
-      base_div.appendChild(document.createElement("hr"));
-    }
-
-    elem_div.innerText = group_name;
-    elem_div.dataset.id = ids[i];
-    elem_div.classList.add('popup_group_list_item');
-    elem_div.addEventListener("click", function(event){
-      set_select(elem_id_list_stock, event.target.dataset.id, true, true);
-    });
-    base_div.appendChild(elem_div);
-    prev_name = group_name;
-  }
+  g_group_selecct_popup.make(get_group_ids(g_stock_filter));
 }
 
 /**
