@@ -8,14 +8,17 @@
   position: absolute;
   top: 0;
   left: 0;
-  max-height: 80%;
+  max-height: 50%;
   background-color: rgb(211, 244, 220);
   border: 1px solid rgb(147, 147, 147);
   border-radius: 10px;
   transition-duration: 200ms;
   transition-property: opacity;
   z-index: 5000;
-  overflow-y: scroll;
+  display: flex;          /* Flexboxを有効にし、配置の方向を「上から下」に設定 */
+  flex-direction: column; /* 下端に達した要素を「右隣（次の列）」に折り返す */
+  flex-wrap: wrap;
+  overflow-x: auto;       /* 全体の幅を超えてさらに右へはみ出る場合、横スクロールさせる */
 }
 /* グループ名div */
 .popup_group_list_item {
