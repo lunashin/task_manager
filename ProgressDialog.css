@@ -24,7 +24,9 @@
   display: flex;
 }
 
-/* Title Column */
+/* ------------------------------ */
+/* タイトル列 */
+/* ------------------------------ */
 .progress-dialog-box-title-frame {
   display: flex;
 }
@@ -33,6 +35,7 @@
   height: 3rem;
 }
 .progress-dialog-box-title {
+  position: relative;
   width: 20rem;
   min-width: 20rem;
   height: 3rem;
@@ -60,6 +63,30 @@
   background: linear-gradient(#FFFF55, cornflowerblue);
   font-weight: bold;
 }
+/* バッチ(本日) */
+.progress-dialog-box-title-badge-today {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  background: red;
+  color: white;
+  font-size: 60%;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+/* バッチ(1日後) */
+.progress-dialog-box-title-badge-1dayafter {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  background: violet;
+  color: white;
+  font-size: 60%;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
 .progress-dialog-box-title-group {
   min-height: 3.5rem;
   font-weight: bold;
@@ -73,7 +100,9 @@
   opacity: 0.5;
 }
 
-/* Item Column */
+/* ------------------------------ */
+/* コメント列 */
+/* ------------------------------ */
 .progress-dialog-box-item {
   width: 17rem;
   min-width: 17rem;

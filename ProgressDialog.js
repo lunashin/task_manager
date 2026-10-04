@@ -20,11 +20,11 @@ class ProgressDialog {
    * @param アイテム一覧取得コールバック
    * @param タスク名領域イベントコールバック {'イベント名': コールバック関数, ...}
    */
-  constructor(base_elem_id, title_elem_id, item_elem_id, cd_get_itemlist, cb_event_title = null) {
+  constructor(base_elem_id, title_elem_id, item_elem_id, cb_get_itemlist, cb_event_title = null) {
     this.base_elem_id = base_elem_id;
     this.title_elem_id = title_elem_id;
     this.item_elem_id= item_elem_id;
-    this.cd_get_itemlist = cd_get_itemlist;
+    this.cb_get_itemlist = cb_get_itemlist;
     this.cb_event_title = cb_event_title;
     // this.items = null;
     this.sel_elem_id = null;
@@ -78,7 +78,7 @@ class ProgressDialog {
     // this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     // this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
     // this.make_ex(this.items, { is_wait: true });   // 待ちアイテム
-    this.make_ex(this.cd_get_itemlist(), { });   // 全てのアイテム
+    this.make_ex(this.cb_get_itemlist(), { });   // 全てのアイテム
 
     // フォーカス移動
     if (this.sel_elem_id !== null) {
@@ -168,6 +168,7 @@ class ProgressDialog {
     new_title_space.classList.add('progress-dialog-box-title-space'); // 左側のスペース
     new_title_frame.appendChild(new_title_space);
 
+    // タイトル用div作成
     let new_title_div = document.createElement("div");
     new_title_div.classList.add('progress-dialog-box-title');
     if (item.is_wait) {
@@ -183,6 +184,18 @@ class ProgressDialog {
     new_title_div.dataset.id = item.id;
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
     new_title_div.draggable = true; // ドラッグ可
+    // 期限間近バッチ(今日 or 1日後)
+    if (get_days_from_today(period_date) === 0) {
+      let badge = document.createElement("div");
+      badge.innerText = '本日'
+      badge.classList.add('progress-dialog-box-title-badge-today');
+      new_title_div.appendChild(badge);
+    } else if (get_days_from_today(period_date) === -1) {
+      let badge = document.createElement("div");
+      badge.innerText = '1日後'
+      badge.classList.add('progress-dialog-box-title-badge-1dayafter');
+      new_title_div.appendChild(badge);
+    }
     // クリックイベント
     new_title_div.addEventListener('dblclick', this.dblclick_handler_title.bind(this));
     new_title_div.addEventListener('click', this.click_handler_title.bind(this));
