@@ -1,0 +1,35 @@
+/* --------------- グループ一覧ポップアップ ---------------- */
+
+/* ベースdiv */
+.popup_group_list_div {
+  visibility: hidden;
+  opacity: 0;
+  padding: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-height: 80%;
+  background-color: rgb(211, 244, 220);
+  border: 1px solid rgb(147, 147, 147);
+  border-radius: 10px;
+  transition-duration: 200ms;
+  transition-property: opacity;
+  z-index: 5000;
+  overflow-y: scroll;
+}
+/* グループ名div */
+.popup_group_list_item {
+  width: 30em;
+  height: 3em;
+  margin: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border: 1px solid #afaeae;
+  border-radius: 10px;
+  background-color: white;
+  text-align: left;
+}
+/* グループ名div ホバー時 */
+.popup_group_list_item:hover {
+  background-color: rgb(196, 196, 196);
+}
