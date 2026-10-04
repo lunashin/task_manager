@@ -5633,10 +5633,10 @@ function addMonths(target_date, months, exclude_weekend)
 
 /**
  * @summary 2つの日の差分日数を取得(当日を含める)
- * @param 日付1
- * @param 日付2
- * @param 週末を除外するかどうか
- * @returns 日数
+ * @param 日付1(Date)
+ * @param 日付2(Date)
+ * @param 週末を除外するかどうか(true:除外 / false:除外しない)
+ * @returns 日数(当日は0. 日付2が日付1よりも過去の場合は <0)
  */
 function get_days(target1, target2, exclude_weekend) {
   let d1 = null;
@@ -5652,34 +5652,31 @@ function get_days(target1, target2, exclude_weekend) {
     dist = -1;
   }
 
-  let diff_msec = d2.getTime() - d1.getTime();
-  let diff_days = diff_msec / 1000 / 60 / 60 / 24;
-
-  if (diff_days > -1 && diff_days < 1) {
-    // 今日
-    return 0;
-  }
-
-  // 週末考慮なしならそのまま返す
+  // 週末考慮なし
   if (!exclude_weekend) {
+    let diff_msec = d2.getTime() - d1.getTime();
+    let diff_days = diff_msec / 1000 / 60 / 60 / 24;
+
+    if (diff_days > -1 && diff_days < 1) {
+      // 今日
+      return 0;
+    }
     return Math.floor(diff_days) * dist;
   }
 
-  // 比較対象日が週末なら営業日まで進める
-  if (!is_weekday(d1)) {
-    d1 = addDays(d1, 1, true);
-  }
-  if (!is_weekday(d2)) {
-    d2 = addDays(d2, 1, true);
-  }
-
-  for (let i = 0; i < 50; i++) {
-    d1 = addDays(d1, 1, true);
-    if (d1 >= d2) {
-      return (i + 1) * dist;
+  // 週末を除外するパターン
+  let dayCount = 0;
+  d1.setDate(d1.getDate() + 1);   // 同日は0日とする為、1日進めた状態から開始 (Dateの=operatorで同日判定できない模様)
+  while (d1 <= d2) {
+    const dayOfWeek = d1.getDay(); // 0: 日曜日, 6: 土曜日
+    // 土日以外（月〜金）の場合カウント
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      dayCount++;
     }
+    // 1日進める
+    d1.setDate(d1.getDate() + 1);
   }
-  return null;
+  return dayCount * dist;
 }
 
 /**
@@ -5688,7 +5685,7 @@ function get_days(target1, target2, exclude_weekend) {
  * @returns 表示用表示日付文字列
  */
 function get_display_date_str(date_str) {
-  let diff_days = get_days_from_today(date_str);
+  let diff_days = get_days_from_today(date_str, true);
 
   // xx日以内なら、「xx日前」と返す
   if (diff_days === null) {
@@ -5710,12 +5707,13 @@ function get_display_date_str(date_str) {
 /**
  * @summary 今日との日数差分を取得
  * @param 日付(文字列)
+ * @param 週末を除外するかどうか(true:除外 / false:除外しない)
  * @returns 日数(0:当日 / <0:未来 / >0:過去)
  */
-function get_days_from_today(date_str) {
+function get_days_from_today(date_str, exclude_weekend = false) {
   let d = new Date(date_str);
   let d_now = new Date();
-  let days = get_days(d, d_now, false);
+  let days = get_days(d, d_now, exclude_weekend);
   return days;
 }
 
