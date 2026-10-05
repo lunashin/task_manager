@@ -3569,7 +3569,10 @@ function make_popup_group_list() {
     g_group_selecct_popup = new GruopListPopup(
       'popup_group_list_div',
       'select',
-      {'click': function(event){set_select(elem_id_list_stock, event.target.dataset.id, true, true);}}
+      {'click': function(event){
+        set_select(elem_id_list_stock, event.target.dataset.id, true, true);
+        g_group_selecct_popup.close();
+      }}
     );
   }
   g_group_selecct_popup.make(get_group_ids(g_stock_filter));
