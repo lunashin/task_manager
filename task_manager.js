@@ -3686,10 +3686,13 @@ function make_option(title, item, class_list, is_group_top, show_last_update, el
     elem.text = disp_text + get_after_icons(item);
   }
 
+  // 期限
   if (!is_group_top && item.period !== '') {
-    // 期限
-    elem.text += ' (⌛' + get_display_date_str(item.period) + ')';
+    // 終了期限が設定されている場合は終了期限で表示
+    let period = item.period_end !== '' ? item.period_end : item.period;
+    elem.text += ' (⌛' + get_display_date_str(period) + ')';
   }
+
   // if (!is_group_top && show_last_update) {
   //   // 最終更新日時
   //   elem.text += ' (🕘' + get_display_date_str(item.last_update) + ')';
