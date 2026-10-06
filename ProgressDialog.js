@@ -185,15 +185,21 @@ class ProgressDialog {
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
     new_title_div.draggable = true; // ドラッグ可
     // 期限間近バッチ(今日 or 1日後)
-    if (get_days_from_today(period_date) === 0) {
+    let days = get_days_from_today(period_date);
+    if (days === 0) {
       let badge = document.createElement("div");
       badge.innerText = '本日'
       badge.classList.add('progress-dialog-box-title-badge-today');
       new_title_div.appendChild(badge);
-    } else if (get_days_from_today(period_date) === -1) {
+    } else if (days === -1) {
       let badge = document.createElement("div");
       badge.innerText = '1日後'
       badge.classList.add('progress-dialog-box-title-badge-1dayafter');
+      new_title_div.appendChild(badge);
+    } else if (days >= 1) {
+      let badge = document.createElement("div");
+      badge.innerText = '期限切れ'
+      badge.classList.add('progress-dialog-box-title-badge-expired');
       new_title_div.appendChild(badge);
     }
     // クリックイベント

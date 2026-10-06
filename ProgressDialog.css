@@ -87,6 +87,18 @@
   padding: 2px 4px;
   border-radius: 6px;
 }
+/* バッチ(期限切れ) */
+.progress-dialog-box-title-badge-expired {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  background: grey;
+  color: white;
+  font-size: 60%;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
 .progress-dialog-box-title-group {
   min-height: 3.5rem;
   font-weight: bold;
