@@ -69,19 +69,24 @@ class GruopListPopup {
     }
 
     // グループ一覧取得
+    // let additional_classes = ['popup_group_list_item_bk_white', 'popup_group_list_item_bk_red'];
+    let additional_classes = ['popup_group_list_item_bk_white', 'popup_group_list_item_bk_red', 'popup_group_list_item_bk_blue'];
+    let group_no = 0;
     let prev_name = '';
     for (let i = 0; i < group_ids.length; i++) {
       let group_name = getInternal(group_ids[i]).name;
       let elem_div = document.createElement("div");
 
-      // 「:」以前が一致しないアイテムが来たらセパレータを挿入
+      // 「:」以前が一致しないアイテムが来たら背景色を変更
       if (prev_name !== '' && prev_name.split(':')[0].trim() !== group_name.split(':')[0].trim()) {
-        base_div.appendChild(document.createElement("hr"));
+        // base_div.appendChild(document.createElement("hr"));
+        group_no++;
       }
 
       elem_div.innerText = group_name;
       elem_div.dataset.id = group_ids[i];
       elem_div.classList.add('popup_group_list_item');
+      elem_div.classList.add(additional_classes[group_no % additional_classes.length]);
 
       // イベントハンドラ登録
       if (this.mode === 'select') {

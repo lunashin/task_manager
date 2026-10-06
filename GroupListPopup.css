@@ -32,6 +32,15 @@
   background-color: white;
   text-align: left;
 }
+.popup_group_list_item_bk_white {
+  background-color: white;
+}
+.popup_group_list_item_bk_red {
+  background-color: #FFDDFF;
+}
+.popup_group_list_item_bk_blue {
+  background-color: #D9E5FF;
+}
 /* グループ名div ホバー時 */
 .popup_group_list_item:hover {
   background-color: rgb(196, 196, 196);
