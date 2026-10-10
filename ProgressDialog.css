@@ -1,7 +1,7 @@
 /* --------------- 進捗管理ダイアログ ---------------- */
 .progress-dialog-base {
   width: 90vw;
-  max-height: 90%;
+  max-height: 85%;
   padding: 10px;
   border: 1px solid #afaeae;
   border-radius: 10px;
@@ -133,5 +133,5 @@
   opacity: 0;
 }
 .progress-dialog-box-item-group {
-  min-height: 3.5rem;
+  min-height: 3.6rem;
 }

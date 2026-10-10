@@ -763,6 +763,13 @@ async function keydown_handler_progress_diralog_title(event) {
         flash_list_border(elem_id_list_done);
       }
       break;
+    case key_c:           // 
+      if (event.ctrlKey) {
+        event.preventDefault(); // 既定の動作をキャンセル
+        copy_selected_item_name(elem_id, event);
+        break;
+      }
+      break;
     case key_d:           // d
       if (!event.shiftKey && !event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
