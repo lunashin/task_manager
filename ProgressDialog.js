@@ -20,9 +20,14 @@ class ProgressDialog {
    */
   constructor(base_elem_id, cb_get_itemlist, cb_event_title = null) {
     this.base_elem_id = base_elem_id;
+
+    this.frame_everyday_elem_id = base_elem_id + '-frame-everyday-div';
+    this.title_everyday_elem_id = base_elem_id + '-title-everyday-div';
+    this.item_everyday_elem_id= base_elem_id + '-item-everyday-div';
     this.frame_elem_id = base_elem_id + '-frame-div';
     this.title_elem_id = base_elem_id + '-title-div';
     this.item_elem_id= base_elem_id + '-item-div';
+
     this.cb_get_itemlist = cb_get_itemlist;
     this.cb_event_title = cb_event_title;
     // this.items = null;
@@ -80,7 +85,8 @@ class ProgressDialog {
     // this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     // this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
     // this.make_ex(this.items, { is_wait: true });   // 待ちアイテム
-    this.make_ex(this.cb_get_itemlist(), { });   // 全てのアイテム
+    this.make_ex(this.cb_get_itemlist(), { is_everyday: true }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
+    this.make_ex(this.cb_get_itemlist(), { is_everyday: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
 
     // フォーカス移動
     if (this.sel_elem_id !== null) {
@@ -97,8 +103,10 @@ class ProgressDialog {
    * @summary 画面更新
    * @param アイテム(配列)
    * @param 条件(is_wait, is_first) ( {is_wait: true|false, is_first: true|false} )
+   * @param 追加先タイトルdiv要素ID
+   * @param 追加先コメントdiv要素ID
    */
-  make_ex(items, option) {
+  make_ex(items, option, title_elem_id, comment_elem_id) {
     let groupid_prev = null;
     for (let idx = 0; idx < items.length; idx++) {
       let item = items[idx];
@@ -108,6 +116,9 @@ class ProgressDialog {
         continue;
       }
       if (option.is_first !== undefined && option.is_first !== item.is_first) {
+        continue;
+      }
+      if (option.is_everyday !== undefined && option.is_everyday !== item.is_everyday) {
         continue;
       }
 
@@ -146,12 +157,12 @@ class ProgressDialog {
       // グループが変わったらグループ行を作成
       let group = getInternalGroupFromItemID(item.id);
       if (groupid_prev !== group.id) {
-        this.addGroupRow(group);
+        this.addGroupRow(group, title_elem_id, comment_elem_id);
       }
       groupid_prev = group.id;
 
       // 行の要素を作成
-      this.addItemRow(item, disp_notes);
+      this.addItemRow(item, disp_notes, title_elem_id, comment_elem_id);
     }
   }
 
@@ -162,17 +173,32 @@ class ProgressDialog {
     // 一旦全削除
     this.resetAll();
 
-    // 内部フレーム
+    // 内部フレーム(毎日のタスク用)
+    let frame_everyday_div = document.createElement('div');
+    frame_everyday_div.id = this.frame_everyday_elem_id;
+    frame_everyday_div.classList.add('progress-dialog-frame-everyday-div');
+    // タイトル列div
+    let title_everyday_div = document.createElement('div');
+    title_everyday_div.id = this.title_everyday_elem_id;
+    title_everyday_div.classList.add('progress-dialog-title-div');
+    frame_everyday_div.appendChild(title_everyday_div);
+    // コメント列div
+    let item_everyday_div = document.createElement('div');
+    item_everyday_div.id = this.item_everyday_elem_id;
+    item_everyday_div.classList.add('progress-dialog-item-div');
+    frame_everyday_div.appendChild(item_everyday_div);
+
+    document.getElementById(this.base_elem_id).appendChild(frame_everyday_div);
+
+    // 内部フレーム(今日のMUSTタスク用)
     let frame_div = document.createElement('div');
     frame_div.id = this.frame_elem_id;
-    frame_div.classList.add('progress-dialog-base-div');
-    
+    frame_div.classList.add('progress-dialog-frame-div');
     // タイトル列div
     let title_div = document.createElement('div');
     title_div.id = this.title_elem_id;
     title_div.classList.add('progress-dialog-title-div');
     frame_div.appendChild(title_div);
-    
     // コメント列div
     let item_div = document.createElement('div');
     item_div.id = this.item_elem_id;
@@ -186,10 +212,12 @@ class ProgressDialog {
    * @summary タスク列追加
    * @param アイテム
    * @param コメント情報(dict配列) / [{content: '表示文字列', type: '[past|today]'} ... ]
+   * @param 追加先タイトルdiv要素ID
+   * @param 追加先コメントdiv要素ID
    */
-  addItemRow(item, comments) {
+  addItemRow(item, comments, title_elem_id, comment_elem_id) {
     // タスク名列へ行追加
-    let elem_title_div = document.getElementById(this.title_elem_id);
+    let elem_title_div = document.getElementById(title_elem_id);
 
     let new_title_frame = document.createElement("div");
     new_title_frame.classList.add('progress-dialog-box-title-frame');
@@ -246,7 +274,7 @@ class ProgressDialog {
     elem_title_div.appendChild(new_title_frame);
 
     // コメント列へ行追加
-    let elem_item_div = document.getElementById(this.item_elem_id);
+    let elem_item_div = document.getElementById(comment_elem_id);
     let new_item_row_div = document.createElement("div");
     new_item_row_div.classList.add('progress-dialog-item-row-div');
     if (comments.length <= 0) {
@@ -278,10 +306,12 @@ class ProgressDialog {
   /**
    * @summary グループ列追加
    * @param アイテム(Group)
+   * @param 追加先タイトルdiv要素ID
+   * @param 追加先コメントdiv要素ID
    */
-  addGroupRow(group) {
+  addGroupRow(group, title_elem_id, comment_elem_id) {
     // タスク名列へ行追加
-    let elem_title_div = document.getElementById(this.title_elem_id);
+    let elem_title_div = document.getElementById(title_elem_id);
     let new_title_div = document.createElement("div");
     new_title_div.classList.add('progress-dialog-box-title-group');
     new_title_div.innerText = group.name;
@@ -295,7 +325,7 @@ class ProgressDialog {
     elem_title_div.appendChild(new_title_div);
 
     // コメント列へ行追加
-    let elem_item_div = document.getElementById(this.item_elem_id);
+    let elem_item_div = document.getElementById(comment_elem_id);
     let new_item_row_div = document.createElement("div");
     let new_item_div = document.createElement("div");
     new_item_div.innerText = ' ';
