@@ -5178,7 +5178,7 @@ function showProgressDialog() {
       'keydown': keydown_handler_progress_diralog_title,
       'contextmenu': contextmenu_handler_div,
     };
-    g_progress_dialog = new ProgressDialog("progress-dialog-base", "progress-dialog-title-div", "progress-dialog-item-div", get_todays_must_task, cb_dict);
+    g_progress_dialog = new ProgressDialog("progress-dialog", get_todays_must_task, cb_dict);
   }
   g_progress_dialog.resetAll();
 

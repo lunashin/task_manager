@@ -15,15 +15,14 @@ class ProgressDialog {
   /**
    * @summary コンストラクタ
    * @param ベース領域の要素ID
-   * @param タスク名領域の要素ID
-   * @param 進捗内容領域の要素ID
    * @param アイテム一覧取得コールバック
    * @param タスク名領域イベントコールバック {'イベント名': コールバック関数, ...}
    */
-  constructor(base_elem_id, title_elem_id, item_elem_id, cb_get_itemlist, cb_event_title = null) {
+  constructor(base_elem_id, cb_get_itemlist, cb_event_title = null) {
     this.base_elem_id = base_elem_id;
-    this.title_elem_id = title_elem_id;
-    this.item_elem_id= item_elem_id;
+    this.frame_elem_id = base_elem_id + '-frame-div';
+    this.title_elem_id = base_elem_id + '-title-div';
+    this.item_elem_id= base_elem_id + '-item-div';
     this.cb_get_itemlist = cb_get_itemlist;
     this.cb_event_title = cb_event_title;
     // this.items = null;
@@ -74,6 +73,9 @@ class ProgressDialog {
    * @param アイテム(配列)
    */
   make() {
+    // フレームを作成
+    this.makeInternalFrameDiv();
+
     // this.items = items;   // 更新用に参照を保持
     // this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     // this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
@@ -151,6 +153,33 @@ class ProgressDialog {
       // 行の要素を作成
       this.addItemRow(item, disp_notes);
     }
+  }
+
+  /**
+   * @summary 内部の枠を作成
+   */
+  makeInternalFrameDiv() {
+    // 一旦全削除
+    this.resetAll();
+
+    // 内部フレーム
+    let frame_div = document.createElement('div');
+    frame_div.id = this.frame_elem_id;
+    frame_div.classList.add('progress-dialog-base-div');
+    
+    // タイトル列div
+    let title_div = document.createElement('div');
+    title_div.id = this.title_elem_id;
+    title_div.classList.add('progress-dialog-title-div');
+    frame_div.appendChild(title_div);
+    
+    // コメント列div
+    let item_div = document.createElement('div');
+    item_div.id = this.item_elem_id;
+    item_div.classList.add('progress-dialog-item-div');
+    frame_div.appendChild(item_div);
+
+    document.getElementById(this.base_elem_id).appendChild(frame_div);
   }
 
   /**
@@ -452,13 +481,12 @@ class ProgressDialog {
    * @summary 要素 全削除
    */
   resetAll() {
-    let elem_title_div = document.getElementById(this.title_elem_id);
-    for (let i = elem_title_div.children.length - 1; i >= 0; i--) {
-      elem_title_div.children[i].remove();
-    }
-    let elem_item_div = document.getElementById(this.item_elem_id);
-    for (let i = elem_item_div.children.length - 1; i >= 0; i--) {
-      elem_item_div.children[i].remove();
+    // ポップアップ内の要素を削除
+    let elem_base = document.getElementById(this.base_elem_id);
+    if (elem_base !== null) {
+      for (let i = elem_base.children.length - 1; i >= 0; i--) {
+        elem_base.children[i].remove();
+      }
     }
   }
 
