@@ -1440,6 +1440,8 @@ function get_meeting_items(schedules, target_d)
  
     let item = makeInternalItem(`${title} ${location} (${start_time}〜${end_time} / ${diff_hour}h)`);
     item.period = get_date_str(target_d, true, false, true, true);
+    item.is_today = 1;
+    item.is_todays_must = true;
     item.url = meetings[i].url;
     ret.push(item);
   }
