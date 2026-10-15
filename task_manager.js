@@ -2197,6 +2197,7 @@ function makeInternalItem_ex(name, id) {
     is_today: 0,  // 0:明日以降 / 1:今日 / 2:今日の追加分 
     is_todays_must: false,
     is_first: false, 
+    is_everyday: false, 
     is_wait: false,
     is_doing: false,
     is_tomorrow: false,
