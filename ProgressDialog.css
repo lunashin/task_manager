@@ -17,8 +17,8 @@
 }
 .progress-dialog-frame-everyday-div {
   display: flex;
-  background-color: #FFFFEE;
-  border: 1px dashed #afaeae;
+  background-color: #FFE0FF;
+  border: 3px solid #afaeae;
   border-radius: 10px;
 }
 .progress-dialog-title-div {
@@ -89,6 +89,18 @@
   bottom: 0px;
   right: 0px;
   background: violet;
+  color: white;
+  font-size: 60%;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+/* バッチ(2日後) */
+.progress-dialog-box-title-badge-2dayafter {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  background: rgb(229, 184, 229);
   color: white;
   font-size: 60%;
   font-weight: bold;

@@ -253,6 +253,11 @@ class ProgressDialog {
       badge.innerText = '1日後'
       badge.classList.add('progress-dialog-box-title-badge-1dayafter');
       new_title_div.appendChild(badge);
+    } else if (days === -2) {
+      let badge = document.createElement("div");
+      badge.innerText = '2日後'
+      badge.classList.add('progress-dialog-box-title-badge-2dayafter');
+      new_title_div.appendChild(badge);
     } else if (days >= 1) {
       let badge = document.createElement("div");
       badge.innerText = '期限切れ'
