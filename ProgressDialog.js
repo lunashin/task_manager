@@ -242,27 +242,29 @@ class ProgressDialog {
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
     new_title_div.draggable = true; // ドラッグ可
     // 期限間近バッチ(今日 or 1日後)
-    let days = get_days_from_today(period_date);
-    if (days === 0) {
-      let badge = document.createElement("div");
-      badge.innerText = '本日'
-      badge.classList.add('progress-dialog-box-title-badge-today');
-      new_title_div.appendChild(badge);
-    } else if (days === -1) {
-      let badge = document.createElement("div");
-      badge.innerText = '1日後'
-      badge.classList.add('progress-dialog-box-title-badge-1dayafter');
-      new_title_div.appendChild(badge);
-    } else if (days === -2) {
-      let badge = document.createElement("div");
-      badge.innerText = '2日後'
-      badge.classList.add('progress-dialog-box-title-badge-2dayafter');
-      new_title_div.appendChild(badge);
-    } else if (days >= 1) {
-      let badge = document.createElement("div");
-      badge.innerText = '期限切れ'
-      badge.classList.add('progress-dialog-box-title-badge-expired');
-      new_title_div.appendChild(badge);
+    if (period_date !== '') {
+      let days = get_days_from_today(period_date, true);
+      if (days === 0) {
+        let badge = document.createElement("div");
+        badge.innerText = '本日'
+        badge.classList.add('progress-dialog-box-title-badge-today');
+        new_title_div.appendChild(badge);
+      } else if (days === -1) {
+        let badge = document.createElement("div");
+        badge.innerText = '1日後'
+        badge.classList.add('progress-dialog-box-title-badge-1dayafter');
+        new_title_div.appendChild(badge);
+      } else if (days === -2) {
+        let badge = document.createElement("div");
+        badge.innerText = '2日後'
+        badge.classList.add('progress-dialog-box-title-badge-2dayafter');
+        new_title_div.appendChild(badge);
+      } else if (days >= 1) {
+        let badge = document.createElement("div");
+        badge.innerText = '期限切れ'
+        badge.classList.add('progress-dialog-box-title-badge-expired');
+        new_title_div.appendChild(badge);
+      }
     }
     // クリックイベント
     new_title_div.addEventListener('dblclick', this.dblclick_handler_title.bind(this));
