@@ -125,6 +125,7 @@
   font-size: 150%;
   display: flex;
   align-items: flex-end;
+  white-space: nowrap; /* 改行禁止 */
 }
 .progress-dialog-box-title-group-dragging {
   background-color: skyblue;
