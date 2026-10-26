@@ -1036,15 +1036,15 @@ function show_note_preview(event) {
     let item = getInternal(parseInt(event.target.dataset.id));
     if (item.type === 'item') {
       let note = item.note;
-    if (note !== undefined && note !== '') {
-      elem.dataset.type = 'note';
-      elem.innerHTML = note.replaceAll('\n', '<br>');
-      elem.style.top = event.clientY + window.scrollY;  // topはページのクライアント領域となるため、スクロール量を加算
-      elem.style.left = event.clientX + window.scrollX + 20;
-      elem.style.height = '';
-      elem.style.visibility = 'visible';
-      // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
-    }
+      if (note !== undefined && note !== '') {
+        elem.dataset.type = 'note';
+        elem.innerHTML = note.replaceAll('\n', '<br>');
+        elem.style.top = event.clientY + window.scrollY;  // topはページのクライアント領域となるため、スクロール量を加算
+        elem.style.left = event.clientX + window.scrollX + 20;
+        elem.style.height = '';
+        elem.style.visibility = 'visible';
+        // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
+      }
     } else {
       // グループの場合は、サブタスクのnoteを結合して表示
       let notes = concat_subtask_dairy_note(item.id);
