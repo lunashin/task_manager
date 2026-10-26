@@ -995,6 +995,37 @@ function flash_list_border(list_elem_id) {
 }
 
 /**
+ * グループに所属しているサブタスクのnoteを結合して返す(日付付きのみが対象)
+ */
+function concat_subtask_dairy_note(group_id) {
+  let item = getInternal(group_id);
+  if (item.type !== 'group') {
+    return;
+  }
+
+  let notes = [];
+  item.sub_tasks.forEach((item) => {
+    let lines = item.note.split('\n'); // noteを改行で分割
+    for (let k = lines.length - 1; k >= 0; k--) {
+      let line = lines[k];
+      let temp = line.split(' ');
+      let d_str = temp[0];
+      if (temp.length >= 2) {
+        if (temp[0].split('/').length <= 2) {
+          d_str = '2026/' + d_str;
+        }
+      }
+      if (!isInvalidDate(new Date(d_str))) {
+        // 有効な日付
+        notes.push(line);
+      }
+    }
+  });
+
+  return notes;
+}
+
+/**
  * メモ/メールプレビュー表示
  * @param event
  */
@@ -1002,7 +1033,9 @@ function show_note_preview(event) {
   let elem = document.getElementById('popup_note_mail_preview');
   if (event.shiftKey) {
     // メモ内容をプレビュー
-    let note = getInternal(parseInt(event.target.dataset.id)).note;
+    let item = getInternal(parseInt(event.target.dataset.id));
+    if (item.type === 'item') {
+      let note = item.note;
     if (note !== undefined && note !== '') {
       elem.dataset.type = 'note';
       elem.innerHTML = note.replaceAll('\n', '<br>');
@@ -1011,6 +1044,20 @@ function show_note_preview(event) {
       elem.style.height = '';
       elem.style.visibility = 'visible';
       // console.log( event.target.dataset.id +' : '+ getInternal(parseInt(event.target.dataset.id)).note);
+    }
+    } else {
+      // グループの場合は、サブタスクのnoteを結合して表示
+      let notes = concat_subtask_dairy_note(item.id);
+      if (notes.length <= 0) {
+        return;
+      }
+      let previewHTML = notes.join('<br>');
+      elem.dataset.type = 'note';
+      elem.innerHTML = previewHTML;
+      elem.style.top = event.clientY + window.scrollY;  // topはページのクライアント領域となるため、スクロール量を加算
+      elem.style.left = event.clientX + window.scrollX + 20;
+      elem.style.height = '';
+      elem.style.visibility = 'visible';
     }
   } else if (event.ctrlKey) {
     // HTMLメールプレビュー
