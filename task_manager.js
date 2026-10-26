@@ -1136,7 +1136,7 @@ function refresh_screen(timeline_refreshmode = 'all') {
 
   // 進捗ダイアログ
   if (g_progress_dialog !== null && g_progress_dialog.is_show()) {
-    g_progress_dialog.reflesh();
+    g_progress_dialog.reflesh(false);
   }
 }
 

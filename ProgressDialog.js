@@ -75,9 +75,9 @@ class ProgressDialog {
 
   /**
    * @summary 画面更新
-   * @param アイテム(配列)
+   * @param フォーカス移動
    */
-  make() {
+  make(is_focus = true) {
     // フレームを作成
     this.makeInternalFrameDiv();
 
@@ -89,7 +89,7 @@ class ProgressDialog {
     this.make_ex(this.cb_get_itemlist(), { is_everyday: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
 
     // フォーカス移動
-    if (this.sel_elem_id !== null) {
+    if (is_focus && this.sel_elem_id !== null) {
       let elem_focus = document.getElementById(this.sel_elem_id)
       if (elem_focus !== null) {
         document.getElementById(this.sel_elem_id).focus();
@@ -531,9 +531,9 @@ class ProgressDialog {
    * @summary 画面更新
    * @param 開始日(string)
    */
-  reflesh() {
+  reflesh(is_focus = true) {
     this.resetAll();
-    this.make();
+    this.make(is_focus);
     // if (items !== null) {
     //   this.make(items);
     // } else {
