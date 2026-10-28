@@ -34,6 +34,7 @@ class ProgressDialog {
     this.sel_elem_id = null;
     this.base_move_info = null;
     this.group_list_popup = null;
+    this.hidden_wait_task = false;
 
     // ベースdiv キーイベント登録
     let elem_base = document.getElementById(this.base_elem_id);
@@ -85,8 +86,13 @@ class ProgressDialog {
     // this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     // this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
     // this.make_ex(this.items, { is_wait: true });   // 待ちアイテム
-    this.make_ex(this.cb_get_itemlist(), { is_everyday: true }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
-    this.make_ex(this.cb_get_itemlist(), { is_everyday: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
+    if (this.hidden_wait_task) {
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: true, is_wait: false }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: false, is_wait: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
+    } else {
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: true }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
+    }
 
     // フォーカス移動
     if (is_focus && this.sel_elem_id !== null) {
@@ -102,7 +108,7 @@ class ProgressDialog {
   /**
    * @summary 画面更新
    * @param アイテム(配列)
-   * @param 条件(is_wait, is_first) ( {is_wait: true|false, is_first: true|false} )
+   * @param 条件(is_wait, is_first, is_everyday) ( {is_wait: true|false, is_first: true|false, is_everyday: true|false} )
    * @param 追加先タイトルdiv要素ID
    * @param 追加先コメントdiv要素ID
    */
@@ -172,6 +178,21 @@ class ProgressDialog {
   makeInternalFrameDiv() {
     // 一旦全削除
     this.resetAll();
+
+    // 待ちタスク表示/非表示切り替えボタン
+    let btn_toggle_wait_task = document.createElement('input');
+    btn_toggle_wait_task.id = 'progress_dialog_toggle_wait_button';
+    btn_toggle_wait_task.type = 'checkbox';
+    btn_toggle_wait_task.classList.add('checkbox_ex');
+    btn_toggle_wait_task.addEventListener('click', this.click_handler_toggle_hidden_wait.bind(this));
+    btn_toggle_wait_task.checked = this.hidden_wait_task;
+    let label_toggle_wait_task = document.createElement('label');
+    label_toggle_wait_task.id = 'progress_dialog_toggle_wait_label';
+    label_toggle_wait_task.htmlFor = 'progress_dialog_toggle_wait_button';
+    label_toggle_wait_task.classList.add('checkbox_ex');
+    label_toggle_wait_task.innerText = '待ちタスク非表示';
+    document.getElementById(this.base_elem_id).appendChild(btn_toggle_wait_task);
+    document.getElementById(this.base_elem_id).appendChild(label_toggle_wait_task);
 
     // 内部フレーム(毎日のタスク用)
     let frame_everyday_div = document.createElement('div');
@@ -352,6 +373,14 @@ class ProgressDialog {
         this.close();
         break;
     }
+  }
+
+  /**
+   * @summary 待ちタスク非表示ボタン クリックハンドラ
+   */
+  click_handler_toggle_hidden_wait(event) {
+    this.hidden_wait_task = !this.hidden_wait_task;
+    this.make();
   }
 
   /**
