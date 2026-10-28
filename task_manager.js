@@ -5771,10 +5771,13 @@ function get_display_date_str(date_str) {
  * @summary 今日との日数差分を取得
  * @param 日付(文字列)
  * @param 週末を除外するかどうか(true:除外 / false:除外しない)
- * @returns 日数(0:当日 / <0:未来 / >0:過去)
+ * @returns 日数(0:当日 / <0:未来 / >0:過去), null:無効な日付
  */
 function get_days_from_today(date_str, exclude_weekend = false) {
   let d = new Date(date_str);
+  if (isInvalidDate(d)) {
+    return null;
+  }
   let d_now = new Date();
   let days = get_days(d, d_now, exclude_weekend);
   return days;
