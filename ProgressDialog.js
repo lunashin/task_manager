@@ -35,6 +35,7 @@ class ProgressDialog {
     this.base_move_info = null;
     this.group_list_popup = null;
     this.hidden_wait_task = false;
+    this.only_first_task = false;
 
     // ベースdiv キーイベント登録
     let elem_base = document.getElementById(this.base_elem_id);
@@ -86,12 +87,13 @@ class ProgressDialog {
     // this.make_ex(this.items, { is_first: true, is_wait: false });  // 優先アイテム(待ちアイテムは除く)
     // this.make_ex(this.items, { is_first: false, is_wait: false });  // 優先/待ちアイテム以外
     // this.make_ex(this.items, { is_wait: true });   // 待ちアイテム
+    let is_first = this.only_first_task ? this.only_first_task : null;
     if (this.hidden_wait_task) {
-      this.make_ex(this.cb_get_itemlist(), { is_everyday: true, is_wait: false }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
-      this.make_ex(this.cb_get_itemlist(), { is_everyday: false, is_wait: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: true, is_first: is_first, is_wait: false }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: false, is_first: is_first, is_wait: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
     } else {
-      this.make_ex(this.cb_get_itemlist(), { is_everyday: true }, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
-      this.make_ex(this.cb_get_itemlist(), { is_everyday: false }, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: true, is_first: is_first}, this.title_everyday_elem_id, this.item_everyday_elem_id);   // 毎日のタスク
+      this.make_ex(this.cb_get_itemlist(), { is_everyday: false, is_first: is_first}, this.title_elem_id, this.item_elem_id);   // 今日のMUSTタスク
     }
 
     // フォーカス移動
@@ -118,13 +120,13 @@ class ProgressDialog {
       let item = items[idx];
 
       // オプションに応じたアイテムを処理
-      if (option.is_wait !== undefined && option.is_wait !== item.is_wait) {
+      if (option.is_wait != null && option.is_wait !== item.is_wait) {
         continue;
       }
-      if (option.is_first !== undefined && option.is_first !== item.is_first) {
+      if (option.is_first != null && option.is_first !== item.is_first) {
         continue;
       }
-      if (option.is_everyday !== undefined && option.is_everyday !== item.is_everyday) {
+      if (option.is_everyday != null && option.is_everyday !== item.is_everyday) {
         continue;
       }
 
@@ -193,6 +195,21 @@ class ProgressDialog {
     label_toggle_wait_task.innerText = '待ちタスク非表示';
     document.getElementById(this.base_elem_id).appendChild(btn_toggle_wait_task);
     document.getElementById(this.base_elem_id).appendChild(label_toggle_wait_task);
+
+    // 優先タスクのみ表示切り替えボタン
+    let btn_toggle_first_task = document.createElement('input');
+    btn_toggle_first_task.id = 'progress_dialog_toggle_first_button';
+    btn_toggle_first_task.type = 'checkbox';
+    btn_toggle_first_task.classList.add('checkbox_ex');
+    btn_toggle_first_task.addEventListener('click', this.click_handler_toggle_only_first_task.bind(this));
+    btn_toggle_first_task.checked = this.only_first_task;
+    let label_toggle_first_task = document.createElement('label');
+    label_toggle_first_task.id = 'progress_dialog_toggle_first_label';
+    label_toggle_first_task.htmlFor = 'progress_dialog_toggle_first_button';
+    label_toggle_first_task.classList.add('checkbox_ex');
+    label_toggle_first_task.innerText = '優先タスクのみ';
+    document.getElementById(this.base_elem_id).appendChild(btn_toggle_first_task);
+    document.getElementById(this.base_elem_id).appendChild(label_toggle_first_task);
 
     // 内部フレーム(毎日のタスク用)
     let frame_everyday_div = document.createElement('div');
@@ -380,6 +397,14 @@ class ProgressDialog {
    */
   click_handler_toggle_hidden_wait(event) {
     this.hidden_wait_task = !this.hidden_wait_task;
+    this.make();
+  }
+
+  /**
+   * @summary 優先タスクのみ表示ボタン クリックハンドラ
+   */
+  click_handler_toggle_only_first_task(event) {
+    this.only_first_task = !this.only_first_task;
     this.make();
   }
 
