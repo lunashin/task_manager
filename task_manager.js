@@ -102,6 +102,7 @@ var g_autosave_timer = null;
 // timeline Object
 var g_timeline = null;
 var g_timeline_popup = null;
+var g_timeline_popup_MouseMoveCtonrolObj = null;
 
 // 会議登録先グループ名
 const g_meeting_group_name = '会議';
@@ -5042,7 +5043,10 @@ function show_timeline_dialog(event) {
   });
 
   // 上部スペースクリックイベント
-  timeline_dialog_upper.addEventListener('click', close_timeline_popup);
+  // timeline_dialog_upper.addEventListener('click', close_timeline_popup);
+
+  // マウスによるポップアップ移動設定
+  g_timeline_popup_MouseMoveCtonrolObj = new ElementMouseMoveCtonrol(timeline_dialog_base.id);
 
   // 表示
   let rect_parent = timeline_dialog_base.getBoundingClientRect();
