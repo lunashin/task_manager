@@ -212,6 +212,10 @@ class ProgressDialog {
     document.getElementById(this.base_elem_id).appendChild(btn_toggle_first_task);
     document.getElementById(this.base_elem_id).appendChild(label_toggle_first_task);
 
+    // title/item div格納フレーム
+    let frame_outer_div = document.createElement('div');
+    frame_outer_div.classList.add('progress-dialog-frame-outer-div');
+
     // 内部フレーム(毎日のタスク用)
     let frame_everyday_div = document.createElement('div');
     frame_everyday_div.id = this.frame_everyday_elem_id;
@@ -226,8 +230,7 @@ class ProgressDialog {
     item_everyday_div.id = this.item_everyday_elem_id;
     item_everyday_div.classList.add('progress-dialog-item-div');
     frame_everyday_div.appendChild(item_everyday_div);
-
-    document.getElementById(this.base_elem_id).appendChild(frame_everyday_div);
+    frame_outer_div.appendChild(frame_everyday_div);
 
     // 内部フレーム(今日のMUSTタスク用)
     let frame_div = document.createElement('div');
@@ -243,8 +246,9 @@ class ProgressDialog {
     item_div.id = this.item_elem_id;
     item_div.classList.add('progress-dialog-item-div');
     frame_div.appendChild(item_div);
+    frame_outer_div.appendChild(frame_div)
 
-    document.getElementById(this.base_elem_id).appendChild(frame_div);
+    document.getElementById(this.base_elem_id).appendChild(frame_outer_div);
   }
 
   /**

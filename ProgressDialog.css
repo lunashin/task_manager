@@ -1,16 +1,20 @@
 /* --------------- 進捗管理ダイアログ ---------------- */
 .progress-dialog-base {
   width: 90vw;
-  max-height: 85%;
+  height: 85%;
   padding: 10px;
   border: 1px solid #afaeae;
   border-radius: 10px;
   background-color: #d8d5d5;
-  overflow-x: scroll;
+  overflow-x: hidden;
   position: absolute;
   visibility: hidden;
   top: 0;
   left: 0;
+}
+.progress-dialog-frame-outer-div {
+  overflow-x: scroll;
+  max-height: 95%;
 }
 .progress-dialog-frame-div {
   display: flex;
