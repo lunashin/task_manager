@@ -5035,6 +5035,7 @@ function show_timeline_dialog(event) {
       case key_esc:       // ESC
         event.preventDefault(); // 既定の動作をキャンセル
         g_timeline_popup.remove();
+        g_timeline_popup = null;
         timeline_dialog_base.style.visibility = 'hidden';
         break;
     }
@@ -5153,6 +5154,11 @@ function show_timeline(mode = 'all')
   } else {
     g_timeline.set_filter(g_stock_filter);
     g_timeline.show(mode);
+  }
+
+  // タイムラインポップアップ
+  if (g_timeline_popup !== null) {
+    g_timeline_popup.show(mode);
   }
 }
 
