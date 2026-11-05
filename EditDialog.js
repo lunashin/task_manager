@@ -343,6 +343,8 @@ class EditDialog {
       document.getElementById("popup_edit_url_app_type").style.display = "none";
       // メール
       document.getElementById("popup_edit_mail").style.display = "none";
+      // メールコンテンツ
+      document.getElementById("popup_edit_mail_content").style.display = "none";
       // メモ
       document.getElementById("popup_edit_note").style.display = "none";
       document.getElementById("popup_edit_note_add_btn").style.display = "none";
@@ -371,6 +373,9 @@ class EditDialog {
       // メール
       document.getElementById("popup_edit_mail").value = item.mail;
       document.getElementById("popup_edit_mail").style.display = "block";
+      // メールコンテンツ
+      document.getElementById("popup_edit_mail_content").value = item.mail_content;
+      document.getElementById("popup_edit_mail_content").style.display = "block";
       // メモ
       document.getElementById("popup_edit_note").value = item.note;
       document.getElementById("popup_edit_note").style.display = "block";
@@ -598,6 +603,7 @@ class EditDialog {
     let new_url = document.getElementById("popup_edit_url").value;
     let new_url_app_type = document.getElementById("popup_edit_form").elements['url_app_type'].value;
     let new_mail = document.getElementById("popup_edit_mail").value;
+    let new_mail_content = document.getElementById("popup_edit_mail_content").value;
     let new_note = document.getElementById("popup_edit_note").value;
     let new_done = document.getElementById("popup_edit_done").checked;
     let new_wait = document.getElementById("popup_edit_wait").checked;
@@ -653,6 +659,8 @@ class EditDialog {
       item.url = new_url;
       item.url_app_type = new_url_app_type;
       item.mail = new_mail;
+      item.mail_content = new_mail_content;
+      item.mail_is_html = (new_mail_content.length <= 0 ? false : item.mail_is_html);
       item.note = new_note;
       item.is_wait = new_wait;
       item.is_everyday = new_everyday;
