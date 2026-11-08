@@ -131,38 +131,6 @@ class ProgressDialog {
         continue;
       }
 
-      let lines = item.note.split('\n'); // noteを改行で分割
-      let prev1 = '';
-      let disp_notes = [];
-
-      // メモの各行を処理 (後ろから回す)
-      for (let k = lines.length - 1; k >= 0; k--) {
-        // 日付を抽出
-        let temp = lines[k].split(' ');
-        let d_str = temp[0];
-        if (temp.length >= 2) {
-          if (temp[0].split('/').length <= 2) {
-            d_str = '2026/' + d_str;
-          }
-        }
-        // 今日のコメント + 昨日以前のコメント1 のリストを作成
-        let days_diff = get_days_from_today(d_str);
-        if (days_diff > 0) {
-          prev1 = `(${days_diff}日前) ${lines[k]}`;
-        } else if (days_diff === 0) {
-          if (prev1 !== '') {
-            disp_notes.push({content: prev1, type: 'past'});
-            prev1 = '';
-          }
-          disp_notes.push({content: `(本日) ${lines[k]}`, type: 'today'});
-        }
-      }
-      // 今日のメモがない場合、過去の最近のメモを追加
-      if (prev1 !== '') {
-        disp_notes.push({content: prev1, type: 'past'});
-        prev1 = '';
-      }
-
       // グループが変わったらグループ行を作成
       let group = getInternalGroupFromItemID(item.id);
       if (groupid_prev !== group.id) {
@@ -170,9 +138,50 @@ class ProgressDialog {
       }
       groupid_prev = group.id;
 
-      // 行の要素を作成
-      this.addItemRow(item, disp_notes, title_elem_id, comment_elem_id);
+      // 行要素を描画
+      this.drawItemRow(item, title_elem_id, comment_elem_id);
     }
+  }
+
+  /**
+   * @summary 今日のコメントリストを作成
+   * @param アイテム
+   * @returns コメント情報(dictの配列) / [{content: '表示文字列', type: '[past|today]'} ... ]
+   */
+  get_todays_comments(item) {
+    let lines = item.note.split('\n'); // noteを改行で分割
+    let prev1 = '';
+    let todays_notes = [];
+
+    // メモの各行を処理 (後ろから回す)
+    for (let k = lines.length - 1; k >= 0; k--) {
+      // 日付を抽出
+      let temp = lines[k].split(' ');
+      let d_str = temp[0];
+      if (temp.length >= 2) {
+        if (temp[0].split('/').length <= 2) {
+          d_str = '2026/' + d_str;
+        }
+      }
+      // 今日のコメント + 昨日以前のコメント1 のリストを作成
+      let days_diff = get_days_from_today(d_str);
+      if (days_diff > 0) {
+        prev1 = `(${days_diff}日前) ${lines[k]}`;
+      } else if (days_diff === 0) {
+        if (prev1 !== '') {
+          todays_notes.push({content: prev1, type: 'past'});
+          prev1 = '';
+        }
+        todays_notes.push({content: `(本日) ${lines[k]}`, type: 'today'});
+      }
+    }
+    // 今日のメモがない場合、過去の最近のメモを追加
+    if (prev1 !== '') {
+      todays_notes.push({content: prev1, type: 'past'});
+      prev1 = '';
+    }
+
+    return todays_notes;
   }
 
   /**
@@ -252,24 +261,65 @@ class ProgressDialog {
   }
 
   /**
-   * @summary タスク列追加
+   * @summary タスク・コメント描画
    * @param アイテム
-   * @param コメント情報(dict配列) / [{content: '表示文字列', type: '[past|today]'} ... ]
    * @param 追加先タイトルdiv要素ID
    * @param 追加先コメントdiv要素ID
    */
-  addItemRow(item, comments, title_elem_id, comment_elem_id) {
-    // タスク名列へ行追加
-    let elem_title_div = document.getElementById(title_elem_id);
+  drawItemRow(item, title_elem_id, comment_elem_id) {
+    // タイトル名列 描画(既にあれば更新)
+    this.drawItemRowTitle(item, title_elem_id);
 
-    let new_title_frame = document.createElement("div");
-    new_title_frame.classList.add('progress-dialog-box-title-frame');
-    let new_title_space = document.createElement("div");
-    new_title_space.classList.add('progress-dialog-box-title-space'); // 左側のスペース
-    new_title_frame.appendChild(new_title_space);
+    // コメント列 描画
+    this.drawItemRowComment(item, comment_elem_id);
+  }
+
+  /**
+   * @summary タイトル列描画
+   * @param アイテム
+   * @param 追加先タイトル列div要素ID
+   * @param 更新
+   */
+  drawItemRowTitle(item, title_elem_id) {
+    let title_div_id = `progress-dialog-box-title-${item.id}`;
+    let is_update = (document.getElementById(title_div_id) !== null);
+
+    let elem_title_div = document.getElementById(title_elem_id);
+    
+    // タスク名列へ行追加
+    let new_title_frame = null;
+    if (!is_update) {
+      new_title_frame = document.createElement("div");
+      new_title_frame.id = `progress-dialog-box-title-frame-${item.id}`;
+      new_title_frame.classList.add('progress-dialog-box-title-frame');
+      let new_title_space = document.createElement("div");
+      new_title_space.classList.add('progress-dialog-box-title-space'); // 左側のスペース
+      new_title_frame.appendChild(new_title_space);
+    }
 
     // タイトル用div作成
-    let new_title_div = document.createElement("div");
+    let new_title_div = document.getElementById(title_div_id);
+    if (!is_update) {
+      new_title_div = document.createElement("div");
+      new_title_div.id = title_div_id;
+    } else {
+      // 要素をクリア
+      for (let i = new_title_div.children.length - 1; i >= 0; i--) {
+        new_title_div.children[i].remove();
+      }
+      new_title_div.classList.remove(...new_title_div.classList);
+    }
+
+    // 表示対象ではなければ削除
+    if(!this.is_target_item(item.id)) {
+      let frame = document.getElementById(`progress-dialog-box-title-frame-${item.id}`);
+      if (frame !== null) {
+        frame.remove();
+      }
+      return;
+    }
+
+    // class
     new_title_div.classList.add('progress-dialog-box-title');
     if (item.is_wait) {
       new_title_div.classList.add('progress-dialog-box-title-wait');
@@ -277,13 +327,15 @@ class ProgressDialog {
     if (item.is_first) {
       new_title_div.classList.add('progress-dialog-box-title-first');
     }
-    new_title_div.id = `progress-dialog-box-title-${item.id}`;
+
+    // 属性
     let period_date = item.period_end !== '' ? item.period_end : item.period;
     let period_days = period_date !== '' ? ' (⌛' + get_display_date_str(period_date) + ')' : '';
     new_title_div.innerText = get_before_icons(item) + ' ' + item.name + ' ' + get_after_icons(item) + period_days; // 前アイコン + タスク名 + 後アイコン + 期限までの日数
     new_title_div.dataset.id = item.id;
     new_title_div.tabIndex = 0; // フォーカスを持てるようにする
     new_title_div.draggable = true; // ドラッグ可
+
     // 期限間近バッチ(今日 or 1日後)
     if (period_date !== '') {
       let days = get_days_from_today(period_date, true);
@@ -309,48 +361,90 @@ class ProgressDialog {
         new_title_div.appendChild(badge);
       }
     }
-    // クリックイベント
-    new_title_div.addEventListener('dblclick', this.dblclick_handler_title.bind(this));
-    new_title_div.addEventListener('click', this.click_handler_title.bind(this));
-    // ドラッグイベント
-    new_title_div.addEventListener("dragstart", this.dragStart_handler_title.bind(this));
-    new_title_div.addEventListener("dragend", this.dragEnd_handler_title.bind(this));
-    // その他イベント
-    let keys = Object.keys(this.cb_event_title);
-    for (let i = 0; i < keys.length; i++) {
-      new_title_div.addEventListener(keys[i], this.cb_event_title[keys[i]]);
-    }
-    new_title_frame.appendChild(new_title_div);
-    elem_title_div.appendChild(new_title_frame);
 
-    // コメント列へ行追加
+    if (!is_update) {
+      // クリックイベント
+      new_title_div.addEventListener('dblclick', this.dblclick_handler_title.bind(this));
+      new_title_div.addEventListener('click', this.click_handler_title.bind(this));
+      // ドラッグイベント
+      new_title_div.addEventListener("dragstart", this.dragStart_handler_title.bind(this));
+      new_title_div.addEventListener("dragend", this.dragEnd_handler_title.bind(this));
+      // その他イベント
+      let keys = Object.keys(this.cb_event_title);
+      for (let i = 0; i < keys.length; i++) {
+        new_title_div.addEventListener(keys[i], this.cb_event_title[keys[i]]);
+      }
+
+      // 親要素へ追加
+      new_title_frame.appendChild(new_title_div);
+      elem_title_div.appendChild(new_title_frame);
+    }
+  }
+
+  /**
+   * @summary コメント列へ行追加
+   * @param アイテム
+   * @param コメント
+   * @param 追加先コメント列div要素ID
+   */
+  drawItemRowComment(item, comment_elem_id) {
+    // 今日のコメントリスト取得
+    let comments = this.get_todays_comments(item);
+    
+    let comment_row_div_id = `progress-dialog-box-item-row-${item.id}`;
+    let is_update = (document.getElementById(comment_row_div_id) !== null);
+
+    // 追加先コメント列div
     let elem_item_div = document.getElementById(comment_elem_id);
-    let new_item_row_div = document.createElement("div");
-    new_item_row_div.classList.add('progress-dialog-item-row-div');
+
+    // コメント行div作成
+    let new_comment_row_div = document.getElementById(comment_row_div_id);
+    if (!is_update) {
+      new_comment_row_div = document.createElement("div");
+      new_comment_row_div.id = comment_row_div_id;
+      new_comment_row_div.classList.add('progress-dialog-item-row-div');
+    }
+
+    // 表示対象ではなければ削除
+    if(!this.is_target_item(item.id)) {
+      new_comment_row_div.remove();
+      return;
+    }
+
+    // 全てのコメントdivを削除
+    if(is_update) {
+      for (let i = new_comment_row_div.children.length - 1; i >= 0; i--) {
+        new_comment_row_div.children[i].remove();
+      }
+    }
+
     if (comments.length <= 0) {
       // コメントなしの場合は空のdivを置く
-      let new_item_div = document.createElement("div");
-      new_item_div.classList.add('progress-dialog-box-item');
-      new_item_div.classList.add('progress-dialog-box-item-empty');
-      new_item_row_div.appendChild(new_item_div);
+      let new_comment_div = document.createElement("div");
+      new_comment_div.classList.add('progress-dialog-box-item');
+      new_comment_div.classList.add('progress-dialog-box-item-empty');
+      new_comment_row_div.appendChild(new_comment_div);
     } else {
+      // コメントdiv作成
       for (let i = 0; i < comments.length; i++) {
-        let new_item_div = document.createElement("div");
-        new_item_div.classList.add('progress-dialog-box-item');
+        let new_comment_div = document.createElement("div");
+        new_comment_div.classList.add('progress-dialog-box-item');
         if (comments[i].type === 'past') {
-          new_item_div.classList.add('progress-dialog-box-item-past');
+          new_comment_div.classList.add('progress-dialog-box-item-past');
         }
-        new_item_div.dataset.id = item.id;
-        new_item_div.innerText = comments[i].content;
+        new_comment_div.dataset.id = item.id;
+        new_comment_div.innerText = comments[i].content;
 
         // 最後の要素にダブルクリックイベント登録
         if (i === comments.length - 1) {
-          new_item_div.addEventListener('dblclick', this.div_dblclick_item_handler.bind(this));
+          new_comment_div.addEventListener('dblclick', this.div_dblclick_item_handler.bind(this));
         }
-        new_item_row_div.appendChild(new_item_div);
+        new_comment_row_div.appendChild(new_comment_div);
       }
     }
-    elem_item_div.appendChild(new_item_row_div);
+    if (!is_update) {
+      elem_item_div.appendChild(new_comment_row_div);
+    }
   }
 
   /**
@@ -383,6 +477,21 @@ class ProgressDialog {
     new_item_row_div.appendChild(new_item_div);
 
     elem_item_div.appendChild(new_item_row_div);
+  }
+
+  /**
+   * @summary 描画対象アイテムかどうか判定
+   * @param アイテムID
+   * @returns true:対象 / false:対象ではない
+   */
+  is_target_item(id) {
+    let items = this.cb_get_itemlist();
+    for (let idx = 0; idx < items.length; idx++) {
+      if(items[idx].id === id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -563,11 +672,16 @@ class ProgressDialog {
 
   /**
    * @summary 画面更新
-   * @param 開始日(string)
+   * @param 更新対象アイテムID(nullは全削除＆全更新)
+   * @param フォーカス移動するかどうか
    */
-  reflesh(is_focus = true) {
-    this.resetAll();
-    this.make(is_focus);
+  reflesh(item_id = null, is_focus = true) {
+    if (item_id !== null) {
+      this.drawItemRow(getInternal(item_id), this.title_elem_id, this.item_elem_id);
+    } else {
+      this.resetAll();
+      this.make(is_focus);
+    }
     // if (items !== null) {
     //   this.make(items);
     // } else {

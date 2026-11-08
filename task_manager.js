@@ -312,7 +312,7 @@ async function keyhandler_body(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         // タスク追加
         await g_edit_dialog.show_edit_popup_new();
-        refresh_screen('item');
+        refresh_screen(null, 'item');
       }
       break;
     case key_esc:       // ESC
@@ -495,14 +495,14 @@ function keyhandler_stock_list(event) {
       }
       event.preventDefault(); // 既定の動作をキャンセル
       const add_id = addItemBehindSelectedItem(elem_id, false, false);
-      refresh_screen('item');
+      refresh_screen(null, 'item');
       set_select(elem_id, add_id, false, false);
       break;
     case key_d:           // d
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         const add_id = addItemBehindSelectedItem(elem_id, true, false);
-        refresh_screen('item');
+        refresh_screen(null, 'item');
         set_select(elem_id, add_id, false, false);
         break;
       }
@@ -611,7 +611,7 @@ function keyhandler_todays_must_list(event) {
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         const add_id = addItemBehindSelectedItem(elem_id, true, false);
-        refresh_screen('item');
+        refresh_screen(null, 'item');
         set_select(elem_id, add_id, false, false);
         break;
       }
@@ -668,14 +668,14 @@ function keyhandler_todays_list(event) {
       // 空白タスクを選択行の下へ追加
       event.preventDefault(); // 既定の動作をキャンセル
       const add_id = addItemBehindSelectedItem(elem_id, false, true);
-      refresh_screen('item');
+      refresh_screen(null, 'item');
       set_select(elem_id, add_id, false, false);
       break;
     case key_d:           // d
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         const add_id = addItemBehindSelectedItem(elem_id, true, false);
-        refresh_screen('item');
+        refresh_screen(null, 'item');
         set_select(elem_id, add_id, false, false);
         break;
       }
@@ -751,20 +751,20 @@ function keyhandler_tomorroy_list(event) {
  */
 async function keydown_handler_progress_diralog_title(event) {
   let elem_id = event.target.id;
+  let item_id = event.target.dataset.id;
+
   switch (event.keyCode){
     case key_arrow_left: // ←
       if (remove_today_item(elem_id) === true) {
-        g_progress_dialog.reflesh();
         flash_list_border(elem_id_list_stock);
       }
       break;
     case key_arrow_right: // →
       if (done_item(elem_id) === true) {
-        g_progress_dialog.reflesh();
         flash_list_border(elem_id_list_done);
       }
       break;
-    case key_c:           // 
+    case key_c:           // c
       if (event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         copy_selected_item_name(elem_id, event);
@@ -775,20 +775,17 @@ async function keydown_handler_progress_diralog_title(event) {
       if (!event.shiftKey && !event.ctrlKey) {
         event.preventDefault(); // 既定の動作をキャンセル
         remove_selected_item(elem_id);
-        g_progress_dialog.reflesh();
       }
       break;
     case key_f:           // f
       event.preventDefault(); // 既定の動作をキャンセル
       // ファーストタスク
       toggle_first_task(elem_id);
-      g_progress_dialog.reflesh();
       break;
     case key_i:           // i
       event.preventDefault(); // 既定の動作をキャンセル
       // 重要フラグ
       toggle_priority_task(elem_id);
-      g_progress_dialog.reflesh();
       break;
     case key_s:           // s
       if (event.shiftKey) {
@@ -809,12 +806,10 @@ async function keydown_handler_progress_diralog_title(event) {
         event.preventDefault(); // 既定の動作をキャンセル
         // 元に戻す
         undo_item()
-        g_progress_dialog.reflesh();
         break;
       }
       event.preventDefault(); // 既定の動作をキャンセル
       toggle_wait(elem_id);
-      g_progress_dialog.reflesh();
       break;
     case key_space:       // space
       event.preventDefault(); // 既定の動作をキャンセル
@@ -825,14 +820,14 @@ async function keydown_handler_progress_diralog_title(event) {
       }
       // 編集ポップアップ
       if (await showEditPopup(elem_id)) {
-        g_progress_dialog.reflesh();
+        g_progress_dialog.reflesh(item_id, false);
       }
       document.getElementById(elem_id).focus();
       break;
     case key_enter:     // Enter
       event.preventDefault(); // 既定の動作をキャンセル
       if (await showEditPopup(elem_id)) {
-        g_progress_dialog.reflesh();
+        g_progress_dialog.reflesh(item_id, false);
       }
       document.getElementById(elem_id).focus();
       break;
@@ -1158,7 +1153,7 @@ function regist_from_textarea() {
   let group_id = convert_internal_data(input);
 
   // 内部データをリストへ反映
-  refresh_screen('all');
+  refresh_screen(null, 'all');
 
   // 追加グループ選択
   set_select(elem_id_list_stock, group_id, true, true);
@@ -1169,9 +1164,10 @@ function regist_from_textarea() {
 
 /**
  * @summary 画面更新
+ * @param 更新対象アイテムID
  * @param タイムライン更新モード(all:グループ/アイテムを更新, item:アイテムのみ(グループは更新しない))
  */
-function refresh_screen(timeline_refreshmode = 'all') {
+function refresh_screen(item_id = null, timeline_refreshmode = 'all') {
   update_stock_list(g_stock_filter);
   update_everyday_list();
   update_todays_must_list();
@@ -1184,7 +1180,7 @@ function refresh_screen(timeline_refreshmode = 'all') {
 
   // 進捗ダイアログ
   if (g_progress_dialog !== null && g_progress_dialog.is_show()) {
-    g_progress_dialog.reflesh(false);
+    g_progress_dialog.reflesh(item_id, false);
   }
 }
 
@@ -1364,7 +1360,7 @@ function read_mail_flag(isRefleshList = true, isSelect = true) {
 
       // リスト更新
       if (isRefleshList) {
-        refresh_screen('item');
+        refresh_screen(null, 'item');
       }
     
       // 選択
@@ -1418,7 +1414,7 @@ function read_meeting(target_d) {
       // タスクリストへ追加
       pushHistory();
       addIntarnalDatasToGroup(group.id, meeting_list, true);
-      refresh_screen('item');
+      refresh_screen(null, 'item');
     
       // 選択
       set_select(elem_id_list_stock, group.id, true, true);
@@ -1622,7 +1618,7 @@ function regist_from_json(json_text) {
   g_list_data = json_obj;
 
   // 内部データをリストへ反映
-  refresh_screen('all');
+  refresh_screen(null, 'all');
 
   return true;
 }
@@ -1721,7 +1717,7 @@ async function click_handler_regist_from_clipboard(event) {
   addItemBehind(select_item_id, item);
 
   // addIntarnalDatasToGroup(group.id, items, false);
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 
   // 選択
   set_select(elem_id_list_stock, group.id, true, true);
@@ -4051,7 +4047,7 @@ function move_today_item() {
   // item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 
   // 今日のリストのタスクを選択
   set_select(elem_id_list_today, item.id, false, false);
@@ -4084,7 +4080,7 @@ function move_today_item_todays_expires() {
     }
   }
   // リストへ反映
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 // 選択アイテムを今日のタスクから削除
@@ -4110,7 +4106,7 @@ function remove_today_item(elem_id) {
   // item.last_update = get_today_str(true, true, true);
 
   // リストへ反映
-  refresh_screen('item');
+  refresh_screen(id, 'item');
   return true;
 }
 
@@ -4131,7 +4127,7 @@ function toggle_first_task(elem_id) {
   // 反転
   item.is_first = !item.is_first;
 
-  refresh_screen('item');
+  refresh_screen(id, 'item');
 }
 
 // 選択アイテムを重要フラグ設定
@@ -4151,7 +4147,7 @@ function toggle_priority_task(elem_id) {
   // 反転
   item.priority = !item.priority;
 
-  refresh_screen('item');
+  refresh_screen(id, 'item');
 }
 
 // 選択アイテムを作業中タスクへ設定
@@ -4175,7 +4171,7 @@ function toggle_todays_doing_task() {
     // 非作業中タスクで、今日 かつ 処理済みでないデータなら作業中へ
     item.is_doing = true;
   }
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 // 全てのファーストタスクを解除
@@ -4192,7 +4188,7 @@ function clear_first_task() {
     }
   }
   // リスト更新
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 /**
@@ -4215,7 +4211,7 @@ function toggle_wait(elem_id) {
   item.last_update = get_today_str(true, true, true);
   item.last_progress_updated = get_today_str(true, true, true);
 
-  refresh_screen('item');
+  refresh_screen(id, 'item');
 }
 
 // 全ての追加タスクを解除
@@ -4233,7 +4229,7 @@ function release_todays_add_task() {
     }
   }
   // リスト更新
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 /**
@@ -4254,7 +4250,7 @@ function toggle_non_task(elem_id) {
   
   item.is_non_task = !item.is_non_task;
 
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 // 今日の必須タスクに設定
@@ -4279,7 +4275,7 @@ function set_todays_must_task(elem_id) {
   }
   item.is_todays_must = true;
 
-  refresh_screen('item');
+  refresh_screen(null, 'item');
   return true;
 }
 
@@ -4299,7 +4295,7 @@ function clear_todays_must_task(elem_id) {
 
   item.is_todays_must = false;
 
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 /**
@@ -4364,7 +4360,7 @@ function done_item(elem_id) {
   item.last_progress_updated = get_today_str(true, true, true);
 
   // リストへ反映
-  refresh_screen('item');
+  refresh_screen(id, 'item');
   return true;
 }
 
@@ -4384,7 +4380,7 @@ function return_item() {
   let item = getInternal(id);
   if (item !== null) {
     item.status = 'yet';
-    refresh_screen('item');
+    refresh_screen(null, 'item');
   }
 }
 
@@ -4407,7 +4403,7 @@ function release_todays_done() {
     }
   }
   // リストへ反映
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 /**
@@ -4428,7 +4424,7 @@ function set_tomorrow_item(elem_id, is_tomorrow) {
   let item = getInternal(id);
   if (item !== null) {
     item.is_tomorrow = is_tomorrow;
-    refresh_screen('item');
+    refresh_screen(null, 'item');
   }
 }
 
@@ -4452,7 +4448,7 @@ function release_tomorrow_item() {
     }
   }
   // リストへ反映
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 // アイテム追加
@@ -4470,7 +4466,7 @@ function add_items() {
   // アイテム追加
   let added_item_id = addIntarnalDataEx(selected_id, lines);
   // リストを更新
-  refresh_screen('item');
+  refresh_screen(null, 'item');
   // 追加アイテムを選択
   set_select(elem_id_list_stock, added_item_id, true, true);
  
@@ -4490,7 +4486,7 @@ function remove_selected_item(elem_id) {
   removeIntarnalData(selected_id, false);
 
   // リストを更新
-  refresh_screen(is_group_ ? 'all' : 'item');
+  refresh_screen(selected_id, is_group_ ? 'all' : 'item');
 }
 
 /**
@@ -4514,7 +4510,7 @@ function swap_selected_item(elem_id, is_up) {
   swap_item(sel_id, is_up);
 
   // リストを更新
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 /**
@@ -4545,7 +4541,7 @@ function undo_item() {
   }
 
   // リストを更新
-  refresh_screen('item');
+  refresh_screen(null, 'item');
 }
 
 /**
@@ -4730,7 +4726,7 @@ function load_data(show_confirm = true) {
     adjust_attr_internal_data();
   
     // リストを更新
-    refresh_screen('all');
+    refresh_screen(null, 'all');
   
     // 最新のIDを再計算
     update_last_id();
@@ -5218,8 +5214,8 @@ async function showEditPopup(elem_id) {
   // ポップアップ表示
   let res = await g_edit_dialog.show_edit_popup(selected_ids, elem_sel[0]);
   if (res) {
-    // リスト更新 / TODO:期限変更判断追加
-    refresh_screen(is_group(selected_ids[0]) ? 'all' : 'item');
+    // リスト更新 / TODO:期限変更判断追加, 一旦先頭アイテムIDを渡す
+    refresh_screen(selected_ids[0], is_group(selected_ids[0]) ? 'all' : 'item');
   }
   // ポップアップ起動元リストへフォーカス移動
   document.getElementById(elem_id).focus();
