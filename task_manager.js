@@ -4355,6 +4355,7 @@ function done_item(elem_id) {
 
   pushHistory();
   item.status = 'done';
+  item.is_wait = false;  // 待ちフラグ解除
   item.is_first = false;  // 優先タスクフラグ解除
   item.last_update = get_today_str(true, true, true);
   item.last_progress_updated = get_today_str(true, true, true);
