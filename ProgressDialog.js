@@ -134,7 +134,7 @@ class ProgressDialog {
       // グループが変わったらグループ行を作成
       let group = getInternalGroupFromItemID(item.id);
       if (groupid_prev !== group.id) {
-        this.addGroupRow(group, title_elem_id, comment_elem_id);
+        this.drawGroupRow(group, title_elem_id, comment_elem_id, false);
       }
       groupid_prev = group.id;
 
@@ -269,7 +269,6 @@ class ProgressDialog {
   drawItemRow(item, title_elem_id, comment_elem_id) {
     // タイトル名列 描画(既にあれば更新)
     this.drawItemRowTitle(item, title_elem_id);
-
     // コメント列 描画
     this.drawItemRowComment(item, comment_elem_id);
   }
@@ -388,9 +387,6 @@ class ProgressDialog {
    * @param 追加先コメント列div要素ID
    */
   drawItemRowComment(item, comment_elem_id) {
-    // 今日のコメントリスト取得
-    let comments = this.get_todays_comments(item);
-    
     let comment_row_div_id = `progress-dialog-box-item-row-${item.id}`;
     let is_update = (document.getElementById(comment_row_div_id) !== null);
 
@@ -417,6 +413,9 @@ class ProgressDialog {
         new_comment_row_div.children[i].remove();
       }
     }
+
+    // 今日のコメントリスト取得
+    let comments = this.get_todays_comments(item);
 
     if (comments.length <= 0) {
       // コメントなしの場合は空のdivを置く
@@ -453,30 +452,44 @@ class ProgressDialog {
    * @param 追加先タイトルdiv要素ID
    * @param 追加先コメントdiv要素ID
    */
-  addGroupRow(group, title_elem_id, comment_elem_id) {
+  drawGroupRow(group, title_col_elem_id, comment_col_elem_id, check_has_target = false) {
+    let elem_title_id = `progress-dialog-box-title-group-${group.id}`;
+    let elem_comment_id = `progress-dialog-box-comment-group-${group.id}`;
+    let is_update = (document.getElementById(elem_title_id) !== null);
+
     // タスク名列へ行追加
-    let elem_title_div = document.getElementById(title_elem_id);
-    let new_title_div = document.createElement("div");
-    new_title_div.classList.add('progress-dialog-box-title-group');
-    new_title_div.innerText = group.name;
-    new_title_div.dataset.id = group.id;
-    // ドロップイベント
-    new_title_div.addEventListener("drop", this.drop_handler_title_group.bind(this));
-    new_title_div.addEventListener("dragover", this.dragover_handler_title_group.bind(this));
-    new_title_div.addEventListener("dragenter", this.dragenter_handler_title_group.bind(this));
-    new_title_div.addEventListener("dragleave", this.dragleave_handler_title_group.bind(this));
-    // 子要素へ追加
-    elem_title_div.appendChild(new_title_div);
-
-    // コメント列へ行追加
-    let elem_item_div = document.getElementById(comment_elem_id);
-    let new_item_row_div = document.createElement("div");
-    let new_item_div = document.createElement("div");
-    new_item_div.innerText = ' ';
-    new_item_div.classList.add('progress-dialog-box-item-group');
-    new_item_row_div.appendChild(new_item_div);
-
-    elem_item_div.appendChild(new_item_row_div);
+    if (!is_update) {
+      let elem_title_div = document.getElementById(title_col_elem_id);
+      let new_title_div = document.createElement("div");
+      new_title_div.id = elem_title_id;
+      new_title_div.classList.add('progress-dialog-box-title-group');
+      new_title_div.innerText = group.name;
+      new_title_div.dataset.id = group.id;
+      // ドロップイベント
+      new_title_div.addEventListener("drop", this.drop_handler_title_group.bind(this));
+      new_title_div.addEventListener("dragover", this.dragover_handler_title_group.bind(this));
+      new_title_div.addEventListener("dragenter", this.dragenter_handler_title_group.bind(this));
+      new_title_div.addEventListener("dragleave", this.dragleave_handler_title_group.bind(this));
+      // 子要素へ追加
+      elem_title_div.appendChild(new_title_div);
+      
+      // コメント列へ行追加
+      let elem_item_div = document.getElementById(comment_col_elem_id);
+      let new_item_row_div = document.createElement("div");
+      new_item_row_div.id = elem_comment_id;
+      let new_item_div = document.createElement("div");
+      new_item_div.innerText = ' ';
+      new_item_div.classList.add('progress-dialog-box-item-group');
+      new_item_row_div.appendChild(new_item_div);
+      
+      elem_item_div.appendChild(new_item_row_div);
+    } else {
+      // 該当グループに表示アイテムがあるか確認し、無ければ削除
+      if (check_has_target && this.has_target_items_in_group(group.id)) {
+        document.getElementById(elem_title_id).remove();
+        document.getElementById(elem_comment_id).remove();
+      }
+    }
   }
 
   /**
@@ -488,6 +501,21 @@ class ProgressDialog {
     let items = this.cb_get_itemlist();
     for (let idx = 0; idx < items.length; idx++) {
       if(items[idx].id === id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @summary グループに描画対象アイテムがあるかどうか判定
+   * @param グループID
+   * @returns true:対象がある / false:対象がない
+   */
+  has_target_items_in_group(group_id) {
+    let group = getInternal(group_id);
+    for (const item of group.sub_tasks) {
+      if (this.is_target_item(item.id)) {
         return true;
       }
     }
@@ -677,8 +705,13 @@ class ProgressDialog {
    */
   reflesh(item_id = null, is_focus = true) {
     if (item_id !== null) {
-      this.drawItemRow(getInternal(item_id), this.title_elem_id, this.item_elem_id);
-    } else {
+      let item = getInternal(item_id);
+      if (item == null) {
+        item = {id: item_id}; // nullの場合は削除された可能性があるため、idだけ渡す
+      }
+      // アイテム行・コメント行 描画
+      this.drawItemRow(item, this.title_elem_id, this.item_elem_id);
+  } else {
       this.resetAll();
       this.make(is_focus);
     }
