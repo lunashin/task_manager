@@ -551,7 +551,7 @@ class ProgressDialog {
     item.last_progress_updated = get_today_str(true, true, true);
 
     // 表示更新
-    this.reflesh();
+    this.reflesh(item.id);
   }
 
   /**
@@ -654,7 +654,7 @@ class ProgressDialog {
     item.last_progress_updated = get_today_str(true, true, true);
 
     // 表示更新
-    this.reflesh();
+    this.reflesh(item.id);
   }
 
   /**
